@@ -61,7 +61,7 @@ const Cart = () => {
                           <Button 
                             variant="outline" 
                             size="icon" 
-                            className="h-8 w-8"
+                            className="h-8 w-8 border-gray-600 text-white bg-gray-800"
                             onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
                           >
                             <Minus className="h-3 w-3" />
@@ -72,7 +72,7 @@ const Cart = () => {
                           <Button 
                             variant="outline" 
                             size="icon" 
-                            className="h-8 w-8"
+                            className="h-8 w-8 border-gray-600 text-white bg-gray-800"
                             onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
                             disabled={item.quantity >= item.product.stock}
                           >
@@ -90,13 +90,14 @@ const Cart = () => {
                 
                 <div className="flex justify-between items-center pt-4">
                   <Button 
-                    variant="outline" 
+                    variant="outline"
+                    className="border-gray-600 text-white bg-gray-800 hover:bg-gray-700" 
                     onClick={clearCart}
                   >
                     Clear Cart
                   </Button>
                   
-                  <Button asChild>
+                  <Button asChild variant="outline" className="border-gray-600 text-white bg-gray-800 hover:bg-gray-700">
                     <Link to="/products">Continue Shopping</Link>
                   </Button>
                 </div>

@@ -1,5 +1,6 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { products } from '@/data/products';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -11,7 +12,17 @@ const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [productStock, setProductStock] = useState<Record<string, number>>({});
   const { toast } = useToast();
+
+  // Load product stock data on mount
+  useEffect(() => {
+    const initialStock: Record<string, number> = {};
+    products.forEach(product => {
+      initialStock[product.id] = product.stock;
+    });
+    setProductStock(initialStock);
+  }, []);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,6 +41,28 @@ const Admin = () => {
         description: "Invalid username or password",
       });
     }
+  };
+
+  const handleUpdateStock = (productId: string, newStock: number) => {
+    setProductStock(prev => ({
+      ...prev,
+      [productId]: newStock
+    }));
+  };
+
+  const handleSaveChanges = () => {
+    // In a real app, this would save to your backend
+    // For now, we'll just show a toast
+    toast({
+      title: "Changes saved",
+      description: "Product stock has been updated.",
+    });
+    // Update products in memory (in a real app, this would be persistent)
+    products.forEach(product => {
+      if (productStock[product.id] !== undefined) {
+        product.stock = productStock[product.id];
+      }
+    });
   };
 
   return (
@@ -74,7 +107,63 @@ const Admin = () => {
             </div>
           ) : (
             <div>
-              <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+              <div className="flex items-center justify-between mb-8">
+                <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+                <Button 
+                  onClick={handleSaveChanges}
+                  className="bg-brand-green text-black hover:bg-brand-green/90"
+                >
+                  Save All Changes
+                </Button>
+              </div>
+              
+              <div className="mb-12">
+                <h2 className="text-2xl font-semibold mb-4">Inventory Management</h2>
+                <div className="bg-gray-900 rounded-lg p-6">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-gray-800">
+                          <th className="text-left py-3 px-4">ID</th>
+                          <th className="text-left py-3 px-4">Product</th>
+                          <th className="text-left py-3 px-4">Series</th>
+                          <th className="text-left py-3 px-4">Price</th>
+                          <th className="text-left py-3 px-4">Stock</th>
+                          <th className="text-left py-3 px-4">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {products.map((product) => (
+                          <tr key={product.id} className="border-b border-gray-800">
+                            <td className="py-3 px-4 text-gray-400">{product.id}</td>
+                            <td className="py-3 px-4">{product.name}</td>
+                            <td className="py-3 px-4 text-gray-400">{product.series}</td>
+                            <td className="py-3 px-4">{product.price.toLocaleString()} EGP</td>
+                            <td className="py-3 px-4">
+                              <Input
+                                type="number"
+                                min="0"
+                                className="w-24 bg-gray-800 border-gray-700"
+                                value={productStock[product.id] || 0}
+                                onChange={(e) => handleUpdateStock(product.id, parseInt(e.target.value) || 0)}
+                              />
+                            </td>
+                            <td className="py-3 px-4">
+                              <Button 
+                                variant="outline"
+                                size="sm" 
+                                className="border-gray-600 text-white bg-gray-800 hover:bg-gray-700"
+                              >
+                                Edit
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
               
               <div className="mb-12">
                 <h2 className="text-2xl font-semibold mb-4">Orders</h2>

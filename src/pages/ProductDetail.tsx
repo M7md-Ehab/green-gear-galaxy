@@ -100,6 +100,7 @@ const ProductDetail = () => {
                   <Button 
                     variant="outline" 
                     size="icon"
+                    className="border-gray-600 text-white bg-gray-800"
                     disabled={quantity <= 1}
                     onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
                   >
@@ -111,6 +112,7 @@ const ProductDetail = () => {
                   <Button 
                     variant="outline" 
                     size="icon"
+                    className="border-gray-600 text-white bg-gray-800"
                     disabled={quantity >= product.stock}
                     onClick={() => setQuantity(prev => Math.min(product.stock, prev + 1))}
                   >
@@ -134,7 +136,7 @@ const ProductDetail = () => {
                   Add to Cart
                 </Button>
                 
-                <Button variant="outline" size="lg" asChild>
+                <Button variant="outline" className="border-gray-600 text-white bg-gray-800" size="lg" asChild>
                   <Link to="/cart">
                     View Cart
                   </Link>

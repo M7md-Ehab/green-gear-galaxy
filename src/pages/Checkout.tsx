@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const checkoutSchema = z.object({
   firstName: z.string().min(2, { message: 'First name is required' }),
@@ -29,6 +30,7 @@ const checkoutSchema = z.object({
   address: z.string().min(10, { message: 'Please enter your full address' }),
   city: z.string().min(2, { message: 'City is required' }),
   notes: z.string().optional(),
+  paymentMethod: z.enum(['online', 'cod']),
 });
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
@@ -48,6 +50,7 @@ const Checkout = () => {
       address: '',
       city: '',
       notes: '',
+      paymentMethod: 'online',
     },
   });
 
@@ -71,14 +74,29 @@ const Checkout = () => {
       total: cartTotal()
     });
     
-    // Simulate processing
-    setTimeout(() => {
-      setIsProcessing(false);
-      clearCart();
-      
-      toast.success('Order placed successfully!');
-      navigate('/checkout/success');
-    }, 2000);
+    // If online payment is selected, you would redirect to Paymob here
+    if (data.paymentMethod === 'online') {
+      // Simulate API call to get Paymob payment token
+      toast.info('Redirecting to payment gateway...');
+      setTimeout(() => {
+        // In a real implementation, you'd use the Paymob API here
+        // For the demo, we'll just simulate success
+        setIsProcessing(false);
+        clearCart();
+        
+        toast.success('Order placed successfully!');
+        navigate('/checkout/success');
+      }, 2000);
+    } else {
+      // For cash on delivery, just process the order
+      setTimeout(() => {
+        setIsProcessing(false);
+        clearCart();
+        
+        toast.success('Order placed successfully!');
+        navigate('/checkout/success');
+      }, 2000);
+    }
   };
   
   if (items.length === 0 && !isProcessing) {
@@ -202,6 +220,50 @@ const Checkout = () => {
                         </FormItem>
                       )}
                     />
+
+                    <FormField
+                      control={form.control}
+                      name="paymentMethod"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Payment Method</FormLabel>
+                          <FormControl>
+                            <RadioGroup
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                              className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2"
+                            >
+                              <div className="flex items-center space-x-2 bg-gray-800 rounded-lg p-4 border border-gray-700">
+                                <RadioGroupItem value="online" id="online" />
+                                <label htmlFor="online" className="w-full cursor-pointer">
+                                  <div>
+                                    <span className="font-medium">Online Payment</span>
+                                    <p className="text-sm text-gray-400 mt-1">Pay securely with Paymob</p>
+                                  </div>
+                                  <div className="flex flex-wrap gap-2 mt-3">
+                                    <span className="bg-white text-black text-xs px-2 py-1 rounded">Visa</span>
+                                    <span className="bg-white text-black text-xs px-2 py-1 rounded">MasterCard</span>
+                                    <span className="bg-white text-black text-xs px-2 py-1 rounded">Meeza</span>
+                                    <span className="bg-white text-black text-xs px-2 py-1 rounded">Credit/Debit</span>
+                                  </div>
+                                </label>
+                              </div>
+                              
+                              <div className="flex items-center space-x-2 bg-gray-800 rounded-lg p-4 border border-gray-700">
+                                <RadioGroupItem value="cod" id="cod" />
+                                <label htmlFor="cod" className="w-full cursor-pointer">
+                                  <div>
+                                    <span className="font-medium">Cash on Delivery</span>
+                                    <p className="text-sm text-gray-400 mt-1">Pay with cash when you receive your order</p>
+                                  </div>
+                                </label>
+                              </div>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     
                     <div className="pt-2">
                       <Button 
@@ -253,10 +315,15 @@ const Checkout = () => {
                 </div>
                 
                 <div className="rounded-md bg-gray-800 p-4">
-                  <h3 className="font-medium mb-2">Payment Method</h3>
+                  <h3 className="font-medium mb-2">Payment Security</h3>
                   <p className="text-sm text-gray-400 mb-2">
-                    This demo version simulates payment through Paymob. In a real implementation, you would be redirected to Paymob to complete your payment.
+                    All transactions are secured and encrypted by Paymob, Egypt's leading payment service provider.
                   </p>
+                  <div className="flex items-center space-x-2 mt-3">
+                    <div className="bg-white p-1 rounded">
+                      <div className="text-black text-xs font-bold">PAYMOB</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

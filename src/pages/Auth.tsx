@@ -1,6 +1,6 @@
 
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -41,7 +41,15 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 const Auth = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string>('login');
+
+  useEffect(() => {
+    // Check if already logged in
+    if (localStorage.getItem('isLoggedIn') === 'true') {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
 
   // Login Form
   const loginForm = useForm<LoginFormValues>({
@@ -64,26 +72,32 @@ const Auth = () => {
   });
 
   const onLoginSubmit = (data: LoginFormValues) => {
-    // Here we would normally send the data to an API
     console.log('Login data', data);
     
-    // For demo purposes, we'll just show a success message
+    // For demo purposes, we'll just store login state in localStorage
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('userEmail', data.email);
+    
     toast.success('Login successful', {
-      description: 'Welcome back to TechMachines!',
+      description: 'Welcome back to Mehab!',
     });
+
+    navigate('/dashboard');
   };
 
   const onRegisterSubmit = (data: RegisterFormValues) => {
-    // Here we would normally send the data to an API
     console.log('Register data', data);
     
-    // For demo purposes, we'll just show a success message
+    // For demo purposes, we'll just store login state in localStorage
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('userName', data.name);
+    localStorage.setItem('userEmail', data.email);
+    
     toast.success('Account created', {
-      description: 'Welcome to TechMachines! Your account has been created.',
+      description: 'Welcome to Mehab! Your account has been created.',
     });
     
-    // Switch to login tab
-    setActiveTab('login');
+    navigate('/dashboard');
   };
 
   return (

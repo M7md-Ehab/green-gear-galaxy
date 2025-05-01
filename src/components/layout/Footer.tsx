@@ -1,6 +1,6 @@
 
 import { Link } from 'react-router-dom';
-import { Facebook, Instagram, Linkedin, Mail, Twitter } from 'lucide-react';
+import { Facebook, Instagram, Linkedin, Mail, X } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -21,7 +21,7 @@ const Footer = () => {
                 <Instagram className="h-5 w-5" />
               </a>
               <a href="https://tiktok.com" className="text-gray-400 hover:text-brand-green transition-colors">
-                <Twitter className="h-5 w-5" />
+                <X className="h-5 w-5" />
               </a>
               <a href="https://linkedin.com" className="text-gray-400 hover:text-brand-green transition-colors">
                 <Linkedin className="h-5 w-5" />
@@ -40,13 +40,13 @@ const Footer = () => {
                 <Link to="/products" className="text-sm text-gray-400 hover:text-brand-green transition-colors">All Products</Link>
               </li>
               <li>
-                <Link to="/products/t-series" className="text-sm text-gray-400 hover:text-brand-green transition-colors">T Series</Link>
+                <Link to="/products?series=T Series" className="text-sm text-gray-400 hover:text-brand-green transition-colors">T Series</Link>
               </li>
               <li>
-                <Link to="/products/s-series" className="text-sm text-gray-400 hover:text-brand-green transition-colors">S Series</Link>
+                <Link to="/products?series=S Series" className="text-sm text-gray-400 hover:text-brand-green transition-colors">S Series</Link>
               </li>
               <li>
-                <Link to="/products/x-series" className="text-sm text-gray-400 hover:text-brand-green transition-colors">X Series</Link>
+                <Link to="/products?series=X Series" className="text-sm text-gray-400 hover:text-brand-green transition-colors">X Series</Link>
               </li>
             </ul>
           </div>

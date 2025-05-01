@@ -1,17 +1,39 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { products } from '@/data/products';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import ProductCard from '@/components/products/ProductCard';
 
 const Products = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const seriesParam = searchParams.get('series');
+  
   const [selectedSeries, setSelectedSeries] = useState<string | null>(null);
   const series = Array.from(new Set(products.map(p => p.series)));
+  
+  useEffect(() => {
+    if (seriesParam) {
+      setSelectedSeries(seriesParam);
+    }
+  }, [seriesParam]);
   
   const filteredProducts = selectedSeries 
     ? products.filter(p => p.series === selectedSeries)
     : products;
+
+  const handleSeriesFilter = (series: string | null) => {
+    setSelectedSeries(series);
+    
+    if (series) {
+      searchParams.set('series', series);
+    } else {
+      searchParams.delete('series');
+    }
+    
+    setSearchParams(searchParams);
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">
@@ -28,7 +50,7 @@ const Products = () => {
                   ? 'bg-brand-green text-black' 
                   : 'bg-gray-800 text-white hover:bg-gray-700'
               }`}
-              onClick={() => setSelectedSeries(null)}
+              onClick={() => handleSeriesFilter(null)}
             >
               All
             </button>
@@ -40,7 +62,7 @@ const Products = () => {
                     ? 'bg-brand-green text-black' 
                     : 'bg-gray-800 text-white hover:bg-gray-700'
                 }`}
-                onClick={() => setSelectedSeries(s)}
+                onClick={() => handleSeriesFilter(s)}
               >
                 {s}
               </button>

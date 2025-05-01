@@ -1,13 +1,25 @@
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ShoppingCart, Menu, X, User } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ShoppingCart, Menu, X, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
+import { toast } from 'sonner';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return localStorage.getItem('isLoggedIn') === 'true';
+  });
   const { items } = useCart();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('isLoggedIn');
+    setIsLoggedIn(false);
+    toast.success('Logged out successfully');
+    navigate('/');
+  };
 
   return (
     <nav className="py-4 border-b border-border/40">
@@ -22,14 +34,23 @@ const Navbar = () => {
           <Link to="/products" className="font-medium hover:text-brand-green transition-colors">Products</Link>
           <Link to="/about" className="font-medium hover:text-brand-green transition-colors">About</Link>
           <Link to="/contact" className="font-medium hover:text-brand-green transition-colors">Contact</Link>
+          {isLoggedIn && (
+            <Link to="/dashboard" className="font-medium hover:text-brand-green transition-colors">Dashboard</Link>
+          )}
         </div>
 
         <div className="hidden md:flex items-center space-x-4">
-          <Link to="/auth">
-            <Button variant="ghost" size="icon">
-              <User className="h-5 w-5" />
+          {isLoggedIn ? (
+            <Button variant="ghost" size="icon" onClick={handleLogout}>
+              <LogOut className="h-5 w-5" />
             </Button>
-          </Link>
+          ) : (
+            <Link to="/auth">
+              <Button variant="ghost" size="icon">
+                <User className="h-5 w-5" />
+              </Button>
+            </Link>
+          )}
           <Link to="/cart" className="relative">
             <Button variant="ghost" size="icon">
               <ShoppingCart className="h-5 w-5" />
@@ -68,7 +89,23 @@ const Navbar = () => {
             <Link to="/products" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Products</Link>
             <Link to="/about" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>About</Link>
             <Link to="/contact" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Contact</Link>
-            <Link to="/auth" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Account</Link>
+            {isLoggedIn ? (
+              <>
+                <Link to="/dashboard" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Dashboard</Link>
+                <button 
+                  className="font-medium text-left hover:text-brand-green transition-colors flex items-center"
+                  onClick={() => {
+                    handleLogout();
+                    setIsOpen(false);
+                  }}
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link to="/auth" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Account</Link>
+            )}
           </div>
         </div>
       )}

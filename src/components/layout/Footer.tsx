@@ -1,6 +1,6 @@
 
 import { Link } from 'react-router-dom';
-import { Facebook, Instagram, Linkedin, Mail } from 'lucide-react';
+import { Facebook, Instagram, Linkedin, Mail, BrandTiktok } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -9,7 +9,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
           {/* Brand & Social */}
           <div className="space-y-4">
-            <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-green">TechMachines</h3>
+            <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-green">Mehab</h3>
             <p className="text-sm text-gray-400 max-w-xs">
               Premium machines with cutting-edge technology and exceptional performance.
             </p>
@@ -20,10 +20,13 @@ const Footer = () => {
               <a href="https://instagram.com" className="text-gray-400 hover:text-brand-green transition-colors">
                 <Instagram className="h-5 w-5" />
               </a>
+              <a href="https://tiktok.com" className="text-gray-400 hover:text-brand-green transition-colors">
+                <BrandTiktok className="h-5 w-5" />
+              </a>
               <a href="https://linkedin.com" className="text-gray-400 hover:text-brand-green transition-colors">
                 <Linkedin className="h-5 w-5" />
               </a>
-              <a href="mailto:info@techmachines.com" className="text-gray-400 hover:text-brand-green transition-colors">
+              <a href="mailto:mohamed.ehab.work0@gmail.com" className="text-gray-400 hover:text-brand-green transition-colors">
                 <Mail className="h-5 w-5" />
               </a>
             </div>
@@ -86,7 +89,7 @@ const Footer = () => {
 
         <div className="mt-12 pt-6 border-t border-gray-800 text-center">
           <p className="text-sm text-gray-500">
-            © {new Date().getFullYear()} TechMachines. All rights reserved.
+            © {new Date().getFullYear()} Mehab. All rights reserved.
           </p>
         </div>
       </div>

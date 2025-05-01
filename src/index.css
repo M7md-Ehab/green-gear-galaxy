@@ -93,6 +93,15 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  input, textarea {
+    @apply text-foreground;
+  }
+  
+  /* Fix for white text on white background */
+  .bg-white input, .bg-white textarea {
+    @apply text-black;
+  }
 }
 
 /* Custom utility classes */

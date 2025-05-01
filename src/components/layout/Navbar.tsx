@@ -13,7 +13,7 @@ const Navbar = () => {
     <nav className="py-4 border-b border-border/40">
       <div className="container-custom flex items-center justify-between">
         <Link to="/" className="flex items-center">
-          <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-green">TechMachines</span>
+          <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-green">Mehab</span>
         </Link>
 
         {/* Desktop Navigation */}

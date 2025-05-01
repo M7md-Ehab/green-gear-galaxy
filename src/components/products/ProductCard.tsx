@@ -1,10 +1,11 @@
 
 import { Link } from 'react-router-dom';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Heart } from 'lucide-react';
 
 import { Product } from '@/data/products';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
+import { useWishlist } from '@/hooks/use-wishlist';
 
 interface ProductCardProps {
   product: Product;
@@ -12,11 +13,24 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const { addItem } = useCart();
+  const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist();
+
+  const inWishlist = isInWishlist(product.id);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
     addItem(product);
+  };
+  
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (inWishlist) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist(product);
+    }
   };
 
   return (
@@ -32,6 +46,16 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <div className="absolute top-4 right-4 bg-brand-green text-black font-bold py-1 px-3 rounded-full">
             {product.price.toLocaleString()} EGP
           </div>
+          
+          {/* Wishlist button */}
+          <button 
+            onClick={handleWishlistToggle}
+            className={`absolute top-4 left-4 p-2 rounded-full ${
+              inWishlist ? 'bg-red-500 text-white' : 'bg-gray-800 text-white hover:bg-gray-700'
+            }`}
+          >
+            <Heart className="h-4 w-4" fill={inWishlist ? "currentColor" : "none"} />
+          </button>
         </div>
         
         <div className="p-5">

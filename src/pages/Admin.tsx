@@ -26,9 +26,8 @@ const Admin = () => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // This is just a placeholder. In a real application, this would
-    // connect to your backend authentication system
-    if (username === 'admin' && password === 'admin123') {
+    // Updated to use mo123/mo123
+    if (username === 'mo123' && password === 'mo123') {
       setIsAuthenticated(true);
       toast({
         title: "Login successful",
@@ -62,6 +61,12 @@ const Admin = () => {
       if (productStock[product.id] !== undefined) {
         product.stock = productStock[product.id];
       }
+    });
+    
+    // Simulate email notification
+    toast({
+      title: "Notification sent",
+      description: `Inventory update email sent to mohamed.ehab.work0@gmail.com`,
     });
   };
 

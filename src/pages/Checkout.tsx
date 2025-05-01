@@ -31,6 +31,7 @@ const checkoutSchema = z.object({
   city: z.string().min(2, { message: 'City is required' }),
   notes: z.string().optional(),
   paymentMethod: z.enum(['online', 'cod']),
+  cardNumber: z.string().optional(),
 });
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
@@ -51,8 +52,11 @@ const Checkout = () => {
       city: '',
       notes: '',
       paymentMethod: 'online',
+      cardNumber: '',
     },
   });
+
+  const watchPaymentMethod = form.watch('paymentMethod');
 
   const onSubmit = (data: CheckoutFormValues) => {
     if (items.length === 0) {
@@ -60,10 +64,16 @@ const Checkout = () => {
       return;
     }
     
+    // Validate card number for online payment
+    if (data.paymentMethod === 'online' && (!data.cardNumber || data.cardNumber.trim().length < 16)) {
+      toast.error('Please enter a valid card number');
+      return;
+    }
+    
     setIsProcessing(true);
     
     // Here you would normally send the order to your backend
-    console.log('Order data:', { 
+    const orderData = { 
       ...data, 
       items: items.map(item => ({
         productId: item.product.id,
@@ -72,26 +82,41 @@ const Checkout = () => {
         price: item.product.price
       })),
       total: cartTotal()
-    });
+    };
     
-    // If online payment is selected, you would redirect to Paymob here
+    console.log('Order data:', orderData);
+    
+    // Send confirmation email (simulated)
+    const sendEmail = () => {
+      console.log('Sending email to mohamed.ehab.work0@gmail.com with order details');
+      console.log('Email subject: New order from ' + data.firstName + ' ' + data.lastName);
+      console.log('Email body includes order details and customer information');
+    };
+    
+    // If online payment is selected
     if (data.paymentMethod === 'online') {
-      // Simulate API call to get Paymob payment token
-      toast.info('Redirecting to payment gateway...');
+      // Simulate API call to Paymob
+      toast.info('Processing your payment with Paymob...');
       setTimeout(() => {
         // In a real implementation, you'd use the Paymob API here
         // For the demo, we'll just simulate success
         setIsProcessing(false);
         clearCart();
         
-        toast.success('Order placed successfully!');
+        // Send confirmation email
+        sendEmail();
+        
+        toast.success('Payment successful!');
         navigate('/checkout/success');
       }, 2000);
     } else {
-      // For cash on delivery, just process the order
+      // For cash on delivery
       setTimeout(() => {
         setIsProcessing(false);
         clearCart();
+        
+        // Send confirmation email
+        sendEmail();
         
         toast.success('Order placed successfully!');
         navigate('/checkout/success');
@@ -265,6 +290,30 @@ const Checkout = () => {
                       )}
                     />
                     
+                    {/* Card details for online payment */}
+                    {watchPaymentMethod === 'online' && (
+                      <FormField
+                        control={form.control}
+                        name="cardNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Card Number</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="1234 5678 9012 3456" 
+                                className="bg-gray-800 border-gray-700"
+                                {...field} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                            <p className="text-xs text-gray-400 mt-1">
+                              For demo purposes only. No real payment will be processed.
+                            </p>
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                    
                     <div className="pt-2">
                       <Button 
                         type="submit" 
@@ -272,7 +321,7 @@ const Checkout = () => {
                         size="lg"
                         disabled={isProcessing}
                       >
-                        {isProcessing ? 'Processing...' : 'Place Order'}
+                        {isProcessing ? 'Processing...' : watchPaymentMethod === 'online' ? 'Pay Now' : 'Place Order'}
                       </Button>
                     </div>
                   </form>

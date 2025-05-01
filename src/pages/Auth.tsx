@@ -19,11 +19,12 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/hooks/use-auth';
 
 // Login Schema
 const loginSchema = z.object({
-  email: z.string().email({ message: 'Please enter a valid email address' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+  email: z.string().min(1, { message: 'Email is required' }),
+  password: z.string().min(1, { message: 'Password is required' }),
 });
 
 // Register Schema
@@ -37,19 +38,33 @@ const registerSchema = z.object({
   path: ["confirmPassword"],
 });
 
+// Verification Schema
+const verificationSchema = z.object({
+  code: z.string().min(6, { message: 'Please enter the 6-digit code' })
+});
+
 type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
+type VerificationFormValues = z.infer<typeof verificationSchema>;
 
 const Auth = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string>('login');
-
+  
+  const { 
+    isLoggedIn, 
+    isVerifying, 
+    login, 
+    register: registerUser, 
+    verifyCode 
+  } = useAuth();
+  
   useEffect(() => {
     // Check if already logged in
-    if (localStorage.getItem('isLoggedIn') === 'true') {
+    if (isLoggedIn) {
       navigate('/dashboard');
     }
-  }, [navigate]);
+  }, [isLoggedIn, navigate]);
 
   // Login Form
   const loginForm = useForm<LoginFormValues>({
@@ -70,35 +85,91 @@ const Auth = () => {
       confirmPassword: '',
     },
   });
+  
+  // Verification Form
+  const verificationForm = useForm<VerificationFormValues>({
+    resolver: zodResolver(verificationSchema),
+    defaultValues: {
+      code: '',
+    },
+  });
 
   const onLoginSubmit = (data: LoginFormValues) => {
-    console.log('Login data', data);
-    
-    // For demo purposes, we'll just store login state in localStorage
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userEmail', data.email);
-    
-    toast.success('Login successful', {
-      description: 'Welcome back to Mehab!',
-    });
-
-    navigate('/dashboard');
+    login(data.email, data.password);
   };
 
   const onRegisterSubmit = (data: RegisterFormValues) => {
-    console.log('Register data', data);
-    
-    // For demo purposes, we'll just store login state in localStorage
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userName', data.name);
-    localStorage.setItem('userEmail', data.email);
-    
-    toast.success('Account created', {
-      description: 'Welcome to Mehab! Your account has been created.',
+    registerUser(data.name, data.email, data.password);
+    setActiveTab('login');
+    toast.success('Registration successful', {
+      description: 'Please log in with your new account',
     });
-    
-    navigate('/dashboard');
   };
+  
+  const onVerificationSubmit = (data: VerificationFormValues) => {
+    const success = verifyCode(data.code);
+    if (success) {
+      navigate('/dashboard');
+    }
+  };
+
+  if (isVerifying) {
+    return (
+      <div className="min-h-screen flex flex-col bg-black text-white">
+        <Navbar />
+        <main className="flex-grow py-12">
+          <div className="container-custom max-w-md mx-auto">
+            <h1 className="text-4xl font-bold mb-8 text-center">Verify Your Account</h1>
+            
+            <div className="bg-gray-900/50 rounded-lg overflow-hidden p-6">
+              <p className="mb-4 text-center">
+                We've sent a verification code to your email address. 
+                Please enter the code below to complete your login.
+              </p>
+              
+              <Form {...verificationForm}>
+                <form onSubmit={verificationForm.handleSubmit(onVerificationSubmit)} className="space-y-4">
+                  <FormField
+                    control={verificationForm.control}
+                    name="code"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Verification Code</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="Enter 6-digit code" 
+                            {...field} 
+                            className="text-center text-xl tracking-widest"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <div className="pt-2">
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-brand-green hover:bg-brand-green/90 text-black"
+                    >
+                      Verify
+                    </Button>
+                  </div>
+                  
+                  <div className="text-center text-sm text-gray-400">
+                    <a href="#" className="hover:text-brand-green">
+                      Didn't receive a code? Resend
+                    </a>
+                  </div>
+                </form>
+              </Form>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">
@@ -123,7 +194,7 @@ const Auth = () => {
                         name="email"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Email</FormLabel>
+                            <FormLabel>Username/Email</FormLabel>
                             <FormControl>
                               <Input placeholder="your@email.com" {...field} />
                             </FormControl>

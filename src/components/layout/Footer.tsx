@@ -1,6 +1,6 @@
 
 import { Link } from 'react-router-dom';
-import { Facebook, Instagram, Linkedin, Mail, BrandTiktok } from 'lucide-react';
+import { Facebook, Instagram, Linkedin, Mail, Twitter } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -21,7 +21,7 @@ const Footer = () => {
                 <Instagram className="h-5 w-5" />
               </a>
               <a href="https://tiktok.com" className="text-gray-400 hover:text-brand-green transition-colors">
-                <BrandTiktok className="h-5 w-5" />
+                <Twitter className="h-5 w-5" />
               </a>
               <a href="https://linkedin.com" className="text-gray-400 hover:text-brand-green transition-colors">
                 <Linkedin className="h-5 w-5" />

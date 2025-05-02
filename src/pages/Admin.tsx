@@ -7,7 +7,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { getProductById } from '@/data/products';
+import { getProductById, products } from '@/data/products';
 import { 
   Table,
   TableBody,
@@ -17,14 +17,12 @@ import {
   TableRow
 } from '@/components/ui/table';
 
-// Mock products for stock management
-const initialProducts = [
-  { id: 't1-basic', name: 'T1', stock: 10 },
-  { id: 't1-pro', name: 'T1 Pro', stock: 15 },
-  { id: 't2', name: 'T2', stock: 8 },
-  { id: 't2-pro', name: 'T2 Pro', stock: 12 },
-  { id: 't3', name: 'T3', stock: 5 }
-];
+// Using the products from data file
+const initialProducts = products.map(product => ({
+  id: product.id,
+  name: product.name,
+  stock: product.stock
+}));
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -63,7 +61,8 @@ const Admin = () => {
   }, []);
   
   const handleLogin = () => {
-    if (username === 'mo123' && password === 'mo123') {
+    // Use the admin username/password that matches the default account
+    if (username === 'admin' && password === 'admin123') {
       localStorage.setItem('adminLoggedIn', 'true');
       setIsLoggedIn(true);
       toast.success('Admin login successful');
@@ -160,6 +159,12 @@ const Admin = () => {
               >
                 Login
               </Button>
+              
+              <div className="text-center text-sm text-gray-400 pt-2">
+                <p>Default admin credentials:</p>
+                <p>Username: admin</p>
+                <p>Password: admin123</p>
+              </div>
             </div>
           </div>
         </main>

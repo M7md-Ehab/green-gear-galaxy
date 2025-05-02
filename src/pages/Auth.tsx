@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
+import { ArrowLeft } from 'lucide-react';
 
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -119,6 +120,16 @@ const Auth = () => {
         <Navbar />
         <main className="flex-grow py-12">
           <div className="container-custom max-w-md mx-auto">
+            <div className="mb-6">
+              <Button 
+                variant="ghost" 
+                className="flex items-center gap-2" 
+                onClick={() => navigate(-1)}
+              >
+                <ArrowLeft size={16} />
+                Back
+              </Button>
+            </div>
             <h1 className="text-4xl font-bold mb-8 text-center">Verify Your Account</h1>
             
             <div className="bg-gray-900/50 rounded-lg overflow-hidden p-6">
@@ -176,6 +187,16 @@ const Auth = () => {
       <Navbar />
       <main className="flex-grow py-12">
         <div className="container-custom max-w-md mx-auto">
+          <div className="mb-6">
+            <Button 
+              variant="ghost" 
+              className="flex items-center gap-2" 
+              onClick={() => navigate(-1)}
+            >
+              <ArrowLeft size={16} />
+              Back
+            </Button>
+          </div>
           <h1 className="text-4xl font-bold mb-8 text-center">Account</h1>
           
           <div className="bg-gray-900/50 rounded-lg overflow-hidden">

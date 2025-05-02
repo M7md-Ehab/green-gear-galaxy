@@ -238,8 +238,8 @@ if (typeof window !== 'undefined') {
     users.push({ 
       id: 'admin',
       name: 'Administrator', 
-      email: 'mo123', 
-      password: 'mo123',
+      email: 'admin', 
+      password: 'admin123',
       wishlist: []
     });
     localStorage.setItem('mehab-users', JSON.stringify(users));

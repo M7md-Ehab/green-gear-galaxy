@@ -65,6 +65,20 @@ export const useAuth = create(
           console.log(`Sending authentication email to ${email}`);
           console.log(`Email contains verification code: ${verificationCode}`);
           console.log(`Email subject: Verify your account login`);
+          
+          // Send actual email (in a real app, this would be done by a backend service)
+          // For demo purposes, we're just logging to console and showing a toast notification
+          if (typeof window !== 'undefined') {
+            const userEmail = email;
+            const subject = "Verify your Mehab account login";
+            const body = `Your verification code is: ${verificationCode}`;
+            
+            // This opens the user's email client - note that this is just a demo
+            // and doesn't actually send an email automatically
+            setTimeout(() => {
+              window.open(`mailto:${userEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
+            }, 500);
+          }
         } else {
           toast.error('Login failed', { description: 'Invalid email or password' });
         }
@@ -79,6 +93,9 @@ export const useAuth = create(
           return;
         }
         
+        // Generate verification code
+        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        
         // Add new user
         const newUser = { 
           id: Date.now().toString(),
@@ -92,13 +109,36 @@ export const useAuth = create(
         localStorage.setItem('mehab-users', JSON.stringify(users));
         
         toast.success('Registration successful', { 
-          description: 'Please login to continue' 
+          description: 'Please login with your new account' 
         });
         
         // Simulate sending a welcome email
         console.log(`Sending welcome email to ${email}`);
         console.log(`Email subject: Welcome to Mehab!`);
         console.log(`Email contains account details and next steps`);
+        
+        // Send actual email (in a real app, this would be done by a backend service)
+        if (typeof window !== 'undefined') {
+          const userEmail = email;
+          const subject = "Welcome to Mehab!";
+          const body = `
+Hello ${name},
+
+Thank you for registering with Mehab! Your account has been created successfully.
+
+Please use the following credentials to log in:
+Email: ${email}
+Password: (your chosen password)
+
+Best regards,
+The Mehab Team
+          `;
+          
+          // This opens the user's email client
+          setTimeout(() => {
+            window.open(`mailto:${userEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
+          }, 500);
+        }
       },
       logout: () => {
         set({ user: null, isLoggedIn: false });

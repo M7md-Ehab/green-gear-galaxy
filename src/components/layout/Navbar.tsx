@@ -27,22 +27,20 @@ const Navbar = () => {
           <Link to="/products" className="font-medium hover:text-brand-green transition-colors">Products</Link>
           <Link to="/about" className="font-medium hover:text-brand-green transition-colors">About</Link>
           <Link to="/contact" className="font-medium hover:text-brand-green transition-colors">Contact</Link>
-          {isLoggedIn && (
-            <Link to="/dashboard" className="font-medium hover:text-brand-green transition-colors">Dashboard</Link>
-          )}
         </div>
 
         <div className="hidden md:flex items-center space-x-4">
           {isLoggedIn ? (
-            <Link to="/dashboard">
+            <Link to="/dashboard" aria-label="Profile">
               <Button variant="ghost" size="icon">
                 <User className="h-5 w-5" />
               </Button>
             </Link>
           ) : (
-            <Link to="/auth">
-              <Button variant="ghost" size="icon">
+            <Link to="/auth" aria-label="Sign in / Log in">
+              <Button variant="ghost" className="flex items-center gap-1">
                 <User className="h-5 w-5" />
+                <span className="ml-1">Sign in</span>
               </Button>
             </Link>
           )}

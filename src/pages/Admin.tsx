@@ -8,43 +8,14 @@ import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { getProductById } from '@/data/products';
-
-// Mock orders data - in a real app, this would come from a database
-const mockOrders = [
-  {
-    id: 'order-1',
-    customerId: 'cust-1',
-    customerName: 'Mohamed Ahmed',
-    customerEmail: 'mohamed@example.com',
-    customerPhone: '+201234567890',
-    shippingAddress: '123 Cairo Street, Nasr City',
-    city: 'Cairo',
-    paymentMethod: 'cod',
-    status: 'pending',
-    total: 16000,
-    createdAt: '2025-05-01T10:30:00Z',
-    items: [
-      { productId: 't1-basic', quantity: 2, price: 6000 },
-      { productId: 't1-pro', quantity: 1, price: 10000 }
-    ]
-  },
-  {
-    id: 'order-2',
-    customerId: 'cust-2',
-    customerName: 'Ahmed Hassan',
-    customerEmail: 'ahmed@example.com',
-    customerPhone: '+201987654321',
-    shippingAddress: '456 Alexandria Street, Smouha',
-    city: 'Alexandria',
-    paymentMethod: 'online',
-    status: 'completed',
-    total: 12000,
-    createdAt: '2025-04-28T14:45:00Z',
-    items: [
-      { productId: 't1-basic', quantity: 2, price: 6000 }
-    ]
-  }
-];
+import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@/components/ui/table';
 
 // Mock products for stock management
 const initialProducts = [
@@ -63,7 +34,14 @@ const Admin = () => {
   const [password, setPassword] = useState('');
   const [activeTab, setActiveTab] = useState('orders');
   const [products, setProducts] = useState(initialProducts);
-  const [orders] = useState(mockOrders);
+  
+  // Get orders from localStorage
+  const getOrders = () => {
+    const ordersFromStorage = localStorage.getItem('mehab-orders');
+    return ordersFromStorage ? JSON.parse(ordersFromStorage) : [];
+  };
+  
+  const [orders, setOrders] = useState(getOrders());
   
   useEffect(() => {
     // Check if admin is logged in
@@ -88,7 +66,7 @@ const Admin = () => {
     toast.info('Admin logged out');
   };
   
-  const updateProductStock = (productId: string, newStock: number) => {
+  const updateProductStock = (productId, newStock) => {
     setProducts(prevProducts => 
       prevProducts.map(product => 
         product.id === productId 
@@ -97,6 +75,15 @@ const Admin = () => {
       )
     );
     toast.success(`Stock updated for ${products.find(p => p.id === productId)?.name}`);
+  };
+  
+  const markOrderAsCompleted = (orderId) => {
+    const updatedOrders = orders.map(order => 
+      order.id === orderId ? { ...order, status: 'completed' } : order
+    );
+    setOrders(updatedOrders);
+    localStorage.setItem('mehab-orders', JSON.stringify(updatedOrders));
+    toast.success('Order marked as completed');
   };
 
   if (isCheckingAuth) {
@@ -152,6 +139,12 @@ const Admin = () => {
     );
   }
 
+  // Pre-calculate stock state to avoid hooks in render loops
+  const productStockStates = products.map(product => {
+    const [newStock, setNewStock] = useState(product.stock);
+    return { productId: product.id, stock: newStock, setStock: setNewStock };
+  });
+
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">
       <Navbar />
@@ -187,11 +180,11 @@ const Admin = () => {
           {/* Orders Tab */}
           {activeTab === 'orders' && (
             <div>
-              <h2 className="text-xl font-bold mb-4">Recent Orders</h2>
+              <h2 className="text-xl font-bold mb-4">Customer Orders</h2>
               
               {orders.length === 0 ? (
                 <div className="bg-gray-900/50 rounded-lg p-6 text-center">
-                  <p className="text-gray-400">No orders found</p>
+                  <p className="text-gray-400">No customer orders found</p>
                 </div>
               ) : (
                 <div className="space-y-6">
@@ -222,6 +215,9 @@ const Admin = () => {
                               <p><span className="text-gray-400">Address:</span> {order.shippingAddress}</p>
                               <p><span className="text-gray-400">City:</span> {order.city}</p>
                               <p><span className="text-gray-400">Payment:</span> {order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Payment'}</p>
+                              {order.paymentMethod === 'online' && order.cardNumber && (
+                                <p><span className="text-gray-400">Card Number:</span> {order.cardNumber}</p>
+                              )}
                             </div>
                           </div>
                           
@@ -253,8 +249,12 @@ const Admin = () => {
                               'border-gray-600 text-white bg-gray-800' : 
                               'bg-brand-green hover:bg-brand-green/90 text-black'}
                             size="sm"
+                            onClick={order.status === 'completed' ? 
+                              () => {} : 
+                              () => markOrderAsCompleted(order.id)
+                            }
                           >
-                            {order.status === 'completed' ? 'View Details' : 'Mark as Completed'}
+                            {order.status === 'completed' ? 'Completed' : 'Mark as Completed'}
                           </Button>
                         </div>
                       </div>
@@ -271,43 +271,43 @@ const Admin = () => {
               <h2 className="text-xl font-bold mb-4">Inventory Management</h2>
               
               <div className="bg-gray-900/50 rounded-lg p-6">
-                <table className="w-full">
-                  <thead>
-                    <tr className="text-left border-b border-gray-700">
-                      <th className="pb-2">Product</th>
-                      <th className="pb-2">Current Stock</th>
-                      <th className="pb-2">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Product</TableHead>
+                      <TableHead>Current Stock</TableHead>
+                      <TableHead>Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {products.map((product) => {
-                      const [newStock, setNewStock] = useState(product.stock);
+                      const stockState = productStockStates.find(p => p.productId === product.id);
                       
                       return (
-                        <tr key={product.id} className="border-b border-gray-800 hover:bg-gray-800/30">
-                          <td className="py-3">{product.name}</td>
-                          <td className="py-3">{product.stock} units</td>
-                          <td className="py-3 flex items-center space-x-2">
+                        <TableRow key={product.id}>
+                          <TableCell>{product.name}</TableCell>
+                          <TableCell>{product.stock} units</TableCell>
+                          <TableCell className="flex items-center space-x-2">
                             <Input 
                               type="number" 
                               min="0"
-                              value={newStock}
-                              onChange={(e) => setNewStock(parseInt(e.target.value) || 0)}
+                              value={stockState?.stock || 0}
+                              onChange={(e) => stockState?.setStock(parseInt(e.target.value) || 0)}
                               className="w-24 bg-gray-800 border-gray-700"
                             />
                             <Button
                               size="sm"
                               className="bg-brand-green hover:bg-brand-green/90 text-black"
-                              onClick={() => updateProductStock(product.id, newStock)}
+                              onClick={() => updateProductStock(product.id, stockState?.stock || 0)}
                             >
                               Update
                             </Button>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       );
                     })}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             </div>
           )}

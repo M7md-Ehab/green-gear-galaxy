@@ -35,6 +35,18 @@ const Admin = () => {
   const [activeTab, setActiveTab] = useState('orders');
   const [products, setProducts] = useState(initialProducts);
   
+  // Create a single state for all product stocks instead of using dynamic hook creation
+  const [productStocks, setProductStocks] = useState({});
+  
+  // Initialize product stocks on component mount
+  useEffect(() => {
+    const initialStocks = {};
+    products.forEach(product => {
+      initialStocks[product.id] = product.stock;
+    });
+    setProductStocks(initialStocks);
+  }, []);
+  
   // Get orders from localStorage
   const getOrders = () => {
     const ordersFromStorage = localStorage.getItem('mehab-orders');
@@ -66,7 +78,9 @@ const Admin = () => {
     toast.info('Admin logged out');
   };
   
+  // Update product stock handler
   const updateProductStock = (productId, newStock) => {
+    // Update products state
     setProducts(prevProducts => 
       prevProducts.map(product => 
         product.id === productId 
@@ -74,7 +88,22 @@ const Admin = () => {
           : product
       )
     );
+    
+    // Update productStocks state
+    setProductStocks(prev => ({
+      ...prev,
+      [productId]: newStock
+    }));
+    
     toast.success(`Stock updated for ${products.find(p => p.id === productId)?.name}`);
+  };
+  
+  // Handle stock input change
+  const handleStockChange = (productId, value) => {
+    setProductStocks(prev => ({
+      ...prev,
+      [productId]: parseInt(value) || 0
+    }));
   };
   
   const markOrderAsCompleted = (orderId) => {
@@ -138,12 +167,6 @@ const Admin = () => {
       </div>
     );
   }
-
-  // Pre-calculate stock state to avoid hooks in render loops
-  const productStockStates = products.map(product => {
-    const [newStock, setNewStock] = useState(product.stock);
-    return { productId: product.id, stock: newStock, setStock: setNewStock };
-  });
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">
@@ -280,32 +303,28 @@ const Admin = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {products.map((product) => {
-                      const stockState = productStockStates.find(p => p.productId === product.id);
-                      
-                      return (
-                        <TableRow key={product.id}>
-                          <TableCell>{product.name}</TableCell>
-                          <TableCell>{product.stock} units</TableCell>
-                          <TableCell className="flex items-center space-x-2">
-                            <Input 
-                              type="number" 
-                              min="0"
-                              value={stockState?.stock || 0}
-                              onChange={(e) => stockState?.setStock(parseInt(e.target.value) || 0)}
-                              className="w-24 bg-gray-800 border-gray-700"
-                            />
-                            <Button
-                              size="sm"
-                              className="bg-brand-green hover:bg-brand-green/90 text-black"
-                              onClick={() => updateProductStock(product.id, stockState?.stock || 0)}
-                            >
-                              Update
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
+                    {products.map((product) => (
+                      <TableRow key={product.id}>
+                        <TableCell>{product.name}</TableCell>
+                        <TableCell>{product.stock} units</TableCell>
+                        <TableCell className="flex items-center space-x-2">
+                          <Input 
+                            type="number" 
+                            min="0"
+                            value={productStocks[product.id] || 0}
+                            onChange={(e) => handleStockChange(product.id, e.target.value)}
+                            className="w-24 bg-gray-800 border-gray-700"
+                          />
+                          <Button
+                            size="sm"
+                            className="bg-brand-green hover:bg-brand-green/90 text-black"
+                            onClick={() => updateProductStock(product.id, productStocks[product.id] || 0)}
+                          >
+                            Update
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </div>

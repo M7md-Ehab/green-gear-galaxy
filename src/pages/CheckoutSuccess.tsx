@@ -10,10 +10,12 @@ import Footer from '@/components/layout/Footer';
 
 const CheckoutSuccess = () => {
   const navigate = useNavigate();
-  const { items } = useCart();
+  const { items, clearCart } = useCart();
   
   // If someone tries to access this page directly without checking out, redirect them
   useEffect(() => {
+    // Instead of conditionally calling hooks, we always set up a timer
+    // and handle the logic inside the effect
     const timer = setTimeout(() => {
       if (items.length > 0) {
         navigate('/checkout');

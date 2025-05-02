@@ -24,7 +24,7 @@ const Cart = () => {
             <div className="text-center py-16">
               <h2 className="text-2xl font-medium mb-4">Your cart is empty</h2>
               <p className="text-gray-400 mb-8">Browse our products and add something you like.</p>
-              <Button asChild>
+              <Button className="bg-brand-green hover:bg-brand-green/90 text-black" asChild>
                 <Link to="/products">Browse Products</Link>
               </Button>
             </div>

@@ -1,231 +1,313 @@
 
 import { useState, useEffect } from 'react';
-import { products } from '@/data/products';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/components/ui/use-toast';
+import { getProductById } from '@/data/products';
+
+// Mock orders data - in a real app, this would come from a database
+const mockOrders = [
+  {
+    id: 'order-1',
+    customerId: 'cust-1',
+    customerName: 'Mohamed Ahmed',
+    customerEmail: 'mohamed@example.com',
+    customerPhone: '+201234567890',
+    shippingAddress: '123 Cairo Street, Nasr City',
+    city: 'Cairo',
+    paymentMethod: 'cod',
+    status: 'pending',
+    total: 16000,
+    createdAt: '2025-05-01T10:30:00Z',
+    items: [
+      { productId: 't1-basic', quantity: 2, price: 6000 },
+      { productId: 't1-pro', quantity: 1, price: 10000 }
+    ]
+  },
+  {
+    id: 'order-2',
+    customerId: 'cust-2',
+    customerName: 'Ahmed Hassan',
+    customerEmail: 'ahmed@example.com',
+    customerPhone: '+201987654321',
+    shippingAddress: '456 Alexandria Street, Smouha',
+    city: 'Alexandria',
+    paymentMethod: 'online',
+    status: 'completed',
+    total: 12000,
+    createdAt: '2025-04-28T14:45:00Z',
+    items: [
+      { productId: 't1-basic', quantity: 2, price: 6000 }
+    ]
+  }
+];
+
+// Mock products for stock management
+const initialProducts = [
+  { id: 't1-basic', name: 'T1', stock: 10 },
+  { id: 't1-pro', name: 'T1 Pro', stock: 15 },
+  { id: 't2', name: 'T2', stock: 8 },
+  { id: 't2-pro', name: 'T2 Pro', stock: 12 },
+  { id: 't3', name: 'T3', stock: 5 }
+];
 
 const Admin = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [productStock, setProductStock] = useState<Record<string, number>>({});
-  const { toast } = useToast();
-
-  // Load product stock data on mount
+  const [activeTab, setActiveTab] = useState('orders');
+  const [products, setProducts] = useState(initialProducts);
+  const [orders] = useState(mockOrders);
+  
   useEffect(() => {
-    const initialStock: Record<string, number> = {};
-    products.forEach(product => {
-      initialStock[product.id] = product.stock;
-    });
-    setProductStock(initialStock);
+    // Check if admin is logged in
+    const adminLoggedIn = localStorage.getItem('adminLoggedIn') === 'true';
+    setIsLoggedIn(adminLoggedIn);
+    setIsCheckingAuth(false);
   }, []);
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Updated to use mo123/mo123
+  
+  const handleLogin = () => {
     if (username === 'mo123' && password === 'mo123') {
-      setIsAuthenticated(true);
-      toast({
-        title: "Login successful",
-        description: "Welcome to the admin dashboard",
-      });
+      localStorage.setItem('adminLoggedIn', 'true');
+      setIsLoggedIn(true);
+      toast.success('Admin login successful');
     } else {
-      toast({
-        variant: "destructive",
-        title: "Login failed",
-        description: "Invalid username or password",
-      });
+      toast.error('Invalid credentials');
     }
   };
-
-  const handleUpdateStock = (productId: string, newStock: number) => {
-    setProductStock(prev => ({
-      ...prev,
-      [productId]: newStock
-    }));
+  
+  const handleLogout = () => {
+    localStorage.removeItem('adminLoggedIn');
+    setIsLoggedIn(false);
+    toast.info('Admin logged out');
+  };
+  
+  const updateProductStock = (productId: string, newStock: number) => {
+    setProducts(prevProducts => 
+      prevProducts.map(product => 
+        product.id === productId 
+          ? { ...product, stock: newStock } 
+          : product
+      )
+    );
+    toast.success(`Stock updated for ${products.find(p => p.id === productId)?.name}`);
   };
 
-  const handleSaveChanges = () => {
-    // In a real app, this would save to your backend
-    // For now, we'll just show a toast
-    toast({
-      title: "Changes saved",
-      description: "Product stock has been updated.",
-    });
-    // Update products in memory (in a real app, this would be persistent)
-    products.forEach(product => {
-      if (productStock[product.id] !== undefined) {
-        product.stock = productStock[product.id];
-      }
-    });
-    
-    // Simulate email notification
-    toast({
-      title: "Notification sent",
-      description: `Inventory update email sent to mohamed.ehab.work0@gmail.com`,
-    });
-  };
+  if (isCheckingAuth) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen flex flex-col bg-black text-white">
+        <Navbar />
+        <main className="flex-grow py-12 flex items-center justify-center">
+          <div className="w-full max-w-md p-6 bg-gray-900/50 rounded-lg">
+            <h1 className="text-2xl font-bold mb-6 text-center">Admin Login</h1>
+            
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="username" className="block mb-2 text-sm font-medium">
+                  Username
+                </label>
+                <Input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="bg-gray-800 border-gray-700"
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="password" className="block mb-2 text-sm font-medium">
+                  Password
+                </label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="bg-gray-800 border-gray-700"
+                />
+              </div>
+              
+              <Button 
+                onClick={handleLogin}
+                className="w-full bg-brand-green hover:bg-brand-green/90 text-black"
+              >
+                Login
+              </Button>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">
       <Navbar />
       <main className="flex-grow py-12">
         <div className="container-custom">
-          {!isAuthenticated ? (
-            <div className="max-w-md mx-auto">
-              <h1 className="text-3xl font-bold text-center mb-8">Admin Login</h1>
-              <form onSubmit={handleLogin} className="space-y-6">
-                <div>
-                  <label htmlFor="username" className="block text-sm font-medium mb-2">
-                    Username
-                  </label>
-                  <Input
-                    id="username"
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="bg-gray-900 border-gray-700"
-                    required
-                  />
-                </div>
-                <div>
-                  <label htmlFor="password" className="block text-sm font-medium mb-2">
-                    Password
-                  </label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="bg-gray-900 border-gray-700"
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full bg-brand-green text-black hover:bg-brand-green/90">
-                  Login
-                </Button>
-              </form>
-            </div>
-          ) : (
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-4xl font-bold">Admin Dashboard</h1>
+            <Button 
+              variant="outline" 
+              className="border-gray-600 text-white bg-gray-800"
+              onClick={handleLogout}
+            >
+              Logout
+            </Button>
+          </div>
+          
+          {/* Tabs */}
+          <div className="flex border-b border-gray-700 mb-8">
+            <button
+              className={`py-2 px-4 ${activeTab === 'orders' ? 'text-brand-green border-b-2 border-brand-green' : 'text-gray-400'}`}
+              onClick={() => setActiveTab('orders')}
+            >
+              Orders
+            </button>
+            <button
+              className={`py-2 px-4 ${activeTab === 'inventory' ? 'text-brand-green border-b-2 border-brand-green' : 'text-gray-400'}`}
+              onClick={() => setActiveTab('inventory')}
+            >
+              Inventory
+            </button>
+          </div>
+          
+          {/* Orders Tab */}
+          {activeTab === 'orders' && (
             <div>
-              <div className="flex items-center justify-between mb-8">
-                <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-                <Button 
-                  onClick={handleSaveChanges}
-                  className="bg-brand-green text-black hover:bg-brand-green/90"
-                >
-                  Save All Changes
-                </Button>
-              </div>
+              <h2 className="text-xl font-bold mb-4">Recent Orders</h2>
               
-              <div className="mb-12">
-                <h2 className="text-2xl font-semibold mb-4">Inventory Management</h2>
-                <div className="bg-gray-900 rounded-lg p-6">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-gray-800">
-                          <th className="text-left py-3 px-4">ID</th>
-                          <th className="text-left py-3 px-4">Product</th>
-                          <th className="text-left py-3 px-4">Series</th>
-                          <th className="text-left py-3 px-4">Price</th>
-                          <th className="text-left py-3 px-4">Stock</th>
-                          <th className="text-left py-3 px-4">Actions</th>
+              {orders.length === 0 ? (
+                <div className="bg-gray-900/50 rounded-lg p-6 text-center">
+                  <p className="text-gray-400">No orders found</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {orders.map((order) => {
+                    const formattedDate = new Date(order.createdAt).toLocaleString();
+                    
+                    return (
+                      <div key={order.id} className="bg-gray-900/50 rounded-lg p-6">
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <h3 className="font-bold">Order #{order.id}</h3>
+                            <p className="text-sm text-gray-400">{formattedDate}</p>
+                          </div>
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            order.status === 'completed' ? 'bg-green-900 text-green-100' : 'bg-yellow-900 text-yellow-100'
+                          }`}>
+                            {order.status === 'completed' ? 'Completed' : 'Pending'}
+                          </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <h4 className="font-medium mb-2 text-brand-green">Customer Information</h4>
+                            <div className="space-y-1 text-sm">
+                              <p><span className="text-gray-400">Name:</span> {order.customerName}</p>
+                              <p><span className="text-gray-400">Email:</span> {order.customerEmail}</p>
+                              <p><span className="text-gray-400">Phone:</span> {order.customerPhone}</p>
+                              <p><span className="text-gray-400">Address:</span> {order.shippingAddress}</p>
+                              <p><span className="text-gray-400">City:</span> {order.city}</p>
+                              <p><span className="text-gray-400">Payment:</span> {order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Payment'}</p>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <h4 className="font-medium mb-2 text-brand-green">Order Items</h4>
+                            <div className="space-y-2">
+                              {order.items.map((item) => {
+                                const product = getProductById(item.productId);
+                                
+                                return (
+                                  <div key={item.productId} className="flex justify-between">
+                                    <span>{item.quantity} x {product ? product.name : item.productId}</span>
+                                    <span>{(item.quantity * item.price).toLocaleString()} EGP</span>
+                                  </div>
+                                );
+                              })}
+                              <div className="border-t border-gray-700 pt-2 flex justify-between font-bold">
+                                <span>Total</span>
+                                <span>{order.total.toLocaleString()} EGP</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4 flex justify-end">
+                          <Button 
+                            variant={order.status === 'completed' ? 'outline' : 'default'}
+                            className={order.status === 'completed' ? 
+                              'border-gray-600 text-white bg-gray-800' : 
+                              'bg-brand-green hover:bg-brand-green/90 text-black'}
+                            size="sm"
+                          >
+                            {order.status === 'completed' ? 'View Details' : 'Mark as Completed'}
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+          
+          {/* Inventory Tab */}
+          {activeTab === 'inventory' && (
+            <div>
+              <h2 className="text-xl font-bold mb-4">Inventory Management</h2>
+              
+              <div className="bg-gray-900/50 rounded-lg p-6">
+                <table className="w-full">
+                  <thead>
+                    <tr className="text-left border-b border-gray-700">
+                      <th className="pb-2">Product</th>
+                      <th className="pb-2">Current Stock</th>
+                      <th className="pb-2">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {products.map((product) => {
+                      const [newStock, setNewStock] = useState(product.stock);
+                      
+                      return (
+                        <tr key={product.id} className="border-b border-gray-800 hover:bg-gray-800/30">
+                          <td className="py-3">{product.name}</td>
+                          <td className="py-3">{product.stock} units</td>
+                          <td className="py-3 flex items-center space-x-2">
+                            <Input 
+                              type="number" 
+                              min="0"
+                              value={newStock}
+                              onChange={(e) => setNewStock(parseInt(e.target.value) || 0)}
+                              className="w-24 bg-gray-800 border-gray-700"
+                            />
+                            <Button
+                              size="sm"
+                              className="bg-brand-green hover:bg-brand-green/90 text-black"
+                              onClick={() => updateProductStock(product.id, newStock)}
+                            >
+                              Update
+                            </Button>
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {products.map((product) => (
-                          <tr key={product.id} className="border-b border-gray-800">
-                            <td className="py-3 px-4 text-gray-400">{product.id}</td>
-                            <td className="py-3 px-4">{product.name}</td>
-                            <td className="py-3 px-4 text-gray-400">{product.series}</td>
-                            <td className="py-3 px-4">{product.price.toLocaleString()} EGP</td>
-                            <td className="py-3 px-4">
-                              <Input
-                                type="number"
-                                min="0"
-                                className="w-24 bg-gray-800 border-gray-700"
-                                value={productStock[product.id] || 0}
-                                onChange={(e) => handleUpdateStock(product.id, parseInt(e.target.value) || 0)}
-                              />
-                            </td>
-                            <td className="py-3 px-4">
-                              <Button 
-                                variant="outline"
-                                size="sm" 
-                                className="border-gray-600 text-white bg-gray-800 hover:bg-gray-700"
-                              >
-                                Edit
-                              </Button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="mb-12">
-                <h2 className="text-2xl font-semibold mb-4">Orders</h2>
-                <div className="bg-gray-900 rounded-lg p-6">
-                  <p className="text-gray-400 italic">No orders found. Orders will appear here when customers make purchases.</p>
-                </div>
-              </div>
-              
-              <div className="mb-12">
-                <h2 className="text-2xl font-semibold mb-4">Users</h2>
-                <div className="bg-gray-900 rounded-lg p-6">
-                  <p className="text-gray-400 italic">No users found. Users will appear here when they register.</p>
-                </div>
-              </div>
-              
-              <div className="mb-12">
-                <h2 className="text-2xl font-semibold mb-4">Send Notification</h2>
-                <div className="bg-gray-900 rounded-lg p-6">
-                  <form className="space-y-4">
-                    <div>
-                      <label htmlFor="subject" className="block text-sm font-medium mb-2">
-                        Subject
-                      </label>
-                      <Input
-                        id="subject"
-                        type="text"
-                        placeholder="Notification Subject"
-                        className="bg-gray-800 border-gray-700"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="message" className="block text-sm font-medium mb-2">
-                        Message
-                      </label>
-                      <Textarea
-                        id="message"
-                        placeholder="Enter your message here..."
-                        className="bg-gray-800 border-gray-700 h-32"
-                      />
-                    </div>
-                    <Button type="submit" className="bg-brand-green text-black hover:bg-brand-green/90">
-                      Send Notification
-                    </Button>
-                  </form>
-                </div>
-              </div>
-              
-              <div>
-                <h2 className="text-2xl font-semibold mb-4">Email Settings</h2>
-                <div className="bg-gray-900 rounded-lg p-6">
-                  <p className="mb-4">
-                    Notification email: <strong>mohamed.ehab.work0@gmail.com</strong>
-                  </p>
-                  <Button className="bg-brand-green text-black hover:bg-brand-green/90">
-                    Update Email Settings
-                  </Button>
-                </div>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}

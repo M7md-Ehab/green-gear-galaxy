@@ -1,10 +1,11 @@
 
 import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Plus, Minus, ShoppingCart, Check } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, Check, Heart } from 'lucide-react';
 
 import { getProductById } from '@/data/products';
 import { useCart } from '@/hooks/use-cart';
+import { useWishlist } from '@/hooks/use-wishlist';
 import { Button } from '@/components/ui/button';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -15,6 +16,7 @@ const ProductDetail = () => {
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCart();
+  const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist();
   
   const product = id ? getProductById(id) : undefined;
   
@@ -33,6 +35,16 @@ const ProductDetail = () => {
       </div>
     );
   }
+
+  const inWishlist = isInWishlist(product.id);
+  
+  const handleWishlistToggle = () => {
+    if (inWishlist) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist(product);
+    }
+  };
 
   const handleAddToCart = () => {
     // Add the product to cart multiple times based on quantity
@@ -61,7 +73,7 @@ const ProductDetail = () => {
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Product Image */}
-            <div className="bg-gradient-to-br from-gray-900 to-black border border-gray-800 rounded-lg overflow-hidden">
+            <div className="bg-gradient-to-br from-gray-900 to-black border border-gray-800 rounded-lg overflow-hidden relative">
               <div className="aspect-square relative">
                 <img 
                   src={product.image} 
@@ -69,6 +81,15 @@ const ProductDetail = () => {
                   className="object-contain w-full h-full p-8"
                 />
               </div>
+              {/* Wishlist button */}
+              <button 
+                onClick={handleWishlistToggle}
+                className={`absolute top-4 left-4 p-2 rounded-full ${
+                  inWishlist ? 'bg-red-500 text-white' : 'bg-gray-800 text-white hover:bg-gray-700'
+                }`}
+              >
+                <Heart className="h-4 w-4" fill={inWishlist ? "currentColor" : "none"} />
+              </button>
             </div>
             
             {/* Product Info */}

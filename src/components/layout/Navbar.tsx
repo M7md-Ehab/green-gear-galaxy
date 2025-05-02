@@ -1,25 +1,18 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Menu, X, User, LogOut } from 'lucide-react';
+import { ShoppingCart, Menu, X, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
-import { toast } from 'sonner';
+import { useAuth } from '@/hooks/use-auth';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    return localStorage.getItem('isLoggedIn') === 'true';
-  });
-  const { items } = useCart();
   const navigate = useNavigate();
-
-  const handleLogout = () => {
-    localStorage.removeItem('isLoggedIn');
-    setIsLoggedIn(false);
-    toast.success('Logged out successfully');
-    navigate('/');
-  };
+  const { items, itemsCount } = useCart();
+  const { isLoggedIn, user } = useAuth();
+  
+  const cartCount = itemsCount();
 
   return (
     <nav className="py-4 border-b border-border/40">
@@ -41,9 +34,11 @@ const Navbar = () => {
 
         <div className="hidden md:flex items-center space-x-4">
           {isLoggedIn ? (
-            <Button variant="ghost" size="icon" onClick={handleLogout}>
-              <LogOut className="h-5 w-5" />
-            </Button>
+            <Link to="/dashboard">
+              <Button variant="ghost" size="icon">
+                <User className="h-5 w-5" />
+              </Button>
+            </Link>
           ) : (
             <Link to="/auth">
               <Button variant="ghost" size="icon">
@@ -54,9 +49,9 @@ const Navbar = () => {
           <Link to="/cart" className="relative">
             <Button variant="ghost" size="icon">
               <ShoppingCart className="h-5 w-5" />
-              {items.length > 0 && (
+              {cartCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-brand-green text-black text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                  {items.length}
+                  {cartCount}
                 </span>
               )}
             </Button>
@@ -68,9 +63,9 @@ const Navbar = () => {
           <Link to="/cart" className="relative mr-4">
             <Button variant="ghost" size="icon">
               <ShoppingCart className="h-5 w-5" />
-              {items.length > 0 && (
+              {cartCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-brand-green text-black text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                  {items.length}
+                  {cartCount}
                 </span>
               )}
             </Button>
@@ -90,21 +85,9 @@ const Navbar = () => {
             <Link to="/about" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>About</Link>
             <Link to="/contact" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Contact</Link>
             {isLoggedIn ? (
-              <>
-                <Link to="/dashboard" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Dashboard</Link>
-                <button 
-                  className="font-medium text-left hover:text-brand-green transition-colors flex items-center"
-                  onClick={() => {
-                    handleLogout();
-                    setIsOpen(false);
-                  }}
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
-                </button>
-              </>
+              <Link to="/dashboard" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Dashboard</Link>
             ) : (
-              <Link to="/auth" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Account</Link>
+              <Link to="/auth" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Sign in / Log in</Link>
             )}
           </div>
         </div>

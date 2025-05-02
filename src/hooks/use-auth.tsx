@@ -60,6 +60,11 @@ export const useAuth = create(
             verificationEmail: email,
             verificationCode: verificationCode
           });
+          
+          // Simulate sending an email
+          console.log(`Sending authentication email to ${email}`);
+          console.log(`Email contains verification code: ${verificationCode}`);
+          console.log(`Email subject: Verify your account login`);
         } else {
           toast.error('Login failed', { description: 'Invalid email or password' });
         }
@@ -89,9 +94,17 @@ export const useAuth = create(
         toast.success('Registration successful', { 
           description: 'Please login to continue' 
         });
+        
+        // Simulate sending a welcome email
+        console.log(`Sending welcome email to ${email}`);
+        console.log(`Email subject: Welcome to Mehab!`);
+        console.log(`Email contains account details and next steps`);
       },
       logout: () => {
         set({ user: null, isLoggedIn: false });
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('userEmail');
         toast.info('Logged out successfully');
       },
       setVerifying: (email) => {
@@ -126,6 +139,11 @@ export const useAuth = create(
               description: `Welcome back, ${user.name}!` 
             });
             
+            // Simulate sending a login notification email
+            console.log(`Sending login notification email to ${user.email}`);
+            console.log(`Email subject: New login to your account`);
+            console.log(`Email contains: Device info, location, timestamp`);
+            
             return true;
           }
         } else {
@@ -159,6 +177,11 @@ export const useAuth = create(
           localStorage.setItem('userEmail', email);
           
           toast.success('Profile updated successfully');
+          
+          // Simulate sending a profile update email
+          console.log(`Sending profile update email to ${email}`);
+          console.log(`Email subject: Your profile has been updated`);
+          console.log(`Email contains: Updated information and timestamp`);
         }
       }
     }),

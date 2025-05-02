@@ -91,6 +91,11 @@ const Checkout = () => {
       console.log('Sending email to mohamed.ehab.work0@gmail.com with order details');
       console.log('Email subject: New order from ' + data.firstName + ' ' + data.lastName);
       console.log('Email body includes order details and customer information');
+      
+      // Also send email to customer
+      console.log(`Sending confirmation email to ${data.email}`);
+      console.log(`Email subject: Your order confirmation from Mehab`);
+      console.log(`Email body includes: Thank you for your order, order details, delivery information`);
     };
     
     // If online payment is selected
@@ -307,7 +312,7 @@ const Checkout = () => {
                             </FormControl>
                             <FormMessage />
                             <p className="text-xs text-gray-400 mt-1">
-                              For demo purposes only. No real payment will be processed.
+                              Enter your card number for Paymob to process the payment.
                             </p>
                           </FormItem>
                         )}

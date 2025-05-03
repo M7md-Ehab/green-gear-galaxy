@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -84,6 +83,9 @@ const Checkout = () => {
     try {
       // Generate a unique order ID
       const orderId = uuidv4();
+
+      // Create the dummy user ID for non-logged in users
+      const anonymousUserId = '00000000-0000-0000-0000-000000000000';
       
       // Map cart items to order items for database
       const orderItems = items.map(item => ({
@@ -96,7 +98,7 @@ const Checkout = () => {
       // Create the order in the database
       const { error: orderError } = await supabase.from('orders').insert({
         id: orderId,
-        user_id: user?.id || '00000000-0000-0000-0000-000000000000', // Anonymous user ID if not logged in
+        user_id: isLoggedIn && user ? user.id : anonymousUserId, 
         total_amount: cartTotal(),
         currency_code: currentCurrency.code,
         first_name: data.firstName,
@@ -111,6 +113,7 @@ const Checkout = () => {
       });
       
       if (orderError) {
+        console.error("Order creation error:", orderError);
         throw new Error(`Error creating order: ${orderError.message}`);
       }
       
@@ -123,6 +126,7 @@ const Checkout = () => {
       );
       
       if (itemsError) {
+        console.error("Order items creation error:", itemsError);
         throw new Error(`Error creating order items: ${itemsError.message}`);
       }
       
@@ -149,9 +153,14 @@ const Checkout = () => {
       };
       
       // Send confirmation emails
-      await supabase.functions.invoke('send-order-emails', {
+      const { error: emailError } = await supabase.functions.invoke('send-order-emails', {
         body: { orderData }
       });
+      
+      if (emailError) {
+        console.error("Email sending error:", emailError);
+        // Don't throw here, just log the error since the order is already created
+      }
       
       // Clear cart and redirect to success page
       clearCart();

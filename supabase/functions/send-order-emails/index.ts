@@ -63,6 +63,9 @@ serve(async (req) => {
       html: adminEmailHTML
     });
 
+    console.log("Email to customer sent successfully");
+    console.log("Email to admin sent successfully");
+
     return new Response(
       JSON.stringify({ message: "Emails sent successfully" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -97,6 +100,7 @@ async function sendEmail({
   console.log(`Sending email to: ${to}`);
   console.log(`Subject: ${subject}`);
   console.log(`From: ${fromName} <${from}>`);
+  console.log(`Email content: ${html.substring(0, 100)}...`);
   
   // For now, we'll just log the email content
   // In a real implementation, replace this with actual email sending code

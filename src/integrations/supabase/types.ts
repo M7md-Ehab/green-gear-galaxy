@@ -9,26 +9,152 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      currencies: {
+        Row: {
+          code: string
+          name: string
+          symbol: string
+        }
+        Insert: {
+          code: string
+          name: string
+          symbol: string
+        }
+        Update: {
+          code?: string
+          name?: string
+          symbol?: string
+        }
+        Relationships: []
+      }
+      order_items: {
+        Row: {
+          id: string
+          order_id: string
+          price: number
+          product_id: string
+          product_name: string
+          quantity: number
+        }
+        Insert: {
+          id?: string
+          order_id: string
+          price: number
+          product_id: string
+          product_name: string
+          quantity: number
+        }
+        Update: {
+          id?: string
+          order_id?: string
+          price?: number
+          product_id?: string
+          product_name?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          address: string
+          city: string
+          currency_code: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          notes: string | null
+          order_date: string
+          payment_method: string
+          phone: string
+          status: string
+          total_amount: number
+          user_id: string
+        }
+        Insert: {
+          address: string
+          city: string
+          currency_code: string
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          notes?: string | null
+          order_date?: string
+          payment_method: string
+          phone: string
+          status?: string
+          total_amount: number
+          user_id: string
+        }
+        Update: {
+          address?: string
+          city?: string
+          currency_code?: string
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          notes?: string | null
+          order_date?: string
+          payment_method?: string
+          phone?: string
+          status?: string
+          total_amount?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_currency_code_fkey"
+            columns: ["currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
           email: string
           id: string
           name: string
+          preferred_currency: string | null
+          preferred_language: string | null
         }
         Insert: {
           created_at?: string
           email: string
           id: string
           name: string
+          preferred_currency?: string | null
+          preferred_language?: string | null
         }
         Update: {
           created_at?: string
           email?: string
           id?: string
           name?: string
+          preferred_currency?: string | null
+          preferred_language?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_preferred_currency_fkey"
+            columns: ["preferred_currency"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+        ]
       }
     }
     Views: {

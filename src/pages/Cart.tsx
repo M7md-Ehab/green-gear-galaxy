@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Minus, Trash, ArrowRight } from 'lucide-react';
 
 import { useCart } from '@/hooks/use-cart';
+import { useCurrency } from '@/hooks/use-currency';
 import { Button } from '@/components/ui/button';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -10,6 +11,7 @@ import Footer from '@/components/layout/Footer';
 const Cart = () => {
   const navigate = useNavigate();
   const { items, removeItem, updateQuantity, clearCart, cartTotal } = useCart();
+  const { currentCurrency } = useCurrency();
   
   const isEmpty = items.length === 0;
 
@@ -81,7 +83,7 @@ const Cart = () => {
                         </div>
                         
                         <p className="font-bold text-lg">
-                          {(item.product.price * item.quantity).toLocaleString()} EGP
+                          {currentCurrency.symbol}{(item.product.price * item.quantity).toLocaleString()} {currentCurrency.code}
                         </p>
                       </div>
                     </div>
@@ -111,7 +113,7 @@ const Cart = () => {
                   <div className="space-y-4 mb-6">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Subtotal</span>
-                      <span>{cartTotal().toLocaleString()} EGP</span>
+                      <span>{currentCurrency.symbol}{cartTotal().toLocaleString()} {currentCurrency.code}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Shipping</span>
@@ -119,7 +121,7 @@ const Cart = () => {
                     </div>
                     <div className="border-t border-gray-700 pt-4 flex justify-between">
                       <span className="font-bold">Total</span>
-                      <span className="font-bold text-lg">{cartTotal().toLocaleString()} EGP</span>
+                      <span className="font-bold text-lg">{currentCurrency.symbol}{cartTotal().toLocaleString()} {currentCurrency.code}</span>
                     </div>
                   </div>
                   

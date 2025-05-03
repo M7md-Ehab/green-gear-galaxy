@@ -5,8 +5,12 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
 
 import { useCart } from '@/hooks/use-cart';
+import { useCurrency } from '@/hooks/use-currency';
+import { useAuth, useAuthListener } from '@/hooks/use-auth';
+import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -39,7 +43,12 @@ type CheckoutFormValues = z.infer<typeof checkoutSchema>;
 const Checkout = () => {
   const navigate = useNavigate();
   const { items, cartTotal, clearCart } = useCart();
+  const { currentCurrency } = useCurrency();
+  const { user, isLoggedIn } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Setup auth listener
+  useAuthListener();
   
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
@@ -58,7 +67,7 @@ const Checkout = () => {
 
   const watchPaymentMethod = form.watch('paymentMethod');
 
-  const onSubmit = (data: CheckoutFormValues) => {
+  const onSubmit = async (data: CheckoutFormValues) => {
     if (items.length === 0) {
       toast.error('Your cart is empty');
       return;
@@ -72,60 +81,86 @@ const Checkout = () => {
     
     setIsProcessing(true);
     
-    // Here you would normally send the order to your backend
-    const orderData = { 
-      ...data, 
-      items: items.map(item => ({
-        productId: item.product.id,
-        name: item.product.name,
-        quantity: item.quantity,
-        price: item.product.price
-      })),
-      total: cartTotal()
-    };
-    
-    console.log('Order data:', orderData);
-    
-    // Send confirmation email (simulated)
-    const sendEmail = () => {
-      console.log('Sending email to mohamed.ehab.work0@gmail.com with order details');
-      console.log('Email subject: New order from ' + data.firstName + ' ' + data.lastName);
-      console.log('Email body includes order details and customer information');
+    try {
+      // Generate a unique order ID
+      const orderId = uuidv4();
       
-      // Also send email to customer
-      console.log(`Sending confirmation email to ${data.email}`);
-      console.log(`Email subject: Your order confirmation from Mehab`);
-      console.log(`Email body includes: Thank you for your order, order details, delivery information`);
-    };
-    
-    // If online payment is selected
-    if (data.paymentMethod === 'online') {
-      // Simulate API call to Paymob
-      toast.info('Processing your payment with Paymob...');
-      setTimeout(() => {
-        // In a real implementation, you'd use the Paymob API here
-        // For the demo, we'll just simulate success
-        setIsProcessing(false);
-        clearCart();
-        
-        // Send confirmation email
-        sendEmail();
-        
-        toast.success('Payment successful!');
-        navigate('/checkout/success');
-      }, 2000);
-    } else {
-      // For cash on delivery
-      setTimeout(() => {
-        setIsProcessing(false);
-        clearCart();
-        
-        // Send confirmation email
-        sendEmail();
-        
-        toast.success('Order placed successfully!');
-        navigate('/checkout/success');
-      }, 2000);
+      // Map cart items to order items for database
+      const orderItems = items.map(item => ({
+        product_id: item.product.id,
+        product_name: item.product.name,
+        price: item.product.price,
+        quantity: item.quantity
+      }));
+      
+      // Create the order in the database
+      const { error: orderError } = await supabase.from('orders').insert({
+        id: orderId,
+        user_id: user?.id || '00000000-0000-0000-0000-000000000000', // Anonymous user ID if not logged in
+        total_amount: cartTotal(),
+        currency_code: currentCurrency.code,
+        first_name: data.firstName,
+        last_name: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        address: data.address,
+        city: data.city,
+        notes: data.notes,
+        payment_method: data.paymentMethod,
+        status: data.paymentMethod === 'online' ? 'paid' : 'pending'
+      });
+      
+      if (orderError) {
+        throw new Error(`Error creating order: ${orderError.message}`);
+      }
+      
+      // Insert order items
+      const { error: itemsError } = await supabase.from('order_items').insert(
+        orderItems.map(item => ({
+          order_id: orderId,
+          ...item
+        }))
+      );
+      
+      if (itemsError) {
+        throw new Error(`Error creating order items: ${itemsError.message}`);
+      }
+      
+      // Prepare data for emails
+      const orderData = {
+        id: orderId,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        address: data.address,
+        city: data.city,
+        notes: data.notes,
+        paymentMethod: data.paymentMethod,
+        items: items.map(item => ({
+          productId: item.product.id,
+          name: item.product.name,
+          quantity: item.quantity,
+          price: item.product.price
+        })),
+        total: cartTotal(),
+        currency: currentCurrency.code,
+        currencySymbol: currentCurrency.symbol
+      };
+      
+      // Send confirmation emails
+      await supabase.functions.invoke('send-order-emails', {
+        body: { orderData }
+      });
+      
+      // Clear cart and redirect to success page
+      clearCart();
+      toast.success('Order placed successfully!');
+      navigate('/checkout/success');
+    } catch (error: any) {
+      console.error('Checkout error:', error);
+      toast.error('An error occurred processing your order');
+      setIsProcessing(false);
     }
   };
   
@@ -347,14 +382,14 @@ const Checkout = () => {
                         <span>
                           {item.quantity} x {item.product.name}
                         </span>
-                        <span>{(item.product.price * item.quantity).toLocaleString()} EGP</span>
+                        <span>{currentCurrency.symbol}{(item.product.price * item.quantity).toLocaleString()} {currentCurrency.code}</span>
                       </div>
                     ))}
                   </div>
                   
                   <div className="border-t border-gray-700 pt-4 flex justify-between">
                     <span className="text-gray-400">Subtotal</span>
-                    <span>{cartTotal().toLocaleString()} EGP</span>
+                    <span>{currentCurrency.symbol}{cartTotal().toLocaleString()} {currentCurrency.code}</span>
                   </div>
                   
                   <div className="flex justify-between">
@@ -364,7 +399,7 @@ const Checkout = () => {
                   
                   <div className="border-t border-gray-700 pt-4 flex justify-between">
                     <span className="font-bold">Total</span>
-                    <span className="font-bold text-lg">{cartTotal().toLocaleString()} EGP</span>
+                    <span className="font-bold text-lg">{currentCurrency.symbol}{cartTotal().toLocaleString()} {currentCurrency.code}</span>
                   </div>
                 </div>
                 

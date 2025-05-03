@@ -1,16 +1,18 @@
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Menu, X, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth, useAuthListener } from '@/hooks/use-auth';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const { items, itemsCount } = useCart();
-  const { isLoggedIn, user } = useAuth();
+  const { isLoggedIn } = useAuth();
+  
+  // Setup auth listener
+  useAuthListener();
   
   const cartCount = itemsCount();
 

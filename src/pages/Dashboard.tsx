@@ -1,48 +1,50 @@
 
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth, useAuthListener } from '@/hooks/use-auth';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { Product } from '@/data/products';
 import ProductCard from '@/components/products/ProductCard';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user, isLoggedIn, logout, updateUserProfile } = useAuth();
+  const { user, isLoggedIn, isLoading, logout } = useAuth();
   const { items: wishlistItems } = useWishlist();
   
-  const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  // Setup auth listener
+  useAuthListener();
   
   useEffect(() => {
     // Check if logged in
-    if (!isLoggedIn) {
+    if (!isLoggedIn && !isLoading) {
       navigate('/auth');
       return;
     }
-    
-    // Get user details
-    if (user) {
-      setName(user.name);
-      setEmail(user.email);
-    }
-  }, [isLoggedIn, navigate, user]);
+  }, [isLoggedIn, isLoading, navigate]);
 
-  const handleUpdateProfile = () => {
-    updateUserProfile(name, email);
-    setIsEditing(false);
-  };
-
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/');
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-black text-white">
+        <Navbar />
+        <main className="flex-grow flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-green mx-auto mb-4"></div>
+            <p>Loading...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">
@@ -56,68 +58,30 @@ const Dashboard = () => {
             <div className="bg-gray-900/50 rounded-lg p-6">
               <h2 className="text-xl font-bold mb-4">Profile</h2>
               <div className="space-y-4">
-                {isEditing ? (
-                  <>
-                    <div>
-                      <p className="text-sm text-gray-400">Name</p>
-                      <Input 
-                        value={name} 
-                        onChange={(e) => setName(e.target.value)} 
-                        className="mt-1 bg-gray-800 border-gray-700"
-                      />
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-400">Email</p>
-                      <Input 
-                        value={email} 
-                        onChange={(e) => setEmail(e.target.value)} 
-                        className="mt-1 bg-gray-800 border-gray-700"
-                      />
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button 
-                        onClick={handleUpdateProfile} 
-                        className="flex-1 bg-brand-green text-black hover:bg-brand-green/90"
-                      >
-                        Save
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        onClick={() => setIsEditing(false)}
-                        className="flex-1 border-gray-600 text-white bg-gray-800 hover:bg-gray-700"
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div>
-                      <p className="text-sm text-gray-400">Name</p>
-                      <p className="font-medium">{name}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-400">Email</p>
-                      <p className="font-medium">{email}</p>
-                    </div>
-                    <div className="space-y-2">
-                      <Button 
-                        variant="outline" 
-                        className="w-full border-gray-600 text-white bg-gray-800 hover:bg-gray-700"
-                        onClick={() => setIsEditing(true)}
-                      >
-                        Edit Profile
-                      </Button>
-                      <Button 
-                        variant="destructive" 
-                        className="w-full"
-                        onClick={handleLogout}
-                      >
-                        Logout
-                      </Button>
-                    </div>
-                  </>
-                )}
+                <div>
+                  <p className="text-sm text-gray-400">Name</p>
+                  <p className="font-medium">{user?.user_metadata?.name || 'User'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">Email</p>
+                  <p className="font-medium">{user?.email}</p>
+                </div>
+                <div className="space-y-2">
+                  <Button 
+                    variant="outline" 
+                    className="w-full border-gray-600 text-white bg-gray-800 hover:bg-gray-700"
+                    onClick={() => navigate('/account/edit')}
+                  >
+                    Edit Profile
+                  </Button>
+                  <Button 
+                    variant="destructive" 
+                    className="w-full"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </Button>
+                </div>
               </div>
             </div>
             

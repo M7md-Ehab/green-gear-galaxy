@@ -6,37 +6,55 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth, useAuthListener } from '@/hooks/use-auth';
 
 const AccountEdit = () => {
   const navigate = useNavigate();
-  const { user, isLoggedIn, updateUserProfile } = useAuth();
+  const { user, isLoggedIn, isLoading, updateUserProfile } = useAuth();
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   
+  // Setup auth listener
+  useAuthListener();
+  
   useEffect(() => {
     // Check if logged in
-    if (!isLoggedIn) {
+    if (!isLoggedIn && !isLoading) {
       navigate('/auth');
       return;
     }
     
     // Get user details
     if (user) {
-      setName(user.name);
-      setEmail(user.email);
+      setName(user.user_metadata?.name || '');
+      setEmail(user.email || '');
     }
-  }, [isLoggedIn, navigate, user]);
+  }, [isLoggedIn, isLoading, navigate, user]);
 
-  const handleSaveChanges = () => {
-    updateUserProfile(name, email);
+  const handleSaveChanges = async () => {
+    await updateUserProfile(name, email);
     navigate('/dashboard');
   };
 
   const handleCancel = () => {
     navigate('/dashboard');
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-black text-white">
+        <Navbar />
+        <main className="flex-grow flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-green mx-auto mb-4"></div>
+            <p>Loading...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">

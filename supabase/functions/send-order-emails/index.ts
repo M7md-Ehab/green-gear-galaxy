@@ -1,6 +1,10 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { Resend } from "https://esm.sh/resend@2.0.0";
+
+// Initialize Resend with API key
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -45,29 +49,35 @@ serve(async (req) => {
     // Prepare HTML for admin email
     const adminEmailHTML = generateAdminEmail(orderData);
 
-    // Send email to customer
-    const customerEmailResponse = await sendEmail({
+    console.log("Sending email to customer:", orderData.email);
+    
+    // Send email to customer using Resend
+    const customerEmailResponse = await resend.emails.send({
+      from: "Mehab Orders <orders@mehab.com>",
       to: orderData.email,
-      from: "order@mehab.com",
-      fromName: "Mehab Company",
       subject: "Your Mehab Order Confirmation",
       html: customerEmailHTML
     });
     
-    // Send email to admin
-    const adminEmailResponse = await sendEmail({
+    console.log("Sending email to admin: mehab882011@gmail.com");
+    
+    // Send email to admin using Resend
+    const adminEmailResponse = await resend.emails.send({
+      from: "Mehab Orders <orders@mehab.com>",
       to: "mehab882011@gmail.com",
-      from: "orders@mehab.com",
-      fromName: "Mehab Orders",
       subject: `New Order from ${orderData.firstName} ${orderData.lastName}`,
       html: adminEmailHTML
     });
 
-    console.log("Email to customer sent successfully");
-    console.log("Email to admin sent successfully");
+    console.log("Email to customer sent successfully:", customerEmailResponse);
+    console.log("Email to admin sent successfully:", adminEmailResponse);
 
     return new Response(
-      JSON.stringify({ message: "Emails sent successfully" }),
+      JSON.stringify({ 
+        message: "Emails sent successfully",
+        customerEmail: customerEmailResponse,
+        adminEmail: adminEmailResponse
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
@@ -81,31 +91,6 @@ serve(async (req) => {
     );
   }
 });
-
-async function sendEmail({
-  to,
-  from,
-  fromName,
-  subject,
-  html
-}: {
-  to: string;
-  from: string;
-  fromName: string;
-  subject: string;
-  html: string;
-}) {
-  // This is a simplified email sending function
-  // In a production environment, you would use a service like Resend, SendGrid, etc.
-  console.log(`Sending email to: ${to}`);
-  console.log(`Subject: ${subject}`);
-  console.log(`From: ${fromName} <${from}>`);
-  console.log(`Email content: ${html.substring(0, 100)}...`);
-  
-  // For now, we'll just log the email content
-  // In a real implementation, replace this with actual email sending code
-  return { success: true };
-}
 
 function generateCustomerEmail(orderData: OrderData): string {
   const itemsHTML = orderData.items.map(item => 

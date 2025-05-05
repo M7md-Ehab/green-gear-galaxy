@@ -53,7 +53,7 @@ serve(async (req) => {
     
     // Send email to customer using Resend
     const customerEmailResponse = await resend.emails.send({
-      from: "Mehab Orders <orders@mehab.com>",
+      from: "onboarding@resend.dev", // Use Resend's default domain during testing
       to: orderData.email,
       subject: "Your Mehab Order Confirmation",
       html: customerEmailHTML
@@ -63,7 +63,7 @@ serve(async (req) => {
     
     // Send email to admin using Resend
     const adminEmailResponse = await resend.emails.send({
-      from: "Mehab Orders <orders@mehab.com>",
+      from: "onboarding@resend.dev", // Use Resend's default domain during testing
       to: "mehab882011@gmail.com",
       subject: `New Order from ${orderData.firstName} ${orderData.lastName}`,
       html: adminEmailHTML

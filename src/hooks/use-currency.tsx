@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
@@ -74,7 +73,8 @@ export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
             code: item.code,
             name: item.name,
             symbol: item.symbol,
-            exchangeRate: item.exchange_rate || 1
+            // Use optional chaining and nullish coalescing to safely handle the exchange_rate property
+            exchangeRate: item.exchange_rate ?? 1
           }));
           
           // Make sure EGP is the default with exchange rate 1

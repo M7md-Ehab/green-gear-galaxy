@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { toast } from 'sonner';
@@ -44,53 +45,27 @@ export const useAuth = create(
       
       login: async (email, password) => {
         try {
-          const { data, error } = await supabase.auth.signInWithPassword({
+          // First check if the email exists
+          const { data: userExists, error: userExistsError } = await supabase.auth.signInWithPassword({
             email,
             password,
           });
           
-          if (error) {
-            throw error;
+          if (userExistsError) {
+            if (userExistsError.message.includes('Invalid login')) {
+              toast.error('Login failed', { 
+                description: 'Invalid email or password' 
+              });
+              return undefined;
+            }
+            throw userExistsError;
           }
           
-          // If OTP is enabled, handle verification
-          if (data && !data.session) {
-            toast.info('Verification code sent to your email', { 
-              description: 'Please check your inbox and enter the 6-digit code' 
-            });
-            return { needsOTP: true };
-          }
-          
-          set({ 
-            user: data.user,
-            session: data.session,
-            isLoggedIn: !!data.session
-          });
-          
-          toast.success('Login successful', { 
-            description: `Welcome back!` 
-          });
-          
-          // Return undefined explicitly when there's no OTP needed
-          return undefined;
-          
-        } catch (error: any) {
-          toast.error('Login failed', { 
-            description: error.message || 'Invalid email or password' 
-          });
-          return undefined;
-        }
-      },
-      
-      register: async (name, email, password) => {
-        try {
-          const { data, error } = await supabase.auth.signUp({
+          // If we got here, the user exists - now always send OTP
+          const { data, error } = await supabase.auth.signInWithOtp({
             email,
-            password,
             options: {
-              data: {
-                name,
-              }
+              shouldCreateUser: false,
             }
           });
           
@@ -98,29 +73,57 @@ export const useAuth = create(
             throw error;
           }
           
-          // If email verification is required
-          if (data && !data.session) {
-            toast.info('Verification code sent to your email', { 
-              description: 'Please check your inbox and enter the 6-digit code' 
-            });
-            return { needsOTP: true };
-          }
-          
-          toast.success('Registration successful', { 
-            description: data.session ? 'You are now logged in' : 'Please check your email to verify your account' 
+          toast.info('Verification code sent to your email', { 
+            description: 'Please check your inbox and enter the 6-digit code' 
           });
           
-          if (data.session) {
-            set({ 
-              user: data.user,
-              session: data.session,
-              isLoggedIn: true
+          return { needsOTP: true };
+        } catch (error: any) {
+          toast.error('Login failed', { 
+            description: error.message || 'There was an error processing your request' 
+          });
+          return undefined;
+        }
+      },
+      
+      register: async (name, email, password) => {
+        try {
+          // First check if the email already exists
+          const { data: existingUser } = await supabase.auth.signInWithOtp({
+            email,
+            options: {
+              shouldCreateUser: false,
+            }
+          });
+          
+          if (existingUser) {
+            toast.error('Registration failed', { 
+              description: 'This email is already registered. Please try logging in instead.' 
             });
+            return undefined;
           }
           
-          // Return undefined explicitly when there's no OTP needed
-          return undefined;
+          // Now proceed with signup
+          const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                name,
+              },
+              emailRedirectTo: `${window.location.origin}/auth`
+            }
+          });
           
+          if (error) {
+            throw error;
+          }
+          
+          toast.info('Verification code sent to your email', { 
+            description: 'Please check your inbox and enter the 6-digit code' 
+          });
+          
+          return { needsOTP: true };
         } catch (error: any) {
           toast.error('Registration failed', { 
             description: error.message || 'There was an error creating your account' 
@@ -160,7 +163,19 @@ export const useAuth = create(
       
       logout: async () => {
         try {
-          await supabase.auth.signOut();
+          // Clean up auth state completely to prevent any auth limbo states
+          const cleanupAuthState = () => {
+            localStorage.removeItem('supabase.auth.token');
+            Object.keys(localStorage).forEach((key) => {
+              if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+                localStorage.removeItem(key);
+              }
+            });
+          };
+          
+          cleanupAuthState();
+          await supabase.auth.signOut({ scope: 'global' });
+          
           set({ 
             user: null, 
             session: null, 

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -116,16 +115,16 @@ const Auth = () => {
 
   const onLoginSubmit = async (data: LoginFormValues) => {
     const result = await login(data.email, data.password);
-    // Fix: Check if result exists and has needsOTP property before accessing it
-    if (result && result.needsOTP) {
-      setVerificationEmail(data.email);
-      setShowOTPVerification(true);
-    }
+    
+    // Always show OTP verification for login attempts
+    setVerificationEmail(data.email);
+    setShowOTPVerification(true);
   };
 
   const onRegisterSubmit = async (data: RegisterFormValues) => {
     const result = await registerUser(data.name, data.email, data.password);
-    // Fix: Check if result exists and has needsOTP property before accessing it
+    
+    // Only show OTP verification if account creation was successful
     if (result && result.needsOTP) {
       setVerificationEmail(data.email);
       setShowOTPVerification(true);
@@ -383,4 +382,3 @@ const Auth = () => {
 };
 
 export default Auth;
-

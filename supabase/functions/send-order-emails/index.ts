@@ -6,6 +6,9 @@ import { Resend } from "https://esm.sh/resend@2.0.0";
 // Initialize Resend with API key
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
+// Store owner email as a constant
+const OWNER_EMAIL = "mehab882011@gmail.com";
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -59,20 +62,18 @@ serve(async (req) => {
       html: customerEmailHTML
     });
     
-    console.log("Sending email to admin using customer email:", orderData.email);
+    console.log("Sending email to owner:", OWNER_EMAIL);
     
-    // Send email to admin using customer's email (for testing)
-    // In production, you'll want to change this back to your admin email
-    // once you've verified your domain in Resend
+    // Send email to owner account
     const adminEmailResponse = await resend.emails.send({
       from: "Vlitrix <onboarding@resend.dev>", // Use Resend's default domain during testing
-      to: orderData.email, // Using customer's email to avoid Resend testing restrictions
+      to: OWNER_EMAIL, // Using the owner's email directly
       subject: `New Order from ${orderData.firstName} ${orderData.lastName}`,
       html: adminEmailHTML
     });
 
     console.log("Email to customer sent successfully:", customerEmailResponse);
-    console.log("Email to admin sent successfully:", adminEmailResponse);
+    console.log("Email to owner sent successfully:", adminEmailResponse);
 
     return new Response(
       JSON.stringify({ 

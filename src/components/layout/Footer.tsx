@@ -26,7 +26,7 @@ const Footer = () => {
               <a href="https://linkedin.com" className="text-gray-400 hover:text-brand-green transition-colors">
                 <Linkedin className="h-5 w-5" />
               </a>
-              <a href="mailto:mohamed.ehab.work0@gmail.com" className="text-gray-400 hover:text-brand-green transition-colors">
+              <a href="mailto:info@vlitrix.com" className="text-gray-400 hover:text-brand-green transition-colors">
                 <Mail className="h-5 w-5" />
               </a>
             </div>

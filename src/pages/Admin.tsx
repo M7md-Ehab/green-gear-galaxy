@@ -7,7 +7,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { getProductById, products } from '@/data/products';
+import { products } from '@/data/products';
 import { 
   Table,
   TableBody,
@@ -16,6 +16,13 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger
+} from "@/components/ui/dialog";
 
 // Using the products from data file
 const initialProducts = products.map(product => ({
@@ -24,14 +31,23 @@ const initialProducts = products.map(product => ({
   stock: product.stock
 }));
 
+// Initial currencies
+const initialCurrencies = [
+  { code: 'EGP', name: 'Egyptian Pound', symbol: 'E£', exchangeRate: 1 },
+  { code: 'USD', name: 'US Dollar', symbol: '$', exchangeRate: 0.032 },
+  { code: 'EUR', name: 'Euro', symbol: '€', exchangeRate: 0.030 },
+  { code: 'GBP', name: 'British Pound', symbol: '£', exchangeRate: 0.025 }
+];
+
 const Admin = () => {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [activeTab, setActiveTab] = useState('orders');
+  const [activeTab, setActiveTab] = useState('inventory');
   const [products, setProducts] = useState(initialProducts);
+  const [currencies, setCurrencies] = useState(initialCurrencies);
   
   // Create a single state for all product stocks instead of using dynamic hook creation
   const [productStocks, setProductStocks] = useState({});
@@ -43,15 +59,13 @@ const Admin = () => {
       initialStocks[product.id] = product.stock;
     });
     setProductStocks(initialStocks);
+    
+    // Load saved currencies if they exist
+    const savedCurrencies = localStorage.getItem('vlitrix-currencies');
+    if (savedCurrencies) {
+      setCurrencies(JSON.parse(savedCurrencies));
+    }
   }, []);
-  
-  // Get orders from localStorage
-  const getOrders = () => {
-    const ordersFromStorage = localStorage.getItem('mehab-orders');
-    return ordersFromStorage ? JSON.parse(ordersFromStorage) : [];
-  };
-  
-  const [orders, setOrders] = useState(getOrders());
   
   useEffect(() => {
     // Check if admin is logged in
@@ -105,13 +119,52 @@ const Admin = () => {
     }));
   };
   
-  const markOrderAsCompleted = (orderId) => {
-    const updatedOrders = orders.map(order => 
-      order.id === orderId ? { ...order, status: 'completed' } : order
-    );
-    setOrders(updatedOrders);
-    localStorage.setItem('mehab-orders', JSON.stringify(updatedOrders));
-    toast.success('Order marked as completed');
+  // Currency management
+  const [newCurrency, setNewCurrency] = useState({ 
+    code: '', 
+    name: '', 
+    symbol: '', 
+    exchangeRate: 1 
+  });
+  
+  const handleCurrencyChange = (index, field, value) => {
+    const updatedCurrencies = [...currencies];
+    updatedCurrencies[index] = {
+      ...updatedCurrencies[index],
+      [field]: field === 'exchangeRate' ? parseFloat(value) || 0 : value
+    };
+    setCurrencies(updatedCurrencies);
+    
+    // Save currencies to localStorage
+    localStorage.setItem('vlitrix-currencies', JSON.stringify(updatedCurrencies));
+    toast.success('Currency rates updated');
+  };
+  
+  const addCurrency = () => {
+    if (!newCurrency.code || !newCurrency.name || !newCurrency.symbol) {
+      toast.error('Please fill in all currency fields');
+      return;
+    }
+    
+    const updatedCurrencies = [...currencies, newCurrency];
+    setCurrencies(updatedCurrencies);
+    localStorage.setItem('vlitrix-currencies', JSON.stringify(updatedCurrencies));
+    
+    // Reset new currency form
+    setNewCurrency({ code: '', name: '', symbol: '', exchangeRate: 1 });
+    toast.success('New currency added');
+  };
+  
+  const removeCurrency = (index) => {
+    if (currencies.length <= 1) {
+      toast.error('Cannot remove the last currency');
+      return;
+    }
+    
+    const updatedCurrencies = currencies.filter((_, i) => i !== index);
+    setCurrencies(updatedCurrencies);
+    localStorage.setItem('vlitrix-currencies', JSON.stringify(updatedCurrencies));
+    toast.success('Currency removed');
   };
 
   if (isCheckingAuth) {
@@ -192,106 +245,18 @@ const Admin = () => {
           {/* Tabs */}
           <div className="flex border-b border-gray-700 mb-8">
             <button
-              className={`py-2 px-4 ${activeTab === 'orders' ? 'text-brand-green border-b-2 border-brand-green' : 'text-gray-400'}`}
-              onClick={() => setActiveTab('orders')}
-            >
-              Orders
-            </button>
-            <button
               className={`py-2 px-4 ${activeTab === 'inventory' ? 'text-brand-green border-b-2 border-brand-green' : 'text-gray-400'}`}
               onClick={() => setActiveTab('inventory')}
             >
               Inventory
             </button>
+            <button
+              className={`py-2 px-4 ${activeTab === 'currencies' ? 'text-brand-green border-b-2 border-brand-green' : 'text-gray-400'}`}
+              onClick={() => setActiveTab('currencies')}
+            >
+              Currencies
+            </button>
           </div>
-          
-          {/* Orders Tab */}
-          {activeTab === 'orders' && (
-            <div>
-              <h2 className="text-xl font-bold mb-4">Customer Orders</h2>
-              
-              {orders.length === 0 ? (
-                <div className="bg-gray-900/50 rounded-lg p-6 text-center">
-                  <p className="text-gray-400">No customer orders found</p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {orders.map((order) => {
-                    const formattedDate = new Date(order.createdAt).toLocaleString();
-                    
-                    return (
-                      <div key={order.id} className="bg-gray-900/50 rounded-lg p-6">
-                        <div className="flex justify-between items-start mb-4">
-                          <div>
-                            <h3 className="font-bold">Order #{order.id}</h3>
-                            <p className="text-sm text-gray-400">{formattedDate}</p>
-                          </div>
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            order.status === 'completed' ? 'bg-green-900 text-green-100' : 'bg-yellow-900 text-yellow-100'
-                          }`}>
-                            {order.status === 'completed' ? 'Completed' : 'Pending'}
-                          </span>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div>
-                            <h4 className="font-medium mb-2 text-brand-green">Customer Information</h4>
-                            <div className="space-y-1 text-sm">
-                              <p><span className="text-gray-400">Name:</span> {order.customerName}</p>
-                              <p><span className="text-gray-400">Email:</span> {order.customerEmail}</p>
-                              <p><span className="text-gray-400">Phone:</span> {order.customerPhone}</p>
-                              <p><span className="text-gray-400">Address:</span> {order.shippingAddress}</p>
-                              <p><span className="text-gray-400">City:</span> {order.city}</p>
-                              <p><span className="text-gray-400">Payment:</span> {order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Payment'}</p>
-                              {order.paymentMethod === 'online' && order.cardNumber && (
-                                <p><span className="text-gray-400">Card Number:</span> {order.cardNumber}</p>
-                              )}
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <h4 className="font-medium mb-2 text-brand-green">Order Items</h4>
-                            <div className="space-y-2">
-                              {order.items.map((item) => {
-                                const product = getProductById(item.productId);
-                                
-                                return (
-                                  <div key={item.productId} className="flex justify-between">
-                                    <span>{item.quantity} x {product ? product.name : item.productId}</span>
-                                    <span>{(item.quantity * item.price).toLocaleString()} EGP</span>
-                                  </div>
-                                );
-                              })}
-                              <div className="border-t border-gray-700 pt-2 flex justify-between font-bold">
-                                <span>Total</span>
-                                <span>{order.total.toLocaleString()} EGP</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="mt-4 flex justify-end">
-                          <Button 
-                            variant={order.status === 'completed' ? 'outline' : 'default'}
-                            className={order.status === 'completed' ? 
-                              'border-gray-600 text-white bg-gray-800' : 
-                              'bg-brand-green hover:bg-brand-green/90 text-black'}
-                            size="sm"
-                            onClick={order.status === 'completed' ? 
-                              () => {} : 
-                              () => markOrderAsCompleted(order.id)
-                            }
-                          >
-                            {order.status === 'completed' ? 'Completed' : 'Mark as Completed'}
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
           
           {/* Inventory Tab */}
           {activeTab === 'inventory' && (
@@ -332,6 +297,137 @@ const Admin = () => {
                     ))}
                   </TableBody>
                 </Table>
+              </div>
+            </div>
+          )}
+          
+          {/* Currencies Tab */}
+          {activeTab === 'currencies' && (
+            <div>
+              <h2 className="text-xl font-bold mb-4">Currency Management</h2>
+              
+              <div className="bg-gray-900/50 rounded-lg p-6">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Code</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Symbol</TableHead>
+                      <TableHead>Exchange Rate (vs EGP)</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {currencies.map((currency, index) => (
+                      <TableRow key={currency.code}>
+                        <TableCell>
+                          <Input 
+                            value={currency.code}
+                            onChange={(e) => handleCurrencyChange(index, 'code', e.target.value)}
+                            className="w-20 bg-gray-800 border-gray-700"
+                            readOnly={currency.code === 'EGP'} // Base currency can't be changed
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input 
+                            value={currency.name}
+                            onChange={(e) => handleCurrencyChange(index, 'name', e.target.value)}
+                            className="w-full bg-gray-800 border-gray-700"
+                            readOnly={currency.code === 'EGP'} // Base currency can't be changed
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input 
+                            value={currency.symbol}
+                            onChange={(e) => handleCurrencyChange(index, 'symbol', e.target.value)}
+                            className="w-16 bg-gray-800 border-gray-700"
+                            readOnly={currency.code === 'EGP'} // Base currency can't be changed
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input 
+                            type="number"
+                            step="0.001"
+                            value={currency.exchangeRate}
+                            onChange={(e) => handleCurrencyChange(index, 'exchangeRate', e.target.value)}
+                            className="w-32 bg-gray-800 border-gray-700"
+                            readOnly={currency.code === 'EGP'} // Base currency can't be changed
+                          />
+                        </TableCell>
+                        <TableCell>
+                          {currency.code !== 'EGP' && (
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => removeCurrency(index)}
+                            >
+                              Remove
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                
+                <div className="mt-6 border-t border-gray-800 pt-6">
+                  <h3 className="text-lg font-medium mb-4">Add New Currency</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                      <label className="text-sm text-gray-400">Currency Code</label>
+                      <Input 
+                        placeholder="USD"
+                        value={newCurrency.code}
+                        onChange={(e) => setNewCurrency({...newCurrency, code: e.target.value.toUpperCase()})}
+                        className="bg-gray-800 border-gray-700"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-400">Currency Name</label>
+                      <Input 
+                        placeholder="US Dollar"
+                        value={newCurrency.name}
+                        onChange={(e) => setNewCurrency({...newCurrency, name: e.target.value})}
+                        className="bg-gray-800 border-gray-700"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-400">Currency Symbol</label>
+                      <Input 
+                        placeholder="$"
+                        value={newCurrency.symbol}
+                        onChange={(e) => setNewCurrency({...newCurrency, symbol: e.target.value})}
+                        className="bg-gray-800 border-gray-700"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-400">Exchange Rate (vs EGP)</label>
+                      <Input 
+                        type="number"
+                        step="0.001"
+                        placeholder="0.032"
+                        value={newCurrency.exchangeRate}
+                        onChange={(e) => setNewCurrency({...newCurrency, exchangeRate: parseFloat(e.target.value) || 0})}
+                        className="bg-gray-800 border-gray-700"
+                      />
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    onClick={addCurrency}
+                    className="mt-4 bg-brand-green hover:bg-brand-green/90 text-black"
+                  >
+                    Add Currency
+                  </Button>
+                  
+                  <div className="mt-4 p-4 bg-gray-800/50 rounded-md">
+                    <h4 className="font-medium text-brand-green mb-2">About Exchange Rates</h4>
+                    <p className="text-sm text-gray-400">
+                      Exchange rates are relative to Egyptian Pound (EGP). For example, if 1 EGP = 0.032 USD, enter 0.032 as the exchange rate for USD.
+                      These rates will be used to calculate product prices in different currencies.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           )}

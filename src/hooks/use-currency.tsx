@@ -8,6 +8,7 @@ export interface Currency {
   code: string;
   name: string;
   symbol: string;
+  exchangeRate: number;
 }
 
 interface CurrencyContextType {
@@ -21,21 +22,20 @@ interface CurrencyContextType {
 const defaultCurrency: Currency = {
   code: 'EGP',
   name: 'Egyptian Pound',
-  symbol: 'E£'
+  symbol: 'E£',
+  exchangeRate: 1
 };
 
-// Exchange rates relative to EGP (as of May 2025)
-// These would ideally come from an API but for now we're hardcoding them
-const exchangeRates: Record<string, number> = {
-  'EGP': 1,
-  'USD': 0.032, // 1 EGP = 0.032 USD
-  'EUR': 0.030, // 1 EGP = 0.030 EUR
-  'GBP': 0.025, // 1 EGP = 0.025 GBP
-  // Add more currencies as needed
-};
+// Default exchange rates
+const defaultCurrencies: Currency[] = [
+  defaultCurrency,
+  { code: 'USD', name: 'US Dollar', symbol: '$', exchangeRate: 0.032 },
+  { code: 'EUR', name: 'Euro', symbol: '€', exchangeRate: 0.030 },
+  { code: 'GBP', name: 'British Pound', symbol: '£', exchangeRate: 0.025 }
+];
 
 const CurrencyContext = createContext<CurrencyContextType>({
-  currencies: [],
+  currencies: defaultCurrencies,
   currentCurrency: defaultCurrency,
   setCurrency: async () => {},
   isLoading: true,
@@ -44,33 +44,24 @@ const CurrencyContext = createContext<CurrencyContextType>({
 
 export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
   const { user, isLoggedIn } = useAuth();
-  const [currencies, setCurrencies] = useState<Currency[]>([]);
+  const [currencies, setCurrencies] = useState<Currency[]>(defaultCurrencies);
   const [currentCurrency, setCurrentCurrency] = useState<Currency>(defaultCurrency);
   const [isLoading, setIsLoading] = useState(true);
 
   // Load all available currencies
   useEffect(() => {
-    const fetchCurrencies = async () => {
+    // Check if admin has configured custom currencies
+    const storedCurrencies = localStorage.getItem('vlitrix-currencies');
+    if (storedCurrencies) {
       try {
-        const { data, error } = await supabase
-          .from('currencies')
-          .select('*')
-          .order('name');
-        
-        if (error) {
-          throw error;
-        }
-        
-        if (data) {
-          setCurrencies(data);
+        const parsedCurrencies = JSON.parse(storedCurrencies);
+        if (Array.isArray(parsedCurrencies) && parsedCurrencies.length > 0) {
+          setCurrencies(parsedCurrencies);
         }
       } catch (error) {
-        console.error('Error fetching currencies:', error);
-        toast.error('Failed to load currencies');
+        console.error('Error parsing stored currencies:', error);
       }
-    };
-    
-    fetchCurrencies();
+    }
   }, []);
 
   // Load user's preferred currency if logged in
@@ -122,7 +113,7 @@ export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
 
   // Convert price from EGP to selected currency
   const convertPrice = (priceInEGP: number): number => {
-    const rate = exchangeRates[currentCurrency.code] || 1;
+    const rate = currentCurrency.exchangeRate || 1;
     return parseFloat((priceInEGP * rate).toFixed(2));
   };
 

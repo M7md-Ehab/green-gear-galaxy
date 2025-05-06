@@ -1,50 +1,55 @@
 
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { CurrencyProvider } from "@/hooks/use-currency";
+import { Toaster as SonnerToaster } from "sonner";
 
-import Index from "./pages/Index";
-import Products from "./pages/Products";
-import ProductDetail from "./pages/ProductDetail";
-import Cart from "./pages/Cart";
-import Checkout from "./pages/Checkout";
-import CheckoutSuccess from "./pages/CheckoutSuccess";
-import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
-import NotFound from "./pages/NotFound";
-import Admin from "./pages/Admin";
-import AccountEdit from "./pages/AccountEdit";
+import IndexPage from '@/pages/Index';
+import ProductDetail from '@/pages/ProductDetail';
+import Products from '@/pages/Products';
+import Cart from '@/pages/Cart';
+import Checkout from '@/pages/Checkout';
+import CheckoutSuccess from '@/pages/CheckoutSuccess';
+import Auth from '@/pages/Auth';
+import Dashboard from '@/pages/Dashboard';
+import AccountEdit from '@/pages/AccountEdit';
+import Admin from '@/pages/Admin';
+import NotFound from '@/pages/NotFound';
 
-const queryClient = new QueryClient();
+// New pages
+import ReturnPolicy from '@/pages/ReturnPolicy';
+import PrivacyPolicy from '@/pages/PrivacyPolicy';
+import TermsAndConditions from '@/pages/TermsAndConditions';
+import About from '@/pages/About';
+import Contact from '@/pages/Contact';
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <CurrencyProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/products/:id" element={<ProductDetail />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/checkout/success" element={<CheckoutSuccess />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/account/edit" element={<AccountEdit />} />
-            <Route path="/admin" element={<Admin />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </CurrencyProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<IndexPage />} />
+        <Route path="/products" element={<Products />} />
+        <Route path="/products/:productId" element={<ProductDetail />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/checkout/success" element={<CheckoutSuccess />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/account/edit" element={<AccountEdit />} />
+        <Route path="/admin" element={<Admin />} />
+        
+        {/* New routes */}
+        <Route path="/return-policy" element={<ReturnPolicy />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      <SonnerToaster position="top-center" richColors closeButton />
+      <Toaster />
+    </Router>
+  );
+}
 
 export default App;

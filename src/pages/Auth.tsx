@@ -21,6 +21,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth, useAuthListener } from '@/hooks/use-auth';
+import { 
+  InputOTP, 
+  InputOTPGroup, 
+  InputOTPSlot 
+} from '@/components/ui/input-otp';
 
 // Login Schema
 const loginSchema = z.object({
@@ -39,18 +44,26 @@ const registerSchema = z.object({
   path: ["confirmPassword"],
 });
 
+// OTP Schema
+const otpSchema = z.object({
+  otp: z.string().length(6, { message: 'OTP code must be 6 digits' }),
+});
+
 type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
+type OTPFormValues = z.infer<typeof otpSchema>;
 
 const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState<string>('login');
+  const [verificationEmail, setVerificationEmail] = useState<string>('');
+  const [showOTPVerification, setShowOTPVerification] = useState(false);
   
   // Setup auth listener
   useAuthListener();
   
-  const { isLoggedIn, isLoading, login, register: registerUser } = useAuth();
+  const { isLoggedIn, isLoading, login, register: registerUser, verifyOTP } = useAuth();
   
   useEffect(() => {
     // Check if already logged in
@@ -61,6 +74,11 @@ const Auth = () => {
 
   // Handle back button click - go to previous page or home
   const handleBack = () => {
+    if (showOTPVerification) {
+      setShowOTPVerification(false);
+      return;
+    }
+    
     if (location.key !== 'default') {
       navigate(-1);
     } else {
@@ -87,13 +105,33 @@ const Auth = () => {
       confirmPassword: '',
     },
   });
+  
+  // OTP Verification Form
+  const otpForm = useForm<OTPFormValues>({
+    resolver: zodResolver(otpSchema),
+    defaultValues: {
+      otp: '',
+    },
+  });
 
   const onLoginSubmit = async (data: LoginFormValues) => {
-    await login(data.email, data.password);
+    const result = await login(data.email, data.password);
+    if (result?.needsOTP) {
+      setVerificationEmail(data.email);
+      setShowOTPVerification(true);
+    }
   };
 
   const onRegisterSubmit = async (data: RegisterFormValues) => {
-    await registerUser(data.name, data.email, data.password);
+    const result = await registerUser(data.name, data.email, data.password);
+    if (result?.needsOTP) {
+      setVerificationEmail(data.email);
+      setShowOTPVerification(true);
+    }
+  };
+  
+  const onOTPSubmit = async (data: OTPFormValues) => {
+    await verifyOTP(verificationEmail, data.otp);
   };
 
   if (isLoading) {
@@ -104,6 +142,83 @@ const Auth = () => {
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-green mx-auto mb-4"></div>
             <p>Loading...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+  
+  // Show OTP verification screen if needed
+  if (showOTPVerification) {
+    return (
+      <div className="min-h-screen flex flex-col bg-black text-white">
+        <Navbar />
+        <main className="flex-grow py-12">
+          <div className="container-custom max-w-md mx-auto">
+            <div className="mb-6">
+              <Button 
+                variant="ghost" 
+                className="flex items-center gap-2" 
+                onClick={handleBack}
+              >
+                <ArrowLeft size={16} />
+                Back
+              </Button>
+            </div>
+            <h1 className="text-4xl font-bold mb-3 text-center">Verify Your Email</h1>
+            <p className="text-center text-gray-400 mb-8">
+              We've sent a 6-digit verification code to <span className="font-medium text-white">{verificationEmail}</span>
+            </p>
+            
+            <div className="bg-gray-900/50 rounded-lg overflow-hidden p-6">
+              <Form {...otpForm}>
+                <form onSubmit={otpForm.handleSubmit(onOTPSubmit)} className="space-y-6">
+                  <FormField
+                    control={otpForm.control}
+                    name="otp"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Enter Verification Code</FormLabel>
+                        <FormControl>
+                          <InputOTP maxLength={6} {...field}>
+                            <InputOTPGroup>
+                              <InputOTPSlot index={0} />
+                              <InputOTPSlot index={1} />
+                              <InputOTPSlot index={2} />
+                              <InputOTPSlot index={3} />
+                              <InputOTPSlot index={4} />
+                              <InputOTPSlot index={5} />
+                            </InputOTPGroup>
+                          </InputOTP>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-brand-green hover:bg-brand-green/90 text-black"
+                  >
+                    Verify
+                  </Button>
+                  
+                  <div className="text-center text-sm text-gray-400">
+                    <button 
+                      type="button" 
+                      className="hover:text-brand-green"
+                      onClick={() => {
+                        // Logic to resend verification code would go here
+                        toast.info("Verification code resent");
+                      }}
+                    >
+                      Didn't receive a code? Resend
+                    </button>
+                  </div>
+                </form>
+              </Form>
+            </div>
           </div>
         </main>
         <Footer />

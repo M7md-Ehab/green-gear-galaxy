@@ -11,11 +11,12 @@ interface AuthState {
   session: Session | null;
   isLoggedIn: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ needsOTP?: boolean } | void>;
+  register: (name: string, email: string, password: string) => Promise<{ needsOTP?: boolean } | void>;
   logout: () => Promise<void>;
   updateUserProfile: (name: string, email: string) => Promise<void>;
   checkSession: () => Promise<void>;
+  verifyOTP: (email: string, token: string) => Promise<void>;
 }
 
 // Main authentication store with Supabase
@@ -53,10 +54,18 @@ export const useAuth = create(
             throw error;
           }
           
+          // If OTP is enabled, handle verification
+          if (data && !data.session) {
+            toast.info('Verification code sent to your email', { 
+              description: 'Please check your inbox and enter the 6-digit code' 
+            });
+            return { needsOTP: true };
+          }
+          
           set({ 
             user: data.user,
             session: data.session,
-            isLoggedIn: true
+            isLoggedIn: !!data.session
           });
           
           toast.success('Login successful', { 
@@ -86,6 +95,14 @@ export const useAuth = create(
             throw error;
           }
           
+          // If email verification is required
+          if (data && !data.session) {
+            toast.info('Verification code sent to your email', { 
+              description: 'Please check your inbox and enter the 6-digit code' 
+            });
+            return { needsOTP: true };
+          }
+          
           toast.success('Registration successful', { 
             description: data.session ? 'You are now logged in' : 'Please check your email to verify your account' 
           });
@@ -101,6 +118,35 @@ export const useAuth = create(
         } catch (error: any) {
           toast.error('Registration failed', { 
             description: error.message || 'There was an error creating your account' 
+          });
+        }
+      },
+      
+      verifyOTP: async (email, token) => {
+        try {
+          const { data, error } = await supabase.auth.verifyOtp({
+            email,
+            token,
+            type: 'email'
+          });
+          
+          if (error) {
+            throw error;
+          }
+          
+          set({ 
+            user: data.user,
+            session: data.session,
+            isLoggedIn: true
+          });
+          
+          toast.success('Email verified successfully', { 
+            description: 'You are now logged in' 
+          });
+          
+        } catch (error: any) {
+          toast.error('Verification failed', { 
+            description: error.message || 'Invalid or expired verification code' 
           });
         }
       },
@@ -146,7 +192,7 @@ export const useAuth = create(
       }
     }),
     {
-      name: 'mehab-auth'
+      name: 'vlitrix-auth'
     }
   )
 );

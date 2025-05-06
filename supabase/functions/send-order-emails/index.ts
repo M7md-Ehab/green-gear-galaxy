@@ -53,18 +53,18 @@ serve(async (req) => {
     
     // Send email to customer using Resend
     const customerEmailResponse = await resend.emails.send({
-      from: "onboarding@resend.dev", // Use Resend's default domain during testing
+      from: "Vlitrix <onboarding@resend.dev>", // Use Resend's default domain during testing
       to: orderData.email,
       subject: "Your Vlitrix Order Confirmation",
       html: customerEmailHTML
     });
     
-    console.log("Sending email to admin: mehab882011@gmail.com");
+    console.log("Sending email to admin: info@vlitrix.com");
     
     // Send email to admin using Resend
     const adminEmailResponse = await resend.emails.send({
-      from: "onboarding@resend.dev", // Use Resend's default domain during testing
-      to: "mehab882011@gmail.com",
+      from: "Vlitrix <onboarding@resend.dev>", // Use Resend's default domain during testing
+      to: "info@vlitrix.com",
       subject: `New Order from ${orderData.firstName} ${orderData.lastName}`,
       html: adminEmailHTML
     });

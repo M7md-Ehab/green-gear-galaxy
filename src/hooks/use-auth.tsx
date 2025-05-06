@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { toast } from 'sonner';
@@ -11,8 +10,8 @@ interface AuthState {
   session: Session | null;
   isLoggedIn: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<{ needsOTP?: boolean } | void>;
-  register: (name: string, email: string, password: string) => Promise<{ needsOTP?: boolean } | void>;
+  login: (email: string, password: string) => Promise<{ needsOTP?: boolean } | undefined>;
+  register: (name: string, email: string, password: string) => Promise<{ needsOTP?: boolean } | undefined>;
   logout: () => Promise<void>;
   updateUserProfile: (name: string, email: string) => Promise<void>;
   checkSession: () => Promise<void>;
@@ -72,10 +71,14 @@ export const useAuth = create(
             description: `Welcome back!` 
           });
           
+          // Return undefined explicitly when there's no OTP needed
+          return undefined;
+          
         } catch (error: any) {
           toast.error('Login failed', { 
             description: error.message || 'Invalid email or password' 
           });
+          return undefined;
         }
       },
       
@@ -115,10 +118,14 @@ export const useAuth = create(
             });
           }
           
+          // Return undefined explicitly when there's no OTP needed
+          return undefined;
+          
         } catch (error: any) {
           toast.error('Registration failed', { 
             description: error.message || 'There was an error creating your account' 
           });
+          return undefined;
         }
       },
       

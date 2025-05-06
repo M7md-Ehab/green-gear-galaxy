@@ -116,7 +116,8 @@ const Auth = () => {
 
   const onLoginSubmit = async (data: LoginFormValues) => {
     const result = await login(data.email, data.password);
-    if (result?.needsOTP) {
+    // Fix: Check if result exists and has needsOTP property before accessing it
+    if (result && result.needsOTP) {
       setVerificationEmail(data.email);
       setShowOTPVerification(true);
     }
@@ -124,7 +125,8 @@ const Auth = () => {
 
   const onRegisterSubmit = async (data: RegisterFormValues) => {
     const result = await registerUser(data.name, data.email, data.password);
-    if (result?.needsOTP) {
+    // Fix: Check if result exists and has needsOTP property before accessing it
+    if (result && result.needsOTP) {
       setVerificationEmail(data.email);
       setShowOTPVerification(true);
     }
@@ -381,3 +383,4 @@ const Auth = () => {
 };
 
 export default Auth;
+

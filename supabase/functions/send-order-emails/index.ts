@@ -59,12 +59,14 @@ serve(async (req) => {
       html: customerEmailHTML
     });
     
-    console.log("Sending email to admin: info@vlitrix.com");
+    console.log("Sending email to admin using customer email:", orderData.email);
     
-    // Send email to admin using Resend
+    // Send email to admin using customer's email (for testing)
+    // In production, you'll want to change this back to your admin email
+    // once you've verified your domain in Resend
     const adminEmailResponse = await resend.emails.send({
       from: "Vlitrix <onboarding@resend.dev>", // Use Resend's default domain during testing
-      to: "info@vlitrix.com",
+      to: orderData.email, // Using customer's email to avoid Resend testing restrictions
       subject: `New Order from ${orderData.firstName} ${orderData.lastName}`,
       html: adminEmailHTML
     });

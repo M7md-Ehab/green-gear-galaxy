@@ -12,10 +12,16 @@ const CheckoutSuccess = () => {
   const navigate = useNavigate();
   const { items, clearCart } = useCart();
   
+  // Clear the cart when this page loads
+  useEffect(() => {
+    clearCart();
+  }, [clearCart]);
+  
   // If someone tries to access this page directly without checking out, redirect them
   useEffect(() => {
-    // Instead of conditionally calling hooks, we always set up a timer
-    // and handle the logic inside the effect
+    // We'll only redirect if they have items in their cart
+    // Since we clear the cart above, this would only happen if they
+    // tried to access this page directly without going through checkout
     const timer = setTimeout(() => {
       if (items.length > 0) {
         navigate('/checkout');

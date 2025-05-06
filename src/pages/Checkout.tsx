@@ -54,13 +54,20 @@ const Checkout = () => {
     defaultValues: {
       firstName: '',
       lastName: '',
-      email: '',
+      email: user?.email || '',
       phone: '',
       address: '',
       city: '',
       notes: '',
       paymentMethod: 'online',
     },
+  });
+
+  // Update email field when user logs in
+  useState(() => {
+    if (user?.email) {
+      form.setValue('email', user.email);
+    }
   });
 
   const watchPaymentMethod = form.watch('paymentMethod');
@@ -143,13 +150,21 @@ const Checkout = () => {
       };
       
       // Send confirmation emails
-      const { error: emailError } = await supabase.functions.invoke('send-order-emails', {
-        body: { orderData }
-      });
-      
-      if (emailError) {
+      try {
+        const { error: emailError } = await supabase.functions.invoke('send-order-emails', {
+          body: { orderData }
+        });
+        
+        if (emailError) {
+          console.error("Email sending error:", emailError);
+          // Don't throw here, just log the error since the order is already created
+          toast.warning('Order placed but confirmation email could not be sent');
+        } else {
+          toast.success('Order confirmation email sent!');
+        }
+      } catch (emailError) {
         console.error("Email sending error:", emailError);
-        // Don't throw here, just log the error since the order is already created
+        toast.warning('Order placed but confirmation email could not be sent');
       }
       
       // Clear cart and redirect to success page
@@ -158,7 +173,7 @@ const Checkout = () => {
       navigate('/checkout/success');
     } catch (error: any) {
       console.error('Checkout error:', error);
-      toast.error('An error occurred processing your order');
+      toast.error(`An error occurred processing your order: ${error.message}`);
       setIsProcessing(false);
     }
   };
@@ -308,7 +323,6 @@ const Checkout = () => {
                                     <span className="bg-white text-black text-xs px-2 py-1 rounded">Visa</span>
                                     <span className="bg-white text-black text-xs px-2 py-1 rounded">MasterCard</span>
                                     <span className="bg-white text-black text-xs px-2 py-1 rounded">Meeza</span>
-                                    <span className="bg-white text-black text-xs px-2 py-1 rounded">Credit/Debit</span>
                                   </div>
                                 </label>
                               </div>

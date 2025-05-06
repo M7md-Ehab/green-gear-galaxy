@@ -55,7 +55,7 @@ serve(async (req) => {
     const customerEmailResponse = await resend.emails.send({
       from: "onboarding@resend.dev", // Use Resend's default domain during testing
       to: orderData.email,
-      subject: "Your Mehab Order Confirmation",
+      subject: "Your Vlitrix Order Confirmation",
       html: customerEmailHTML
     });
     
@@ -119,7 +119,7 @@ function generateCustomerEmail(orderData: OrderData): string {
         <div class="container">
           <h1>Order Confirmation</h1>
           <p>Dear ${orderData.firstName} ${orderData.lastName},</p>
-          <p>Thank you for your order with Mehab Company. Your order has been received and is being processed.</p>
+          <p>Thank you for your order with Vlitrix. Your order has been received and is being processed.</p>
           
           <h2>Order Details</h2>
           <p><strong>Order ID:</strong> ${orderData.id}</p>
@@ -160,7 +160,7 @@ function generateCustomerEmail(orderData: OrderData): string {
           
           <p>
             Thank you for shopping with us!<br>
-            Mehab Company
+            Vlitrix
           </p>
         </div>
       </body>

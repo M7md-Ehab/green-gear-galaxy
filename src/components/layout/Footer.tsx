@@ -9,7 +9,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
           {/* Brand & Social */}
           <div className="space-y-4">
-            <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-green">Mehab</h3>
+            <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-green">Vlitrix</h3>
             <p className="text-sm text-gray-400 max-w-xs">
               Premium machines with cutting-edge technology and exceptional performance.
             </p>
@@ -89,7 +89,7 @@ const Footer = () => {
 
         <div className="mt-12 pt-6 border-t border-gray-800 text-center">
           <p className="text-sm text-gray-500">
-            © {new Date().getFullYear()} Mehab. All rights reserved.
+            © {new Date().getFullYear()} Vlitrix. All rights reserved.
           </p>
         </div>
       </div>

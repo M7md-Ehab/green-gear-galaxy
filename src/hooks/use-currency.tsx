@@ -15,6 +15,7 @@ interface CurrencyContextType {
   currentCurrency: Currency;
   setCurrency: (currencyCode: string) => Promise<void>;
   isLoading: boolean;
+  convertPrice: (priceInEGP: number) => number;
 }
 
 const defaultCurrency: Currency = {
@@ -23,11 +24,22 @@ const defaultCurrency: Currency = {
   symbol: 'E£'
 };
 
+// Exchange rates relative to EGP (as of May 2025)
+// These would ideally come from an API but for now we're hardcoding them
+const exchangeRates: Record<string, number> = {
+  'EGP': 1,
+  'USD': 0.032, // 1 EGP = 0.032 USD
+  'EUR': 0.030, // 1 EGP = 0.030 EUR
+  'GBP': 0.025, // 1 EGP = 0.025 GBP
+  // Add more currencies as needed
+};
+
 const CurrencyContext = createContext<CurrencyContextType>({
   currencies: [],
   currentCurrency: defaultCurrency,
   setCurrency: async () => {},
-  isLoading: true
+  isLoading: true,
+  convertPrice: (price) => price
 });
 
 export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
@@ -108,6 +120,12 @@ export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [isLoggedIn, user, currencies]);
 
+  // Convert price from EGP to selected currency
+  const convertPrice = (priceInEGP: number): number => {
+    const rate = exchangeRates[currentCurrency.code] || 1;
+    return parseFloat((priceInEGP * rate).toFixed(2));
+  };
+
   // Function to change currency
   const setCurrency = async (currencyCode: string) => {
     const newCurrency = currencies.find(c => c.code === currencyCode);
@@ -137,7 +155,13 @@ export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <CurrencyContext.Provider value={{ currencies, currentCurrency, setCurrency, isLoading }}>
+    <CurrencyContext.Provider value={{ 
+      currencies, 
+      currentCurrency, 
+      setCurrency, 
+      isLoading,
+      convertPrice 
+    }}>
       {children}
     </CurrencyContext.Provider>
   );

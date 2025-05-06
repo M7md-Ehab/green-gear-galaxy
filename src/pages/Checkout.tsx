@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -34,7 +35,6 @@ const checkoutSchema = z.object({
   city: z.string().min(2, { message: 'City is required' }),
   notes: z.string().optional(),
   paymentMethod: z.enum(['online', 'cod']),
-  cardNumber: z.string().optional(),
 });
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
@@ -60,7 +60,6 @@ const Checkout = () => {
       city: '',
       notes: '',
       paymentMethod: 'online',
-      cardNumber: '',
     },
   });
 
@@ -72,20 +71,11 @@ const Checkout = () => {
       return;
     }
     
-    // Validate card number for online payment
-    if (data.paymentMethod === 'online' && (!data.cardNumber || data.cardNumber.trim().length < 16)) {
-      toast.error('Please enter a valid card number');
-      return;
-    }
-    
     setIsProcessing(true);
     
     try {
       // Generate a unique order ID
       const orderId = uuidv4();
-
-      // Create the dummy user ID for non-logged in users
-      const anonymousUserId = '00000000-0000-0000-0000-000000000000';
       
       // Map cart items to order items for database
       const orderItems = items.map(item => ({
@@ -95,10 +85,10 @@ const Checkout = () => {
         quantity: item.quantity
       }));
       
-      // Create the order in the database
+      // Create the order in the database, using a null UUID for guest users
       const { error: orderError } = await supabase.from('orders').insert({
         id: orderId,
-        user_id: isLoggedIn && user ? user.id : anonymousUserId, 
+        user_id: isLoggedIn && user ? user.id : null, 
         total_amount: cartTotal(),
         currency_code: currentCurrency.code,
         first_name: data.firstName,
@@ -338,30 +328,6 @@ const Checkout = () => {
                         </FormItem>
                       )}
                     />
-                    
-                    {/* Card details for online payment */}
-                    {watchPaymentMethod === 'online' && (
-                      <FormField
-                        control={form.control}
-                        name="cardNumber"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Card Number</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="1234 5678 9012 3456" 
-                                className="bg-gray-800 border-gray-700"
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                            <p className="text-xs text-gray-400 mt-1">
-                              Enter your card number for Paymob to process the payment.
-                            </p>
-                          </FormItem>
-                        )}
-                      />
-                    )}
                     
                     <div className="pt-2">
                       <Button 

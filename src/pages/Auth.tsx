@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Key } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 import Navbar from '@/components/layout/Navbar';
@@ -350,10 +350,15 @@ const Auth = () => {
                 Back
               </Button>
             </div>
-            <h1 className="text-4xl font-bold mb-3 text-center">Verify Your Email</h1>
-            <p className="text-center text-gray-400 mb-8">
-              We've sent a 6-digit verification code to <span className="font-medium text-white">{verificationEmail}</span>
-            </p>
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/10 mb-4">
+                <Key className="h-8 w-8 text-brand-green" />
+              </div>
+              <h1 className="text-4xl font-bold mb-3">Verify Your Email</h1>
+              <p className="text-gray-400">
+                We've sent a 6-digit verification code to <span className="font-medium text-white">{verificationEmail}</span>
+              </p>
+            </div>
             
             <div className="bg-gray-900/50 rounded-lg overflow-hidden p-6">
               <Form {...otpForm}>
@@ -362,17 +367,17 @@ const Auth = () => {
                     control={otpForm.control}
                     name="otp"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Enter Verification Code</FormLabel>
+                      <FormItem className="space-y-4">
+                        <FormLabel className="text-center block">Enter Verification Code</FormLabel>
                         <FormControl>
-                          <InputOTP maxLength={6} {...field}>
-                            <InputOTPGroup>
-                              <InputOTPSlot index={0} />
-                              <InputOTPSlot index={1} />
-                              <InputOTPSlot index={2} />
-                              <InputOTPSlot index={3} />
-                              <InputOTPSlot index={4} />
-                              <InputOTPSlot index={5} />
+                          <InputOTP maxLength={6} {...field} className="gap-2 justify-center">
+                            <InputOTPGroup className="gap-2">
+                              <InputOTPSlot index={0} className="h-12 w-12" />
+                              <InputOTPSlot index={1} className="h-12 w-12" />
+                              <InputOTPSlot index={2} className="h-12 w-12" />
+                              <InputOTPSlot index={3} className="h-12 w-12" />
+                              <InputOTPSlot index={4} className="h-12 w-12" />
+                              <InputOTPSlot index={5} className="h-12 w-12" />
                             </InputOTPGroup>
                           </InputOTP>
                         </FormControl>
@@ -385,7 +390,7 @@ const Auth = () => {
                     type="submit" 
                     className="w-full bg-brand-green hover:bg-brand-green/90 text-black"
                   >
-                    {activeTab === 'reset-password' ? 'Verify to Reset Password' : 'Verify'}
+                    {activeTab === 'reset-password' ? 'Verify to Reset Password' : 'Verify & Continue'}
                   </Button>
                   
                   <div className="text-center text-sm text-gray-400">

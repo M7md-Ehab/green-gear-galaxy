@@ -11,7 +11,7 @@ import Checkout from '@/pages/Checkout';
 import CheckoutSuccess from '@/pages/CheckoutSuccess';
 import Auth from '@/pages/Auth';
 import Dashboard from '@/pages/Dashboard';
-import AccountEdit from '@/pages/AccountEdit';
+import AccountEdit from '@/pages/account/AccountEdit';
 import Admin from '@/pages/Admin';
 import NotFound from '@/pages/NotFound';
 

@@ -62,8 +62,22 @@ export const useAuth = create(
             }
             throw userExistsError;
           }
+
+          // If login succeeded, but we want to enforce OTP verification,
+          // we need to immediately log the user out
+          if (userExists.session) {
+            // Sign the user out right away - we want them to verify via OTP
+            await supabase.auth.signOut();
+            
+            // Reset the auth state
+            set({ 
+              user: null, 
+              session: null, 
+              isLoggedIn: false 
+            });
+          }
           
-          // If we got here, the user exists - now always send OTP for two-factor authentication
+          // Now send OTP for verification
           const { data, error } = await supabase.auth.signInWithOtp({
             email,
             options: {
@@ -105,7 +119,7 @@ export const useAuth = create(
             return undefined;
           }
           
-          // Now proceed with signup - always requiring email verification
+          // Now proceed with signup but don't auto-sign in
           const { data, error } = await supabase.auth.signUp({
             email,
             password,
@@ -121,11 +135,11 @@ export const useAuth = create(
             throw error;
           }
           
-          // Send OTP for verification
+          // If user was created successfully, now send OTP
           const { error: otpError } = await supabase.auth.signInWithOtp({
             email,
             options: {
-              shouldCreateUser: false, // User was created above
+              shouldCreateUser: false,
             }
           });
           
@@ -244,6 +258,12 @@ export const useAuth = create(
             Object.keys(localStorage).forEach((key) => {
               if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
                 localStorage.removeItem(key);
+              }
+            });
+            // Also clean up sessionStorage if needed
+            Object.keys(sessionStorage || {}).forEach((key) => {
+              if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+                sessionStorage.removeItem(key);
               }
             });
           };

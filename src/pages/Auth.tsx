@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -78,6 +77,8 @@ const Auth = () => {
   const [verificationStep, setVerificationStep] = useState<
     'login' | 'register' | 'verify-otp' | 'forgot-password' | 'reset-password'
   >('login');
+  const [cooldownActive, setCooldownActive] = useState<boolean>(false);
+  const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
   
   // Setup auth listener
   useAuthListener();
@@ -98,6 +99,27 @@ const Auth = () => {
       navigate('/dashboard');
     }
   }, [isLoggedIn, isLoading, navigate]);
+
+  // Cooldown timer for OTP
+  useEffect(() => {
+    let interval: number | undefined;
+    
+    if (cooldownActive && cooldownRemaining > 0) {
+      interval = window.setInterval(() => {
+        setCooldownRemaining((prev) => {
+          if (prev <= 1) {
+            setCooldownActive(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [cooldownActive, cooldownRemaining]);
 
   // Handle back button click - go to previous page or return to authentication step
   const handleBack = () => {
@@ -201,11 +223,14 @@ const Auth = () => {
       await verifyOTP(verificationEmail, data.otp);
       
       // If this was for password reset, move to reset password step
-      if (activeTab === 'login' && verificationStep === 'verify-otp') {
-        // This was a login verification
-        navigate('/dashboard');
-      }
-    } catch (error) {
+      if (activeTab === 'reset-password') {
+        setVerificationStep('reset-password');
+        return;
+      } 
+      
+      // Otherwise this was for login/registration verification
+      navigate('/dashboard');
+    } catch (error: any) {
       // The error is already handled in verifyOTP with toast
       console.error("OTP verification error:", error);
       otpForm.reset();
@@ -243,6 +268,14 @@ const Auth = () => {
   };
   
   const handleResendCode = async () => {
+    // If a cooldown is active, don't allow resending
+    if (cooldownActive) {
+      toast.error("Please wait", {
+        description: `You can request a new code in ${cooldownRemaining} seconds`
+      });
+      return;
+    }
+
     try {
       // Attempt to re-send OTP based on current flow
       const { error } = await supabase.auth.signInWithOtp({
@@ -250,7 +283,29 @@ const Auth = () => {
         options: { shouldCreateUser: false }
       });
       
-      if (error) throw error;
+      if (error) {
+        // Check if this is a rate limit error
+        if (error.message?.toLowerCase().includes('rate limit') || 
+            error.message?.includes('only request this after')) {
+          // Extract the wait time if available
+          const waitTimeMatch = error.message.match(/(\d+) seconds/);
+          const waitTime = waitTimeMatch ? parseInt(waitTimeMatch[1]) : 60;
+          
+          setCooldownActive(true);
+          setCooldownRemaining(waitTime);
+          
+          toast.error("Rate limit exceeded", { 
+            description: `Please wait ${waitTime} seconds before requesting another code` 
+          });
+          return;
+        }
+        
+        throw error;
+      }
+      
+      // Set a standard cooldown even if the API doesn't enforce one
+      setCooldownActive(true);
+      setCooldownRemaining(60); // Standard 60 second cooldown
       
       toast.info("Verification code resent", { 
         description: "Please check your email inbox" 
@@ -335,10 +390,13 @@ const Auth = () => {
                   <div className="text-center text-sm text-gray-400">
                     <button 
                       type="button" 
-                      className="hover:text-brand-green"
+                      className={`hover:text-brand-green ${cooldownActive ? 'opacity-50 cursor-not-allowed' : ''}`}
                       onClick={handleResendCode}
+                      disabled={cooldownActive}
                     >
-                      Didn't receive a code? Resend
+                      {cooldownActive 
+                        ? `Resend code in ${cooldownRemaining}s` 
+                        : "Didn't receive a code? Resend"}
                     </button>
                   </div>
                 </form>
@@ -607,7 +665,7 @@ const Auth = () => {
                             <FormLabel>Confirm Password</FormLabel>
                             <FormControl>
                               <Input type="password" placeholder="******" {...field} />
-                            </FormControl>
+                            </Control>
                             <FormMessage />
                           </FormItem>
                         )}

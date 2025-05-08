@@ -7,8 +7,8 @@ import { AuthState } from './types';
 type PasswordSlice = Pick<AuthState, 'resetPassword' | 'updatePassword'>;
 
 export const passwordActions = (
-  set: StateCreator<AuthState>['setState'], 
-  get: StateCreator<AuthState>['getState']
+  set: (state: Partial<AuthState>) => void, 
+  get: () => AuthState
 ): PasswordSlice => ({
   resetPassword: async (email) => {
     try {

@@ -7,8 +7,8 @@ import { AuthState } from './types';
 type ProfileSlice = Pick<AuthState, 'updateUserProfile'>;
 
 export const profileActions = (
-  set: StateCreator<AuthState>['setState'], 
-  get: StateCreator<AuthState>['getState']
+  set: (state: Partial<AuthState>) => void, 
+  get: () => AuthState
 ): ProfileSlice => ({
   updateUserProfile: async (name, email) => {
     const user = get().user;

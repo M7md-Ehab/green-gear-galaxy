@@ -7,8 +7,8 @@ import { AuthState } from './types';
 type LoginSlice = Pick<AuthState, 'login' | 'register' | 'verifyOTP'>;
 
 export const loginActions = (
-  set: StateCreator<AuthState>['setState'], 
-  get: StateCreator<AuthState>['getState']
+  set: (state: Partial<AuthState>) => void, 
+  get: () => AuthState
 ): LoginSlice => ({
   login: async (email, password) => {
     try {

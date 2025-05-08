@@ -7,8 +7,8 @@ import { AuthState } from './types';
 type SessionSlice = Pick<AuthState, 'checkSession' | 'logout'>;
 
 export const sessionActions = (
-  set: StateCreator<AuthState>['setState'], 
-  get: StateCreator<AuthState>['getState']
+  set: (state: Partial<AuthState>) => void, 
+  get: () => AuthState
 ): SessionSlice => ({
   checkSession: async () => {
     try {

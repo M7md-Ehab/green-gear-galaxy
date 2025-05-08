@@ -3,9 +3,9 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
-interface Currency {
+export interface Currency {
   code: string;
   name: string;
   symbol: string;

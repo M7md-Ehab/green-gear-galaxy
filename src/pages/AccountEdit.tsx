@@ -7,7 +7,7 @@ import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth, useAuthListener } from '@/hooks/use-auth';
-import { useCurrency, Currency } from '@/hooks/use-currency';
+import { useCurrency } from '@/hooks/use-currency';
 import { 
   Select,
   SelectContent,

@@ -17,6 +17,8 @@ interface AuthState {
   updateUserProfile: (name: string, email: string) => Promise<void>;
   checkSession: () => Promise<void>;
   verifyOTP: (email: string, token: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<{ needsOTP?: boolean } | undefined>;
+  updatePassword: (password: string) => Promise<void>;
 }
 
 // Main authentication store with Supabase
@@ -61,7 +63,7 @@ export const useAuth = create(
             throw userExistsError;
           }
           
-          // If we got here, the user exists - now always send OTP
+          // If we got here, the user exists - now always send OTP for two-factor authentication
           const { data, error } = await supabase.auth.signInWithOtp({
             email,
             options: {
@@ -88,8 +90,8 @@ export const useAuth = create(
       
       register: async (name, email, password) => {
         try {
-          // First check if the email already exists
-          const { data: existingUser } = await supabase.auth.signInWithOtp({
+          // Check if the email already exists (will not create new user if exists)
+          const { data: { user: existingUser }, error: existingUserError } = await supabase.auth.signInWithOtp({
             email,
             options: {
               shouldCreateUser: false,
@@ -103,7 +105,7 @@ export const useAuth = create(
             return undefined;
           }
           
-          // Now proceed with signup
+          // Now proceed with signup - always requiring email verification
           const { data, error } = await supabase.auth.signUp({
             email,
             password,
@@ -119,8 +121,20 @@ export const useAuth = create(
             throw error;
           }
           
+          // Send OTP for verification
+          const { error: otpError } = await supabase.auth.signInWithOtp({
+            email,
+            options: {
+              shouldCreateUser: false, // User was created above
+            }
+          });
+          
+          if (otpError) {
+            throw otpError;
+          }
+          
           toast.info('Verification code sent to your email', { 
-            description: 'Please check your inbox and enter the 6-digit code' 
+            description: 'Please check your inbox and enter the 6-digit code to complete registration' 
           });
           
           return { needsOTP: true };
@@ -154,10 +168,71 @@ export const useAuth = create(
             description: 'You are now logged in' 
           });
           
+          return;
+          
         } catch (error: any) {
           toast.error('Verification failed', { 
             description: error.message || 'Invalid or expired verification code' 
           });
+          throw error;
+        }
+      },
+      
+      resetPassword: async (email) => {
+        try {
+          const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/auth/reset-password`,
+          });
+          
+          if (error) {
+            throw error;
+          }
+          
+          // Send OTP for verification
+          const { error: otpError } = await supabase.auth.signInWithOtp({
+            email,
+            options: {
+              shouldCreateUser: false,
+            }
+          });
+          
+          if (otpError) {
+            throw otpError;
+          }
+          
+          toast.info('Password reset email sent', {
+            description: 'Check your email for the verification code'
+          });
+          
+          return { needsOTP: true };
+          
+        } catch (error: any) {
+          toast.error('Password reset failed', {
+            description: error.message || 'There was an error sending the reset email'
+          });
+          return undefined;
+        }
+      },
+      
+      updatePassword: async (password) => {
+        try {
+          const { error } = await supabase.auth.updateUser({
+            password: password
+          });
+          
+          if (error) {
+            throw error;
+          }
+          
+          toast.success('Password updated successfully', {
+            description: 'You can now log in with your new password'
+          });
+          
+        } catch (error: any) {
+          toast.error('Failed to update password', {
+            description: error.message || 'There was an error updating your password'
+          });
+          throw error;
         }
       },
       

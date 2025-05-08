@@ -33,6 +33,7 @@ function App() {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/checkout/success" element={<CheckoutSuccess />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/auth/reset-password" element={<Auth />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/account/edit" element={<AccountEdit />} />
         <Route path="/admin" element={<Admin />} />

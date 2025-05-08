@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -665,7 +666,7 @@ const Auth = () => {
                             <FormLabel>Confirm Password</FormLabel>
                             <FormControl>
                               <Input type="password" placeholder="******" {...field} />
-                            </Control>
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}

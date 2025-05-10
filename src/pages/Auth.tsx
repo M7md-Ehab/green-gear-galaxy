@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
-import { ArrowLeft, Key } from 'lucide-react';
+import { ArrowLeft, Key, LogIn } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 import Navbar from '@/components/layout/Navbar';
@@ -27,6 +26,13 @@ import {
   InputOTPGroup, 
   InputOTPSlot 
 } from '@/components/ui/input-otp';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 // Login Schema
 const loginSchema = z.object({
@@ -80,6 +86,7 @@ const Auth = () => {
   >('login');
   const [cooldownActive, setCooldownActive] = useState<boolean>(false);
   const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState<boolean>(false);
   
   // Setup auth listener
   useAuthListener();
@@ -247,6 +254,7 @@ const Auth = () => {
         setVerificationStep('verify-otp');
         // Set active tab to indicate we're in password reset flow
         setActiveTab('reset-password');
+        setForgotPasswordOpen(false);
       }
     } catch (error) {
       console.error("Password reset request error:", error);
@@ -320,15 +328,13 @@ const Auth = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-black text-white">
-        <Navbar />
+      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
         <main className="flex-grow flex items-center justify-center py-12">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-green mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
             <p>Loading...</p>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -336,31 +342,20 @@ const Auth = () => {
   // Show OTP verification screen
   if (verificationStep === 'verify-otp') {
     return (
-      <div className="min-h-screen flex flex-col bg-black text-white">
-        <Navbar />
-        <main className="flex-grow py-12">
-          <div className="container-custom max-w-md mx-auto">
-            <div className="mb-6">
-              <Button 
-                variant="ghost" 
-                className="flex items-center gap-2" 
-                onClick={handleBack}
-              >
-                <ArrowLeft size={16} />
-                Back
-              </Button>
-            </div>
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/10 mb-4">
-                <Key className="h-8 w-8 text-brand-green" />
+      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+        <main className="flex-grow flex justify-center items-center py-12 px-4">
+          <div className="w-full max-w-md">
+            <div className="mb-8 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+                <Key className="h-8 w-8 text-primary" />
               </div>
-              <h1 className="text-4xl font-bold mb-3">Verify Your Email</h1>
-              <p className="text-gray-400">
-                We've sent a 6-digit verification code to <span className="font-medium text-white">{verificationEmail}</span>
+              <h1 className="text-3xl font-semibold mb-2">Verification code</h1>
+              <p className="text-gray-600 dark:text-gray-400">
+                We've sent a verification code to <span className="font-medium">{verificationEmail}</span>
               </p>
             </div>
             
-            <div className="bg-gray-900/50 rounded-lg overflow-hidden p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden p-6">
               <Form {...otpForm}>
                 <form onSubmit={otpForm.handleSubmit(onOTPSubmit)} className="space-y-6">
                   <FormField
@@ -368,7 +363,7 @@ const Auth = () => {
                     name="otp"
                     render={({ field }) => (
                       <FormItem className="space-y-4">
-                        <FormLabel className="text-center block">Enter Verification Code</FormLabel>
+                        <FormLabel className="text-center block text-sm">Enter the 6-digit code</FormLabel>
                         <FormControl>
                           <InputOTP maxLength={6} {...field} className="gap-2 justify-center">
                             <InputOTPGroup className="gap-2">
@@ -388,15 +383,15 @@ const Auth = () => {
                   
                   <Button 
                     type="submit" 
-                    className="w-full bg-brand-green hover:bg-brand-green/90 text-black"
+                    className="w-full"
                   >
-                    {activeTab === 'reset-password' ? 'Verify to Reset Password' : 'Verify & Continue'}
+                    {activeTab === 'reset-password' ? 'Continue' : 'Continue'}
                   </Button>
                   
-                  <div className="text-center text-sm text-gray-400">
+                  <div className="text-center text-sm">
                     <button 
                       type="button" 
-                      className={`hover:text-brand-green ${cooldownActive ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      className={`text-primary hover:underline ${cooldownActive ? 'opacity-50 cursor-not-allowed' : ''}`}
                       onClick={handleResendCode}
                       disabled={cooldownActive}
                     >
@@ -405,12 +400,23 @@ const Auth = () => {
                         : "Didn't receive a code? Resend"}
                     </button>
                   </div>
+
+                  <div className="text-center">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleBack}
+                      className="text-sm"
+                    >
+                      Back
+                    </Button>
+                  </div>
                 </form>
               </Form>
             </div>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -418,28 +424,19 @@ const Auth = () => {
   // Show Reset Password screen
   if (verificationStep === 'reset-password') {
     return (
-      <div className="min-h-screen flex flex-col bg-black text-white">
-        <Navbar />
-        <main className="flex-grow py-12">
-          <div className="container-custom max-w-md mx-auto">
-            <div className="mb-6">
-              <Button 
-                variant="ghost" 
-                className="flex items-center gap-2" 
-                onClick={handleBack}
-              >
-                <ArrowLeft size={16} />
-                Back
-              </Button>
+      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+        <main className="flex-grow flex justify-center items-center py-12 px-4">
+          <div className="w-full max-w-md">
+            <div className="mb-8 text-center">
+              <h1 className="text-3xl font-semibold mb-2">Reset your password</h1>
+              <p className="text-gray-600 dark:text-gray-400">
+                Choose a new password
+              </p>
             </div>
-            <h1 className="text-4xl font-bold mb-3 text-center">Reset Your Password</h1>
-            <p className="text-center text-gray-400 mb-8">
-              Please enter your new password
-            </p>
             
-            <div className="bg-gray-900/50 rounded-lg overflow-hidden p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden p-6">
               <Form {...resetPasswordForm}>
-                <form onSubmit={resetPasswordForm.handleSubmit(onResetPasswordSubmit)} className="space-y-6">
+                <form onSubmit={resetPasswordForm.handleSubmit(onResetPasswordSubmit)} className="space-y-4">
                   <FormField
                     control={resetPasswordForm.control}
                     name="password"
@@ -447,7 +444,7 @@ const Auth = () => {
                       <FormItem>
                         <FormLabel>New Password</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="******" {...field} />
+                          <Input type="password" placeholder="••••••" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -461,7 +458,7 @@ const Auth = () => {
                       <FormItem>
                         <FormLabel>Confirm New Password</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="******" {...field} />
+                          <Input type="password" placeholder="••••••" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -470,102 +467,55 @@ const Auth = () => {
                   
                   <Button 
                     type="submit" 
-                    className="w-full bg-brand-green hover:bg-brand-green/90 text-black"
+                    className="w-full mt-2"
                   >
-                    Reset Password
+                    Reset password
                   </Button>
+
+                  <div className="text-center">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleBack}
+                      className="text-sm"
+                    >
+                      Back
+                    </Button>
+                  </div>
                 </form>
               </Form>
             </div>
           </div>
         </main>
-        <Footer />
-      </div>
-    );
-  }
-  
-  // Show Forgot Password screen
-  if (verificationStep === 'forgot-password') {
-    return (
-      <div className="min-h-screen flex flex-col bg-black text-white">
-        <Navbar />
-        <main className="flex-grow py-12">
-          <div className="container-custom max-w-md mx-auto">
-            <div className="mb-6">
-              <Button 
-                variant="ghost" 
-                className="flex items-center gap-2" 
-                onClick={handleBack}
-              >
-                <ArrowLeft size={16} />
-                Back
-              </Button>
-            </div>
-            <h1 className="text-4xl font-bold mb-3 text-center">Reset Password</h1>
-            <p className="text-center text-gray-400 mb-8">
-              Enter your email to receive a verification code
-            </p>
-            
-            <div className="bg-gray-900/50 rounded-lg overflow-hidden p-6">
-              <Form {...resetPasswordEmailForm}>
-                <form onSubmit={resetPasswordEmailForm.handleSubmit(onForgotPasswordSubmit)} className="space-y-6">
-                  <FormField
-                    control={resetPasswordEmailForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input type="email" placeholder="your@email.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-brand-green hover:bg-brand-green/90 text-black"
-                  >
-                    Send Reset Code
-                  </Button>
-                </form>
-              </Form>
-            </div>
-          </div>
-        </main>
-        <Footer />
       </div>
     );
   }
 
   // Main login/register screen
   return (
-    <div className="min-h-screen flex flex-col bg-black text-white">
-      <Navbar />
-      <main className="flex-grow py-12">
-        <div className="container-custom max-w-md mx-auto">
-          <div className="mb-6">
-            <Button 
-              variant="ghost" 
-              className="flex items-center gap-2" 
-              onClick={handleBack}
-            >
-              <ArrowLeft size={16} />
-              Back
-            </Button>
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+      <main className="flex-grow flex justify-center items-center py-8 px-4">
+        <div className="w-full max-w-md">
+          <div className="mb-8 text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+              <LogIn className="h-8 w-8 text-primary" />
+            </div>
+            <h1 className="text-3xl font-semibold">Welcome</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              {activeTab === 'login' ? 'Log in to your account' : 'Create your account'}
+            </p>
           </div>
-          <h1 className="text-4xl font-bold mb-8 text-center">Account</h1>
           
-          <div className="bg-gray-900/50 rounded-lg overflow-hidden">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="w-full bg-gray-800">
-                <TabsTrigger value="login" className="w-1/2">Login</TabsTrigger>
-                <TabsTrigger value="register" className="w-1/2">Register</TabsTrigger>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid grid-cols-2 w-full">
+                <TabsTrigger value="login" className="rounded-none">Log in</TabsTrigger>
+                <TabsTrigger value="register" className="rounded-none">Sign up</TabsTrigger>
               </TabsList>
               
               <div className="p-6">
-                <TabsContent value="login">
+                <TabsContent value="login" className="mt-0">
                   <Form {...loginForm}>
                     <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
                       <FormField
@@ -589,7 +539,7 @@ const Auth = () => {
                           <FormItem>
                             <FormLabel>Password</FormLabel>
                             <FormControl>
-                              <Input type="password" placeholder="******" {...field} />
+                              <Input type="password" placeholder="••••••" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -599,17 +549,17 @@ const Auth = () => {
                       <div className="pt-2">
                         <Button 
                           type="submit" 
-                          className="w-full bg-brand-green hover:bg-brand-green/90 text-black"
+                          className="w-full"
                         >
-                          Login
+                          Continue
                         </Button>
                       </div>
                       
-                      <div className="text-center text-sm text-gray-400">
+                      <div className="text-center">
                         <button 
                           type="button"
-                          onClick={() => setVerificationStep('forgot-password')} 
-                          className="hover:text-brand-green"
+                          onClick={() => setForgotPasswordOpen(true)} 
+                          className="text-sm text-primary hover:underline"
                         >
                           Forgot your password?
                         </button>
@@ -618,7 +568,7 @@ const Auth = () => {
                   </Form>
                 </TabsContent>
                 
-                <TabsContent value="register">
+                <TabsContent value="register" className="mt-0">
                   <Form {...registerForm}>
                     <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
                       <FormField
@@ -656,7 +606,7 @@ const Auth = () => {
                           <FormItem>
                             <FormLabel>Password</FormLabel>
                             <FormControl>
-                              <Input type="password" placeholder="******" {...field} />
+                              <Input type="password" placeholder="••••••" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -670,7 +620,7 @@ const Auth = () => {
                           <FormItem>
                             <FormLabel>Confirm Password</FormLabel>
                             <FormControl>
-                              <Input type="password" placeholder="******" {...field} />
+                              <Input type="password" placeholder="••••••" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -680,9 +630,9 @@ const Auth = () => {
                       <div className="pt-2">
                         <Button 
                           type="submit" 
-                          className="w-full bg-brand-green hover:bg-brand-green/90 text-black"
+                          className="w-full"
                         >
-                          Register
+                          Continue
                         </Button>
                       </div>
                     </form>
@@ -690,10 +640,57 @@ const Auth = () => {
                 </TabsContent>
               </div>
             </Tabs>
+            
+            <div className="px-6 pb-6 text-center text-sm text-gray-600 dark:text-gray-400">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/')}
+                className="text-sm"
+              >
+                Back to home
+              </Button>
+            </div>
           </div>
         </div>
       </main>
-      <Footer />
+      
+      {/* Forgot Password Dialog */}
+      <Dialog open={forgotPasswordOpen} onOpenChange={setForgotPasswordOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reset your password</DialogTitle>
+            <DialogDescription>
+              Enter your email address and we'll send you a verification code to reset your password.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...resetPasswordEmailForm}>
+            <form onSubmit={resetPasswordEmailForm.handleSubmit(onForgotPasswordSubmit)} className="space-y-4">
+              <FormField
+                control={resetPasswordEmailForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="your@email.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <Button 
+                type="submit" 
+                className="w-full"
+              >
+                Send reset code
+              </Button>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

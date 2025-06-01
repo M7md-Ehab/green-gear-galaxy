@@ -6,7 +6,7 @@ export interface AuthState {
   session: Session | null;
   isLoggedIn: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<{ needsOTP?: boolean } | undefined>;
+  login: (email: string, password?: string) => Promise<{ needsOTP?: boolean; needsPassword?: boolean } | undefined>;
   signup: (email: string, password: string, name?: string) => Promise<{ needsOTP?: boolean } | undefined>;
   logout: () => Promise<void>;
   updateUserProfile: (name: string, email: string) => Promise<void>;

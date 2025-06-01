@@ -12,25 +12,58 @@ export const loginActions = (
 ): LoginSlice => ({
   login: async (email, password) => {
     try {
-      // Always use OTP for login like ChatGPT
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          shouldCreateUser: false,
+      if (password) {
+        // Try password login first
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+        
+        if (error) {
+          // If password login fails, fallback to OTP
+          const { error: otpError } = await supabase.auth.signInWithOtp({
+            email,
+            options: {
+              shouldCreateUser: false,
+            }
+          });
+          
+          if (otpError) {
+            throw otpError;
+          }
+          
+          return { needsOTP: true };
         }
-      });
-      
-      if (error) {
-        throw error;
+        
+        if (data.user) {
+          set({ 
+            user: data.user, 
+            session: data.session,
+            isLoggedIn: true 
+          });
+          return;
+        }
+      } else {
+        // Magic link login
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            shouldCreateUser: false,
+          }
+        });
+        
+        if (error) {
+          throw error;
+        }
+        
+        return { needsOTP: true };
       }
-      
-      return { needsOTP: true };
       
     } catch (error: any) {
       // If user doesn't exist, suggest signup
-      if (error.message?.includes('User not found') || error.message?.includes('Invalid login')) {
+      if (error.message?.includes('Invalid login credentials') || error.message?.includes('User not found')) {
         toast.error('Account not found', {
-          description: 'Please check your email or create a new account'
+          description: 'Please check your credentials or create a new account'
         });
       } else {
         toast.error('Login failed', {
@@ -43,22 +76,51 @@ export const loginActions = (
 
   signup: async (email, password, name) => {
     try {
-      // Use OTP signup like ChatGPT
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          shouldCreateUser: true,
-          data: {
-            name: name || 'User'
+      if (password) {
+        // Password signup
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              name: name || 'User'
+            }
           }
+        });
+        
+        if (error) {
+          throw error;
         }
-      });
-      
-      if (error) {
-        throw error;
+        
+        if (data.user && !data.session) {
+          return { needsOTP: true };
+        }
+        
+        if (data.session) {
+          set({ 
+            user: data.user, 
+            session: data.session,
+            isLoggedIn: true 
+          });
+        }
+      } else {
+        // Magic link signup
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            shouldCreateUser: true,
+            data: {
+              name: name || 'User'
+            }
+          }
+        });
+        
+        if (error) {
+          throw error;
+        }
+        
+        return { needsOTP: true };
       }
-      
-      return { needsOTP: true };
       
     } catch (error: any) {
       toast.error('Signup failed', {

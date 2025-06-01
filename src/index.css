@@ -111,10 +111,106 @@
   }
   
   .btn-primary {
-    @apply bg-brand-green text-black font-medium py-2 px-4 rounded-md hover:opacity-90 transition-opacity;
+    @apply bg-brand-green text-black font-medium py-2 px-4 rounded-md hover:opacity-90 transition-all duration-300;
   }
   
   .btn-secondary {
-    @apply bg-transparent border border-brand-green text-brand-green font-medium py-2 px-4 rounded-md hover:bg-brand-green/10 transition-colors;
+    @apply bg-transparent border border-brand-green text-brand-green font-medium py-2 px-4 rounded-md hover:bg-brand-green/10 transition-all duration-300;
+  }
+
+  /* Asus-inspired animations */
+  .hover-scale {
+    @apply transition-transform duration-300 ease-out hover:scale-105;
+  }
+
+  .glow-effect {
+    @apply relative;
+  }
+
+  .glow-effect::before {
+    content: '';
+    @apply absolute inset-0 bg-brand-green/20 blur-xl rounded-lg opacity-0 transition-opacity duration-300;
+  }
+
+  .glow-effect:hover::before {
+    @apply opacity-100;
+  }
+
+  .floating-animation {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .pulse-glow {
+    @apply relative;
+    animation: pulseGlow 2s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+  }
+
+  @keyframes pulseGlow {
+    0%, 100% { 
+      box-shadow: 0 0 20px rgba(0, 255, 132, 0.3);
+    }
+    50% { 
+      box-shadow: 0 0 40px rgba(0, 255, 132, 0.6);
+    }
+  }
+
+  .slide-in-right {
+    animation: slideInRight 0.8s ease-out;
+  }
+
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(100px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-green to-white;
+  }
+
+  .tech-border {
+    @apply border border-brand-green/30 relative overflow-hidden;
+  }
+
+  .tech-border::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-brand-green/20 to-transparent;
+    transform: translateX(-100%);
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  .card-hover {
+    @apply transition-all duration-500 hover:shadow-2xl hover:shadow-brand-green/20 hover:-translate-y-2;
+  }
+
+  .neon-glow {
+    text-shadow: 0 0 10px rgba(0, 255, 132, 0.5);
+  }
+
+  .animated-bg {
+    background: linear-gradient(-45deg, #000000, #111111, #000000, #0a0a0a);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+  }
+
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
   }
 }

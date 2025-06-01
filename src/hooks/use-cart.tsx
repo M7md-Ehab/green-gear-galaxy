@@ -13,6 +13,7 @@ interface CartItem {
 interface CartStore {
   items: CartItem[];
   addItem: (product: Product) => void;
+  addToCart: (product: Product) => void; // Add this alias
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -51,6 +52,10 @@ export const useCart = create(
         toast.success('Added to cart', {
           description: `${product.name} has been added to your cart.`
         });
+      },
+      // Add alias for addToCart
+      addToCart: (product: Product) => {
+        get().addItem(product);
       },
       removeItem: (productId: string) => {
         const currentItems = get().items;

@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useCart } from '@/hooks/use-cart';
 import { useCurrency } from '@/hooks/use-currency';
 import { useAuth, useAuthListener } from '@/hooks/use-auth';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -44,6 +45,7 @@ const Checkout = () => {
   const { items, cartTotal, clearCart } = useCart();
   const { currentCurrency } = useCurrency();
   const { user, isLoggedIn } = useAuth();
+  const { t } = useLanguage();
   const [isProcessing, setIsProcessing] = useState(false);
   
   // Setup auth listener
@@ -92,10 +94,10 @@ const Checkout = () => {
         quantity: item.quantity
       }));
       
-      // Create the order in the database, using a null UUID for guest users
+      // Create the order in the database - user_id is now nullable
       const { error: orderError } = await supabase.from('orders').insert({
         id: orderId,
-        user_id: isLoggedIn && user ? user.id : null, 
+        user_id: isLoggedIn && user ? user.id : null, // Can be null for guest checkout
         total_amount: cartTotal(),
         currency_code: currentCurrency.code,
         first_name: data.firstName,
@@ -157,7 +159,6 @@ const Checkout = () => {
         
         if (emailError) {
           console.error("Email sending error:", emailError);
-          // Don't throw here, just log the error since the order is already created
           toast.warning('Order placed but confirmation email could not be sent');
         } else {
           toast.success('Order confirmation email sent!');
@@ -169,11 +170,11 @@ const Checkout = () => {
       
       // Clear cart and redirect to success page
       clearCart();
-      toast.success('Order placed successfully!');
+      toast.success(t('order_success'));
       navigate('/checkout/success');
     } catch (error: any) {
       console.error('Checkout error:', error);
-      toast.error(`An error occurred processing your order: ${error.message}`);
+      toast.error(`${t('order_error')}: ${error.message}`);
       setIsProcessing(false);
     }
   };
@@ -188,7 +189,7 @@ const Checkout = () => {
       <Navbar />
       <main className="flex-grow py-12">
         <div className="container-custom">
-          <h1 className="text-4xl font-bold mb-8">Checkout</h1>
+          <h1 className="text-4xl font-bold mb-8">{t('checkout')}</h1>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             {/* Checkout Form */}
@@ -204,7 +205,7 @@ const Checkout = () => {
                         name="firstName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>First Name</FormLabel>
+                            <FormLabel>{t('first_name')}</FormLabel>
                             <FormControl>
                               <Input placeholder="John" {...field} />
                             </FormControl>
@@ -218,7 +219,7 @@ const Checkout = () => {
                         name="lastName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Last Name</FormLabel>
+                            <FormLabel>{t('last_name')}</FormLabel>
                             <FormControl>
                               <Input placeholder="Doe" {...field} />
                             </FormControl>
@@ -234,7 +235,7 @@ const Checkout = () => {
                         name="email"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Email</FormLabel>
+                            <FormLabel>{t('email_address')}</FormLabel>
                             <FormControl>
                               <Input placeholder="your@email.com" {...field} />
                             </FormControl>
@@ -248,7 +249,7 @@ const Checkout = () => {
                         name="phone"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Phone Number</FormLabel>
+                            <FormLabel>{t('phone_number')}</FormLabel>
                             <FormControl>
                               <Input placeholder="+20 123456789" {...field} />
                             </FormControl>
@@ -263,7 +264,7 @@ const Checkout = () => {
                       name="address"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Address</FormLabel>
+                          <FormLabel>{t('address')}</FormLabel>
                           <FormControl>
                             <Textarea placeholder="Enter your full shipping address" {...field} />
                           </FormControl>
@@ -277,7 +278,7 @@ const Checkout = () => {
                       name="city"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>City</FormLabel>
+                          <FormLabel>{t('city')}</FormLabel>
                           <FormControl>
                             <Input placeholder="Cairo" {...field} />
                           </FormControl>
@@ -350,7 +351,7 @@ const Checkout = () => {
                         size="lg"
                         disabled={isProcessing}
                       >
-                        {isProcessing ? 'Processing...' : watchPaymentMethod === 'online' ? 'Pay Now' : 'Place Order'}
+                        {isProcessing ? 'Processing...' : watchPaymentMethod === 'online' ? 'Pay Now' : t('place_order')}
                       </Button>
                     </div>
                   </form>
@@ -387,7 +388,7 @@ const Checkout = () => {
                   </div>
                   
                   <div className="border-t border-gray-700 pt-4 flex justify-between">
-                    <span className="font-bold">Total</span>
+                    <span className="font-bold">{t('total')}</span>
                     <span className="font-bold text-lg">{currentCurrency.symbol}{cartTotal().toLocaleString()} {currentCurrency.code}</span>
                   </div>
                 </div>

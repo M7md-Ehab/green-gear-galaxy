@@ -77,7 +77,7 @@ export type Database = {
           phone: string
           status: string
           total_amount: number
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           address: string
@@ -93,7 +93,7 @@ export type Database = {
           phone: string
           status?: string
           total_amount: number
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           address?: string
@@ -109,7 +109,7 @@ export type Database = {
           phone?: string
           status?: string
           total_amount?: number
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {

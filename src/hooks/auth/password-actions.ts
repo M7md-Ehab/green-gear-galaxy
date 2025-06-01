@@ -12,27 +12,19 @@ export const passwordActions = (
 ): PasswordSlice => ({
   resetPassword: async (email) => {
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
-      });
-      
-      if (error) {
-        throw error;
-      }
-      
-      // Send OTP for verification
-      const { error: otpError } = await supabase.auth.signInWithOtp({
+      // Send OTP for password reset
+      const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
           shouldCreateUser: false,
         }
       });
       
-      if (otpError) {
-        throw otpError;
+      if (error) {
+        throw error;
       }
       
-      toast.info('Password reset email sent', {
+      toast.info('Password reset code sent', {
         description: 'Check your email for the verification code'
       });
       
@@ -40,7 +32,7 @@ export const passwordActions = (
       
     } catch (error: any) {
       toast.error('Password reset failed', {
-        description: error.message || 'There was an error sending the reset email'
+        description: error.message || 'There was an error sending the reset code'
       });
       return undefined;
     }

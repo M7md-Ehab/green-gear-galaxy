@@ -1,8 +1,10 @@
 
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
-import { customAuthService, AuthState, User } from './auth/custom-auth';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { firebaseAuthService, FirebaseAuthState } from './auth/firebase-auth';
 
-const AuthContext = createContext<AuthState | undefined>(undefined);
+const AuthContext = createContext<FirebaseAuthState | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -21,34 +23,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing user in localStorage
-    const currentUser = customAuthService.getCurrentUser();
-    setUser(currentUser);
-    setIsLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  const authState: AuthState = {
+  const authState: FirebaseAuthState = {
     user,
     isLoggedIn: !!user,
     isLoading,
-    login: async (email: string, password: string) => {
-      const result = await customAuthService.login(email, password);
-      if (!result?.needsVerification) {
-        setUser(customAuthService.getCurrentUser());
-      }
-      return result;
-    },
-    signup: customAuthService.signup,
-    logout: async () => {
-      await customAuthService.logout();
-      setUser(null);
-    },
-    updateUserProfile: async (name: string, email: string) => {
-      await customAuthService.updateUserProfile(name, email);
-      setUser(customAuthService.getCurrentUser());
-    },
-    sendVerificationEmail: customAuthService.sendVerificationEmail,
-    resetPassword: customAuthService.resetPassword,
+    login: firebaseAuthService.login,
+    signup: firebaseAuthService.signup,
+    logout: firebaseAuthService.logout,
+    updateUserProfile: firebaseAuthService.updateUserProfile,
+    sendVerificationEmail: firebaseAuthService.sendVerificationEmail,
+    resetPassword: firebaseAuthService.resetPassword,
   };
 
   return (

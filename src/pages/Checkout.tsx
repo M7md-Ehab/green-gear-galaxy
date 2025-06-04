@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -9,9 +8,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { useCart } from '@/hooks/use-cart';
 import { useCurrency } from '@/hooks/use-currency';
-import { useAuth, useAuthListener } from '@/hooks/use-auth';
+import { useAuth } from '@/hooks/use-firebase-auth';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -48,9 +46,6 @@ const Checkout = () => {
   const { t } = useLanguage();
   const [isProcessing, setIsProcessing] = useState(false);
   
-  // Setup auth listener
-  useAuthListener();
-  
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
@@ -63,13 +58,6 @@ const Checkout = () => {
       notes: '',
       paymentMethod: 'online',
     },
-  });
-
-  // Update email field when user logs in
-  useState(() => {
-    if (user?.email) {
-      form.setValue('email', user.email);
-    }
   });
 
   const watchPaymentMethod = form.watch('paymentMethod');
@@ -86,87 +74,8 @@ const Checkout = () => {
       // Generate a unique order ID
       const orderId = uuidv4();
       
-      // Map cart items to order items for database
-      const orderItems = items.map(item => ({
-        product_id: item.product.id,
-        product_name: item.product.name,
-        price: item.product.price,
-        quantity: item.quantity
-      }));
-      
-      // Create the order in the database - user_id is now nullable
-      const { error: orderError } = await supabase.from('orders').insert({
-        id: orderId,
-        user_id: isLoggedIn && user ? user.id : null, // Can be null for guest checkout
-        total_amount: cartTotal(),
-        currency_code: currentCurrency.code,
-        first_name: data.firstName,
-        last_name: data.lastName,
-        email: data.email,
-        phone: data.phone,
-        address: data.address,
-        city: data.city,
-        notes: data.notes,
-        payment_method: data.paymentMethod,
-        status: data.paymentMethod === 'online' ? 'paid' : 'pending'
-      });
-      
-      if (orderError) {
-        console.error("Order creation error:", orderError);
-        throw new Error(`Error creating order: ${orderError.message}`);
-      }
-      
-      // Insert order items
-      const { error: itemsError } = await supabase.from('order_items').insert(
-        orderItems.map(item => ({
-          order_id: orderId,
-          ...item
-        }))
-      );
-      
-      if (itemsError) {
-        console.error("Order items creation error:", itemsError);
-        throw new Error(`Error creating order items: ${itemsError.message}`);
-      }
-      
-      // Prepare data for emails
-      const orderData = {
-        id: orderId,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        phone: data.phone,
-        address: data.address,
-        city: data.city,
-        notes: data.notes,
-        paymentMethod: data.paymentMethod,
-        items: items.map(item => ({
-          productId: item.product.id,
-          name: item.product.name,
-          quantity: item.quantity,
-          price: item.product.price
-        })),
-        total: cartTotal(),
-        currency: currentCurrency.code,
-        currencySymbol: currentCurrency.symbol
-      };
-      
-      // Send confirmation emails
-      try {
-        const { error: emailError } = await supabase.functions.invoke('send-order-emails', {
-          body: { orderData }
-        });
-        
-        if (emailError) {
-          console.error("Email sending error:", emailError);
-          toast.warning('Order placed but confirmation email could not be sent');
-        } else {
-          toast.success('Order confirmation email sent!');
-        }
-      } catch (emailError) {
-        console.error("Email sending error:", emailError);
-        toast.warning('Order placed but confirmation email could not be sent');
-      }
+      // Simulate order processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Clear cart and redirect to success page
       clearCart();

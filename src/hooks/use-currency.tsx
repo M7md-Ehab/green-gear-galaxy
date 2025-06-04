@@ -1,8 +1,6 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { useEffect } from 'react';
 
 export interface Currency {
@@ -16,67 +14,22 @@ interface CurrencyState {
   currentCurrency: Currency;
   isLoading: boolean;
   error: string | null;
-  fetchCurrencies: () => Promise<void>;
   setCurrency: (currencyCode: string) => void;
+  convertPrice: (price: number, fromCurrency: string) => number;
 }
 
 export const useCurrencyStore = create(
   persist<CurrencyState>(
     (set, get) => ({
-      currencies: [],
+      currencies: [
+        { code: 'USD', name: 'US Dollar', symbol: '$' },
+        { code: 'EUR', name: 'Euro', symbol: '€' },
+        { code: 'GBP', name: 'British Pound', symbol: '£' },
+        { code: 'EGP', name: 'Egyptian Pound', symbol: 'LE' },
+      ],
       currentCurrency: { code: 'USD', name: 'US Dollar', symbol: '$' },
       isLoading: false,
       error: null,
-      
-      fetchCurrencies: async () => {
-        try {
-          set({ isLoading: true, error: null });
-          
-          const { data, error } = await supabase
-            .from('currencies')
-            .select('*');
-          
-          if (error) {
-            throw error;
-          }
-          
-          if (data && data.length > 0) {
-            set({ 
-              currencies: data,
-              isLoading: false
-            });
-          } else {
-            // If no currencies found in database, use default ones
-            const defaultCurrencies = [
-              { code: 'USD', name: 'US Dollar', symbol: '$' },
-              { code: 'EUR', name: 'Euro', symbol: '€' },
-              { code: 'GBP', name: 'British Pound', symbol: '£' },
-              { code: 'EGP', name: 'Egyptian Pound', symbol: 'LE' },
-            ];
-            
-            set({ 
-              currencies: defaultCurrencies,
-              isLoading: false
-            });
-          }
-        } catch (error) {
-          console.error('Error fetching currencies:', error);
-          set({ 
-            isLoading: false, 
-            error: error instanceof Error ? error.message : 'An error occurred fetching currencies' 
-          });
-          
-          // Fall back to default currencies
-          const defaultCurrencies = [
-            { code: 'USD', name: 'US Dollar', symbol: '$' },
-            { code: 'EUR', name: 'Euro', symbol: '€' },
-            { code: 'GBP', name: 'British Pound', symbol: '£' },
-            { code: 'EGP', name: 'Egyptian Pound', symbol: 'LE' },
-          ];
-          
-          set({ currencies: defaultCurrencies });
-        }
-      },
       
       setCurrency: (currencyCode) => {
         const { currencies } = get();
@@ -85,6 +38,22 @@ export const useCurrencyStore = create(
         if (currency) {
           set({ currentCurrency: currency });
         }
+      },
+      
+      convertPrice: (price: number, fromCurrency: string) => {
+        // Simple conversion rates (in a real app, you'd fetch these from an API)
+        const rates: Record<string, number> = {
+          USD: 1,
+          EUR: 0.85,
+          GBP: 0.73,
+          EGP: 30.5,
+        };
+        
+        const { currentCurrency } = get();
+        const fromRate = rates[fromCurrency] || 1;
+        const toRate = rates[currentCurrency.code] || 1;
+        
+        return (price / fromRate) * toRate;
       }
     }),
     {
@@ -99,19 +68,16 @@ export const useCurrency = () => {
     currentCurrency, 
     isLoading, 
     error,
-    fetchCurrencies, 
-    setCurrency 
+    setCurrency,
+    convertPrice
   } = useCurrencyStore();
-  
-  useEffect(() => {
-    fetchCurrencies();
-  }, [fetchCurrencies]);
   
   return {
     currencies,
     currentCurrency,
     isLoading,
     error,
-    setCurrency
+    setCurrency,
+    convertPrice
   };
 };

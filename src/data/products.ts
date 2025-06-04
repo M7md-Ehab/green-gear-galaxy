@@ -7,6 +7,7 @@ export interface Product {
   image: string;
   series: string;
   type: 'vending' | 'claw';
+  stock: number;
   specs: {
     power: string;
     dimensions: string;
@@ -26,6 +27,7 @@ export const products: Product[] = [
     image: '/placeholder.svg',
     series: 'T1',
     type: 'vending',
+    stock: 15,
     specs: {
       power: '220V/110V',
       dimensions: '183 x 81 x 83 cm',
@@ -42,6 +44,7 @@ export const products: Product[] = [
     image: '/placeholder.svg',
     series: 'S1',
     type: 'vending',
+    stock: 23,
     specs: {
       power: '220V/110V',
       dimensions: '150 x 70 x 75 cm',
@@ -58,6 +61,7 @@ export const products: Product[] = [
     image: '/placeholder.svg',
     series: 'X1',
     type: 'vending',
+    stock: 8,
     specs: {
       power: '220V/110V',
       dimensions: '190 x 85 x 90 cm',
@@ -76,6 +80,7 @@ export const products: Product[] = [
     image: '/placeholder.svg',
     series: 'K1',
     type: 'claw',
+    stock: 12,
     specs: {
       power: '220V/110V',
       dimensions: '85 x 85 x 180 cm',
@@ -91,6 +96,7 @@ export const products: Product[] = [
     image: '/placeholder.svg',
     series: 'N1',
     type: 'claw',
+    stock: 18,
     specs: {
       power: '220V/110V',
       dimensions: '70 x 70 x 160 cm',
@@ -106,6 +112,7 @@ export const products: Product[] = [
     image: '/placeholder.svg',
     series: 'L1',
     type: 'claw',
+    stock: 5,
     specs: {
       power: '220V/110V',
       dimensions: '95 x 95 x 200 cm',

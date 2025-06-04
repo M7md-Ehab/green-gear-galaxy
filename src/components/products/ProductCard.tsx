@@ -30,7 +30,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
   const handleAddToCart = () => {
     addToCart({
-      productId: product.id,
+      id: product.id,
       name: product.name,
       price: product.price,
       image: product.image,
@@ -125,8 +125,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
                   <span className="text-white capitalize">{product.type}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Power:</span>
-                  <span className="text-white">{product.specs.power}</span>
+                  <span className="text-gray-400">Stock:</span>
+                  <span className="text-white">{product.stock}</span>
                 </div>
               </div>
             </div>

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
-import { useAuth, useAuthListener } from '@/hooks/use-auth';
+import { useAuth } from '@/hooks/use-firebase-auth';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { useCurrency } from '@/hooks/use-currency';
 import { Product } from '@/data/products';
@@ -16,9 +16,6 @@ const Dashboard = () => {
   const { user, isLoggedIn, isLoading, logout } = useAuth();
   const { items: wishlistItems } = useWishlist();
   const { currentCurrency } = useCurrency();
-  
-  // Setup auth listener
-  useAuthListener();
   
   useEffect(() => {
     // Check if logged in
@@ -52,20 +49,24 @@ const Dashboard = () => {
       <Navbar />
       <main className="flex-grow py-12">
         <div className="container-custom">
-          <h1 className="text-4xl font-bold mb-8">Dashboard</h1>
+          <h1 className="text-4xl font-bold mb-8 gradient-text">Dashboard</h1>
           
           <div className="grid grid-cols-1 md:grid-cols-1 gap-8">
             {/* User Profile */}
-            <div className="bg-gray-900/50 rounded-lg p-6">
-              <h2 className="text-xl font-bold mb-4">Profile</h2>
+            <div className="bg-gray-900/50 rounded-lg p-6 tech-border">
+              <h2 className="text-xl font-bold mb-4 text-brand-green">Profile</h2>
               <div className="space-y-4">
                 <div>
                   <p className="text-sm text-gray-400">Name</p>
-                  <p className="font-medium">{user?.user_metadata?.name || 'User'}</p>
+                  <p className="font-medium">{user?.displayName || 'User'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Email</p>
                   <p className="font-medium">{user?.email}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">Email Verified</p>
+                  <p className="font-medium">{user?.emailVerified ? 'Yes' : 'No'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Preferred Currency</p>
@@ -91,8 +92,8 @@ const Dashboard = () => {
             </div>
             
             {/* Wishlist */}
-            <div className="bg-gray-900/50 rounded-lg p-6">
-              <h2 className="text-xl font-bold mb-4">Your Wishlist</h2>
+            <div className="bg-gray-900/50 rounded-lg p-6 tech-border">
+              <h2 className="text-xl font-bold mb-4 text-brand-green">Your Wishlist</h2>
               {wishlistItems.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {wishlistItems.map((product: Product) => (

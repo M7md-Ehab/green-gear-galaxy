@@ -1,118 +1,139 @@
 
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Heart, Zap, Cog } from 'lucide-react';
-
-import { Product } from '@/data/products';
+import { Heart, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useCart } from '@/hooks/use-cart';
+import { Card, CardContent } from '@/components/ui/card';
 import { useWishlist } from '@/hooks/use-wishlist';
+import { useCart } from '@/hooks/use-cart';
+import { useCurrency } from '@/hooks/use-currency';
+import { Product } from '@/data/products';
 
 interface ProductCardProps {
   product: Product;
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
-  const { addItem } = useCart();
-  const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist();
-
-  const inWishlist = isInWishlist(product.id);
-
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    addItem(product);
-  };
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { addToCart } = useCart();
+  const { currentCurrency, convertPrice } = useCurrency();
   
-  const handleWishlistToggle = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (inWishlist) {
+  const isWishlisted = isInWishlist(product.id);
+  const convertedPrice = convertPrice(product.price, 'USD');
+
+  const handleWishlistToggle = () => {
+    if (isWishlisted) {
       removeFromWishlist(product.id);
     } else {
       addToWishlist(product);
     }
   };
 
-  const getMachineIcon = () => {
-    return product.type === 'claw' ? <Zap className="h-4 w-4" /> : <Cog className="h-4 w-4" />;
+  const handleAddToCart = () => {
+    addToCart({
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      quantity: 1
+    });
   };
 
   return (
-    <Link to={`/products/${product.id}`} className="block group">
-      <div className="relative bg-gradient-to-b from-gray-900 to-black border border-gray-800 rounded-xl overflow-hidden hover:border-brand-green/60 transition-all duration-500 card-hover glow-effect">
-        {/* Machine type indicator */}
-        <div className="absolute top-4 left-4 z-10 bg-brand-green/20 backdrop-blur-sm text-brand-green px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-          {getMachineIcon()}
-          {product.type === 'claw' ? 'Claw Machine' : 'Vending Machine'}
-        </div>
-
-        <div className="aspect-square bg-gradient-to-br from-gray-900 to-black relative overflow-hidden">
-          {/* Animated background */}
-          <div className="absolute inset-0 tech-border opacity-50"></div>
-          
-          <img 
-            src={product.image} 
-            alt={product.name} 
-            className="object-contain w-full h-full p-6 transition-all duration-500 group-hover:scale-110 relative z-10"
+    <Card className="group bg-gray-900/50 border-gray-800 hover:border-brand-green/50 transition-all duration-500 overflow-hidden card-hover tech-border">
+      <div className="relative overflow-hidden">
+        {/* Fixed image container */}
+        <div className="aspect-square bg-gradient-to-br from-gray-800 to-gray-900 relative">
+          <img
+            src={product.image}
+            alt={product.name}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           />
           
-          {/* Price tag with glow effect */}
-          <div className="absolute top-4 right-4 bg-brand-green text-black font-bold py-2 px-4 rounded-full shadow-lg pulse-glow z-10">
-            {product.price.toLocaleString()} EGP
-          </div>
+          {/* Overlay with proper z-index and positioning */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           
-          {/* Wishlist button */}
-          <button 
-            onClick={handleWishlistToggle}
-            className={`absolute bottom-4 left-4 p-3 rounded-full transition-all duration-300 hover-scale z-10 ${
-              inWishlist 
-                ? 'bg-red-500 text-white shadow-lg shadow-red-500/30' 
-                : 'bg-gray-800/80 backdrop-blur-sm text-white hover:bg-gray-700'
-            }`}
-          >
-            <Heart className="h-4 w-4" fill={inWishlist ? "currentColor" : "none"} />
-          </button>
-
-          {/* Floating particles effect */}
-          <div className="absolute top-[20%] right-[30%] w-1 h-1 bg-brand-green/60 rounded-full animate-bounce delay-300 opacity-60"></div>
-          <div className="absolute bottom-[30%] left-[25%] w-2 h-2 bg-brand-green/40 rounded-full animate-bounce delay-700 opacity-40"></div>
-        </div>
-        
-        <div className="p-6 relative z-10">
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xl font-bold group-hover:text-brand-green transition-colors">{product.name}</h3>
-              <span className="text-sm text-gray-400 bg-gray-800 px-2 py-1 rounded">{product.series}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <span className="capitalize">{product.category}</span>
-              <span>•</span>
-              <span>{product.stock} in stock</span>
-            </div>
-          </div>
-          
-          <p className="text-gray-300 line-clamp-2 mb-6 leading-relaxed">{product.description}</p>
-          
-          <div className="flex items-center justify-between">
-            <span className="text-brand-green hover:text-brand-green/80 font-semibold transition-colors group-hover:neon-glow">
-              View Details →
-            </span>
-            
-            <Button 
-              size="sm" 
-              onClick={handleAddToCart} 
-              className="bg-brand-green hover:bg-brand-green/90 text-black font-semibold hover-scale transition-all duration-300 shadow-lg hover:shadow-brand-green/30"
+          {/* Action buttons - properly positioned */}
+          <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 z-10">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleWishlistToggle}
+              className={`p-2 rounded-full backdrop-blur-md border transition-all duration-300 hover-scale ${
+                isWishlisted 
+                  ? 'bg-brand-green/20 border-brand-green text-brand-green' 
+                  : 'bg-black/20 border-white/20 text-white hover:bg-brand-green/20 hover:border-brand-green'
+              }`}
             >
-              <ShoppingCart className="h-4 w-4 mr-2" />
-              Add
+              <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-current' : ''}`} />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleAddToCart}
+              className="p-2 rounded-full bg-black/20 backdrop-blur-md border border-white/20 text-white hover:bg-brand-green/20 hover:border-brand-green transition-all duration-300 hover-scale"
+            >
+              <ShoppingCart className="h-4 w-4" />
             </Button>
           </div>
+
+          {/* Series badge - properly positioned */}
+          <div className="absolute top-4 left-4 z-10">
+            <span className="px-3 py-1 bg-brand-green/90 text-black text-xs font-semibold rounded-full backdrop-blur-sm">
+              {product.series}
+            </span>
+          </div>
         </div>
 
-        {/* Hover effect overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-brand-green/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+        {/* Content section - no overlay issues */}
+        <CardContent className="p-6 relative z-10 bg-gray-900/80 backdrop-blur-sm">
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-xl font-bold text-white mb-2 group-hover:text-brand-green transition-colors neon-glow">
+                {product.name}
+              </h3>
+              <p className="text-gray-400 text-sm line-clamp-2 leading-relaxed">
+                {product.description}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col">
+                <span className="text-2xl font-bold text-brand-green neon-glow">
+                  {currentCurrency.symbol}{convertedPrice.toFixed(2)}
+                </span>
+                <span className="text-xs text-gray-500 uppercase tracking-wide">
+                  {currentCurrency.code}
+                </span>
+              </div>
+              
+              <Link to={`/products/${product.id}`}>
+                <Button 
+                  variant="outline" 
+                  className="border-brand-green text-brand-green hover:bg-brand-green hover:text-black transition-all duration-300 hover-scale"
+                >
+                  View Details
+                </Button>
+              </Link>
+            </div>
+
+            {/* Specifications */}
+            <div className="pt-4 border-t border-gray-700">
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Type:</span>
+                  <span className="text-white capitalize">{product.type}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Power:</span>
+                  <span className="text-white">{product.specs.power}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
       </div>
-    </Link>
+    </Card>
   );
 };
 

@@ -33,26 +33,24 @@ const ProductCard = ({ product }: ProductCardProps) => {
   };
 
   return (
-    <Card className="group bg-gray-900/50 border-gray-800 hover:border-brand-green/50 transition-all duration-500 overflow-hidden">
+    <Card className="group bg-white border border-gray-200 hover:shadow-lg overflow-hidden">
       <div className="relative overflow-hidden">
-        <div className="aspect-square bg-gradient-to-br from-gray-800 to-gray-900 relative">
+        <div className="aspect-square bg-gray-50 relative">
           <img
             src={product.image}
             alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            className="w-full h-full object-cover"
           />
           
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          
-          <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 z-10">
+          <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 z-10">
             <Button
               variant="ghost"
               size="sm"
               onClick={handleWishlistToggle}
-              className={`p-2 rounded-full backdrop-blur-md border transition-all duration-300 ${
+              className={`p-2 rounded-full bg-white shadow-md border ${
                 isWishlisted 
-                  ? 'bg-brand-green/20 border-brand-green text-brand-green' 
-                  : 'bg-black/20 border-white/20 text-white hover:bg-brand-green/20 hover:border-brand-green'
+                  ? 'text-red-500' 
+                  : 'text-gray-600 hover:text-red-500'
               }`}
             >
               <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-current' : ''}`} />
@@ -62,33 +60,33 @@ const ProductCard = ({ product }: ProductCardProps) => {
               variant="ghost"
               size="sm"
               onClick={handleAddToCart}
-              className="p-2 rounded-full bg-black/20 backdrop-blur-md border border-white/20 text-white hover:bg-brand-green/20 hover:border-brand-green transition-all duration-300"
+              className="p-2 rounded-full bg-white shadow-md border text-gray-600 hover:text-black"
             >
               <ShoppingCart className="h-4 w-4" />
             </Button>
           </div>
 
           <div className="absolute top-4 left-4 z-10">
-            <span className="px-3 py-1 bg-brand-green/90 text-black text-xs font-semibold rounded-full backdrop-blur-sm">
+            <span className="px-3 py-1 bg-black text-white text-xs font-semibold rounded-full">
               {product.series}
             </span>
           </div>
         </div>
 
-        <CardContent className="p-6 relative z-10 bg-gray-900/80 backdrop-blur-sm">
+        <CardContent className="p-6 bg-white">
           <div className="space-y-4">
             <div>
-              <h3 className="text-xl font-bold text-white mb-2 group-hover:text-brand-green transition-colors">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
                 {product.name}
               </h3>
-              <p className="text-gray-400 text-sm line-clamp-2 leading-relaxed">
+              <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed">
                 {product.description}
               </p>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex flex-col">
-                <span className="text-2xl font-bold text-brand-green">
+                <span className="text-2xl font-bold text-black">
                   {currentCurrency.symbol}{convertedPrice.toFixed(2)}
                 </span>
                 <span className="text-xs text-gray-500 uppercase tracking-wide">
@@ -99,22 +97,22 @@ const ProductCard = ({ product }: ProductCardProps) => {
               <Link to={`/products/${product.id}`}>
                 <Button 
                   variant="outline" 
-                  className="bg-black text-white border-gray-600 hover:bg-gray-800"
+                  className="bg-black text-white border-black hover:bg-gray-800"
                 >
                   View Details
                 </Button>
               </Link>
             </div>
 
-            <div className="pt-4 border-t border-gray-700">
+            <div className="pt-4 border-t border-gray-200">
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Type:</span>
-                  <span className="text-white capitalize">{product.type}</span>
+                  <span className="text-gray-500">Type:</span>
+                  <span className="text-gray-900 capitalize">{product.type}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Stock:</span>
-                  <span className="text-white">{product.stock}</span>
+                  <span className="text-gray-500">Stock:</span>
+                  <span className="text-gray-900">{product.stock}</span>
                 </div>
               </div>
             </div>

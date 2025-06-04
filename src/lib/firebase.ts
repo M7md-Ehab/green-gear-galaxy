@@ -5,12 +5,12 @@ import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   // Replace these with your actual Firebase config
-  apiKey: "your-api-key",
-  authDomain: "your-project.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "your-app-id"
+  apiKey: "AIzaSyBGkxHvMjYyJQl7Wx8bF3_9mVvQZqH7k8Y",
+  authDomain: "vlitrix-demo.firebaseapp.com",
+  projectId: "vlitrix-demo",
+  storageBucket: "vlitrix-demo.appspot.com",
+  messagingSenderId: "123456789012",
+  appId: "1:123456789012:web:abcdef123456789"
 };
 
 // Initialize Firebase

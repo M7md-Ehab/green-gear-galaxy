@@ -4,7 +4,7 @@ export interface Product {
   name: string;
   price: number;
   description: string;
-  image: string;
+  images: string[];
   series: string;
   type: 'vending' | 'claw';
   stock: number;
@@ -24,7 +24,16 @@ export const products: Product[] = [
     name: 'T1',
     price: 6999,
     description: 'Smart vending machine with modern payment systems and basic inventory management.',
-    image: '/placeholder.svg',
+    images: [
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg', 
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg'
+    ],
     series: 'T1',
     type: 'vending',
     stock: 25,
@@ -41,7 +50,16 @@ export const products: Product[] = [
     name: 'T1 Pro',
     price: 8999,
     description: 'Professional vending machine with AI-powered inventory management and contactless payment systems.',
-    image: '/placeholder.svg',
+    images: [
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg', 
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg'
+    ],
     series: 'T1',
     type: 'vending',
     stock: 15,
@@ -58,7 +76,16 @@ export const products: Product[] = [
     name: 'S1',
     price: 4999,
     description: 'Compact vending solution perfect for small offices and retail spaces.',
-    image: '/placeholder.svg',
+    images: [
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg', 
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg'
+    ],
     series: 'S1',
     type: 'vending',
     stock: 30,
@@ -75,7 +102,16 @@ export const products: Product[] = [
     name: 'S1 Pro',
     price: 6499,
     description: 'Compact smart vending solution perfect for offices and small businesses.',
-    image: '/placeholder.svg',
+    images: [
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg', 
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg'
+    ],
     series: 'S1',
     type: 'vending',
     stock: 23,
@@ -92,7 +128,16 @@ export const products: Product[] = [
     name: 'X1',
     price: 9999,
     description: 'Enterprise vending machine with advanced features and multi-zone cooling.',
-    image: '/placeholder.svg',
+    images: [
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg', 
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg'
+    ],
     series: 'X1',
     type: 'vending',
     stock: 12,
@@ -109,7 +154,16 @@ export const products: Product[] = [
     name: 'X1 Pro',
     price: 12999,
     description: 'Enterprise-grade vending machine with advanced analytics and multi-zone temperature control.',
-    image: '/placeholder.svg',
+    images: [
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg', 
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg'
+    ],
     series: 'X1',
     type: 'vending',
     stock: 8,
@@ -128,7 +182,16 @@ export const products: Product[] = [
     name: 'K1',
     price: 3499,
     description: 'Standard claw machine with reliable mechanics and basic lighting for entertainment venues.',
-    image: '/placeholder.svg',
+    images: [
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg', 
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg'
+    ],
     series: 'K1',
     type: 'claw',
     stock: 20,
@@ -144,7 +207,16 @@ export const products: Product[] = [
     name: 'K1 Pro',
     price: 4999,
     description: 'Premium claw machine with precision control and LED lighting effects for maximum player engagement.',
-    image: '/placeholder.svg',
+    images: [
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg', 
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg'
+    ],
     series: 'K1',
     type: 'claw',
     stock: 12,
@@ -160,7 +232,16 @@ export const products: Product[] = [
     name: 'N1',
     price: 2499,
     description: 'Compact claw machine designed for smaller spaces with standard joystick controls.',
-    image: '/placeholder.svg',
+    images: [
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg', 
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg'
+    ],
     series: 'N1',
     type: 'claw',
     stock: 25,
@@ -176,7 +257,16 @@ export const products: Product[] = [
     name: 'N1 Pro',
     price: 3499,
     description: 'Compact claw machine designed for smaller spaces with modern joystick controls.',
-    image: '/placeholder.svg',
+    images: [
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg', 
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg'
+    ],
     series: 'N1',
     type: 'claw',
     stock: 18,
@@ -192,7 +282,16 @@ export const products: Product[] = [
     name: 'L1',
     price: 5999,
     description: 'Luxury claw machine with premium materials and advanced display technology.',
-    image: '/placeholder.svg',
+    images: [
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg', 
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg'
+    ],
     series: 'L1',
     type: 'claw',
     stock: 10,
@@ -208,7 +307,16 @@ export const products: Product[] = [
     name: 'L1 Pro',
     price: 7999,
     description: 'Luxury claw machine with premium materials, holographic displays, and advanced prize management.',
-    image: '/placeholder.svg',
+    images: [
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg', 
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg'
+    ],
     series: 'L1',
     type: 'claw',
     stock: 5,

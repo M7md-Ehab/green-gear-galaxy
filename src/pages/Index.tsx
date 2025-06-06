@@ -23,10 +23,6 @@ const Index = () => {
   const { ref: techRef, inView: techInView } = useInView({ triggerOnce: true, threshold: 0.1 });
   const { ref: ctaRef, inView: ctaInView } = useInView({ triggerOnce: true, threshold: 0.1 });
 
-  const handleExploreAllProducts = () => {
-    window.location.href = '/products';
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-black text-white overflow-hidden">
       <Navbar />
@@ -40,8 +36,8 @@ const Index = () => {
               <div>
                 <h1 className="text-6xl md:text-7xl font-bold mb-6 leading-tight">
                   <span className="block">Next Generation</span>
-                  <span className="block bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-green">
-                    Gaming Machines
+                  <span className="block bg-clip-text text-transparent bg-gradient-to-r from-white to-green-500">
+                    Vlitrix Machines
                   </span>
                 </h1>
               </div>
@@ -49,18 +45,24 @@ const Index = () => {
               <div>
                 <p className="text-xl md:text-2xl text-gray-300 mb-8 leading-relaxed">
                   Experience unprecedented entertainment with our cutting-edge 
-                  <span className="text-brand-green font-semibold"> claw machines</span> and 
-                  <span className="text-brand-green font-semibold"> vending machines </span> 
+                  <span className="text-green-500 font-semibold"> claw machines</span> and 
+                  <span className="text-green-500 font-semibold"> vending machines </span> 
                   designed for the modern arcade.
                 </p>
               </div>
               
               <div className="flex flex-wrap gap-6">
-                <Link to="/products?type=claw" className="btn-primary group">
-                  <span className="group-hover:scale-105 transition-transform">Discover Gaming Machines</span>
+                <Link 
+                  to="/products?type=claw" 
+                  className="bg-green-500 text-black font-medium py-4 px-8 rounded-md hover:bg-green-400 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-green-500/25"
+                >
+                  Discover Gaming Machines
                 </Link>
-                <Link to="/products?type=vending" className="btn-secondary group">
-                  <span className="group-hover:scale-105 transition-transform">Browse Smart Vendors</span>
+                <Link 
+                  to="/products?type=vending" 
+                  className="bg-transparent border-2 border-green-500 text-green-500 font-medium py-4 px-8 rounded-md hover:bg-green-500 hover:text-black transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-green-500/25"
+                >
+                  Browse Smart Vendors
                 </Link>
               </div>
             </div>
@@ -103,7 +105,7 @@ const Index = () => {
         <section ref={productsRef} className="py-20 bg-black relative overflow-hidden">
           <div className="container-custom relative z-10">
             <div className={`text-center mb-16 transition-all duration-1000 ${productsInView ? 'opacity-100' : 'opacity-0'}`}>
-              <h2 className="text-4xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-green">Featured Gaming Machines</h2>
+              <h2 className="text-4xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-green-500">Featured Gaming Machines</h2>
               <p className="text-gray-400 max-w-3xl mx-auto text-lg">
                 Experience the perfect blend of cutting-edge technology and entertainment with our premium claw and vending machines.
               </p>
@@ -121,29 +123,35 @@ const Index = () => {
 
             <div className={`text-center mt-16 transition-all duration-1000 ${productsInView ? 'opacity-100' : 'opacity-0'}`}>
               <div className="flex flex-wrap justify-center gap-4">
-                <Link to="/products?type=claw" className="btn-secondary group">
-                  <span className="group-hover:scale-105 transition-transform">View All Gaming Machines</span>
-                </Link>
-                <Link to="/products?type=vending" className="btn-secondary group">
-                  <span className="group-hover:scale-105 transition-transform">View All Smart Vendors</span>
-                </Link>
-                <button 
-                  onClick={handleExploreAllProducts}
-                  className="btn-primary group"
+                <Link 
+                  to="/products?type=claw" 
+                  className="bg-transparent border-2 border-green-500 text-green-500 font-medium py-3 px-6 rounded-md hover:bg-green-500 hover:text-black transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-green-500/25"
                 >
-                  <span className="group-hover:scale-105 transition-transform">Explore All Products</span>
-                </button>
+                  View All Gaming Machines
+                </Link>
+                <Link 
+                  to="/products?type=vending" 
+                  className="bg-transparent border-2 border-green-500 text-green-500 font-medium py-3 px-6 rounded-md hover:bg-green-500 hover:text-black transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-green-500/25"
+                >
+                  View All Smart Vendors
+                </Link>
+                <Link 
+                  to="/products"
+                  className="bg-green-500 text-black font-medium py-3 px-6 rounded-md hover:bg-green-400 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-green-500/25"
+                >
+                  Explore All Products
+                </Link>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Technology Section - Updated */}
+        {/* Technology Section */}
         <section ref={techRef} className="py-20 bg-gradient-to-b from-gray-900 to-black relative overflow-hidden">
           <div className="container-custom relative z-10">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
               <div className={`transition-all duration-1000 ${techInView ? 'opacity-100' : 'opacity-0'}`}>
-                <h2 className="text-4xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-green">Advanced Engineering</h2>
+                <h2 className="text-4xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-green-500">Advanced Engineering</h2>
                 <p className="text-gray-300 mb-8 text-lg leading-relaxed">
                   Our machines feature state-of-the-art technology including smart automation systems, 
                   precision engineering, and advanced user interfaces that deliver exceptional gaming experiences.
@@ -155,8 +163,8 @@ const Index = () => {
                     { icon: Award, title: "Premium Quality", desc: "Superior craftsmanship" }
                   ].map((tech, index) => (
                     <div key={index} className={`text-center transition-all duration-1000 ${techInView ? `opacity-100` : 'opacity-0'}`}>
-                      <div className="bg-brand-green/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3 hover:bg-brand-green/20 transition-colors group">
-                        <tech.icon className="h-8 w-8 text-brand-green" />
+                      <div className="bg-green-500/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3 hover:bg-green-500/20 transition-colors group">
+                        <tech.icon className="h-8 w-8 text-green-500" />
                       </div>
                       <h4 className="font-semibold text-white mb-1">{tech.title}</h4>
                       <p className="text-sm text-gray-400">{tech.desc}</p>
@@ -166,10 +174,10 @@ const Index = () => {
               </div>
               
               <div className={`relative transition-all duration-1000 ${techInView ? 'opacity-100 scale-100 delay-300' : 'opacity-0 scale-95'}`}>
-                <div className="absolute inset-0 bg-gradient-to-r from-brand-green/20 to-transparent rounded-lg blur-xl"></div>
-                <div className="relative bg-gradient-to-br from-gray-900 to-black p-8 rounded-xl border border-brand-green/30">
+                <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-transparent rounded-lg blur-xl"></div>
+                <div className="relative bg-gradient-to-br from-gray-900 to-black p-8 rounded-xl border border-green-500/30">
                   <div className="text-center">
-                    <div className="text-6xl font-bold text-brand-green mb-2">99.9%</div>
+                    <div className="text-6xl font-bold text-green-500 mb-2">99.9%</div>
                     <div className="text-gray-300">Uptime Reliability</div>
                   </div>
                 </div>
@@ -178,25 +186,25 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Updated CTA Section */}
+        {/* CTA Section */}
         <section ref={ctaRef} className="py-20 bg-black relative overflow-hidden">
           <div className="absolute inset-0">
-            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-brand-green to-transparent"></div>
-            <div className="absolute bottom-0 right-0 w-full h-px bg-gradient-to-l from-transparent via-brand-green to-transparent"></div>
+            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-green-500 to-transparent"></div>
+            <div className="absolute bottom-0 right-0 w-full h-px bg-gradient-to-l from-transparent via-green-500 to-transparent"></div>
           </div>
           
           <div className="container-custom relative z-10">
-            <div className={`bg-gradient-to-r from-gray-900 via-black to-gray-900 border border-brand-green/30 rounded-2xl p-12 md:p-16 text-center transition-all duration-1000 ${ctaInView ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-green">Ready to Elevate Your Business?</h2>
+            <div className={`bg-gradient-to-r from-gray-900 via-black to-gray-900 border border-green-500/30 rounded-2xl p-12 md:p-16 text-center transition-all duration-1000 ${ctaInView ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-green-500">Ready to Elevate Your Business?</h2>
               <p className="text-gray-300 mb-10 text-xl max-w-3xl mx-auto">
                 Join innovative businesses worldwide who have transformed their customer experience with our cutting-edge gaming machines and technology solutions.
               </p>
-              <button 
-                onClick={handleExploreAllProducts}
-                className="bg-brand-green text-black font-medium py-4 px-8 rounded-md hover:bg-brand-green/90 transition-colors duration-300 text-lg"
+              <Link 
+                to="/products"
+                className="bg-green-500 text-black font-medium py-4 px-8 rounded-md hover:bg-green-400 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-green-500/25 text-lg"
               >
                 Explore All Products
-              </button>
+              </Link>
             </div>
           </div>
         </section>

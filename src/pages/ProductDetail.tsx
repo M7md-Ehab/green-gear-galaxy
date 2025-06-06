@@ -31,7 +31,7 @@ const ProductDetail = () => {
               <p className="text-gray-400 mb-8">{t('product_not_found_desc')}</p>
               <Button 
                 onClick={() => navigate('/products')}
-                className="bg-brand-green hover:bg-brand-green/90 text-black"
+                className="bg-green-500 hover:bg-green-400 text-black"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 {t('back_to_products')}
@@ -71,7 +71,7 @@ const ProductDetail = () => {
             {/* Product Image */}
             <div className="aspect-square rounded-lg overflow-hidden bg-gray-800">
               <img
-                src={product.image}
+                src={product.images[0]}
                 alt={product.name}
                 className="w-full h-full object-cover"
               />
@@ -81,7 +81,7 @@ const ProductDetail = () => {
             <div className="space-y-6">
               <div>
                 <h1 className="text-4xl font-bold mb-4">{product.name}</h1>
-                <p className="text-xl text-brand-green font-bold">
+                <p className="text-xl text-green-500 font-bold">
                   {currentCurrency.symbol}{product.price.toLocaleString()} {currentCurrency.code}
                 </p>
               </div>
@@ -105,7 +105,7 @@ const ProductDetail = () => {
                 
                 <Button 
                   onClick={handleBuyNow}
-                  className="w-full bg-brand-green hover:bg-brand-green/90 text-black"
+                  className="w-full bg-green-500 hover:bg-green-400 text-black"
                   size="lg"
                 >
                   <CreditCard className="h-5 w-5 mr-2" />

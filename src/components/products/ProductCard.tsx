@@ -33,7 +33,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
   };
 
   return (
-    <Card className="group bg-white border border-gray-200 hover:shadow-2xl hover:scale-105 overflow-hidden transition-all duration-300 hover:border-brand-green/30">
+    <Card className="group bg-white border border-gray-200 hover:shadow-2xl hover:scale-105 overflow-hidden transition-all duration-300 hover:border-black focus-within:border-brand-green focus-within:shadow-lg focus-within:shadow-brand-green/20">
       <div className="relative overflow-hidden">
         <div className="aspect-square bg-gray-50 relative">
           <img
@@ -75,13 +75,13 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </div>
         </div>
 
-        <CardContent className="p-6 bg-white">
+        <CardContent className="p-6 bg-white group-hover:bg-black transition-colors duration-300">
           <div className="space-y-4">
             <div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-brand-green transition-colors duration-300">
+              <h3 className="text-xl font-bold text-gray-900 group-hover:text-brand-green mb-2 transition-colors duration-300">
                 {product.name}
               </h3>
-              <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed">
+              <p className="text-gray-600 group-hover:text-gray-300 text-sm line-clamp-2 leading-relaxed transition-colors duration-300">
                 {product.description}
               </p>
             </div>
@@ -91,7 +91,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
                 <span className="text-2xl font-bold text-black group-hover:text-brand-green transition-colors duration-300">
                   {currentCurrency.symbol}{convertedPrice.toFixed(2)}
                 </span>
-                <span className="text-xs text-gray-500 uppercase tracking-wide">
+                <span className="text-xs text-gray-500 group-hover:text-gray-400 uppercase tracking-wide transition-colors duration-300">
                   {currentCurrency.code}
                 </span>
               </div>
@@ -99,7 +99,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
               <Link to={`/products/${product.id}`}>
                 <Button 
                   variant="outline" 
-                  className="bg-black text-white border-black hover:bg-brand-green hover:text-black hover:border-brand-green transition-all duration-300 hover:scale-105"
+                  className="bg-black text-white border-black hover:bg-brand-green hover:text-black hover:border-brand-green transition-all duration-300 hover:scale-105 group-hover:bg-brand-green group-hover:text-black group-hover:border-brand-green"
                 >
                   View Details
                 </Button>
@@ -109,12 +109,12 @@ const ProductCard = ({ product }: ProductCardProps) => {
             <div className="pt-4 border-t border-gray-200 group-hover:border-brand-green/30 transition-colors duration-300">
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Type:</span>
-                  <span className="text-gray-900 capitalize">{product.type}</span>
+                  <span className="text-gray-500 group-hover:text-gray-400 transition-colors duration-300">Type:</span>
+                  <span className="text-gray-900 group-hover:text-white capitalize transition-colors duration-300">{product.type}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Stock:</span>
-                  <span className="text-gray-900">{product.stock}</span>
+                  <span className="text-gray-500 group-hover:text-gray-400 transition-colors duration-300">Stock:</span>
+                  <span className="text-gray-900 group-hover:text-white transition-colors duration-300">{product.stock}</span>
                 </div>
               </div>
             </div>

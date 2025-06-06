@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 
 import { useAuth } from '@/hooks/use-firebase-auth';
 import { Button } from '@/components/ui/button';
@@ -112,6 +112,15 @@ const Auth = () => {
           <div className="w-full max-w-md">
             <div className="bg-white rounded-lg p-8 shadow-lg">
               <div className="text-center space-y-6">
+                <Button
+                  onClick={() => setNeedsVerification(false)}
+                  variant="ghost"
+                  className="absolute top-4 left-4 text-gray-600 hover:text-gray-800"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back
+                </Button>
+                
                 <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
                   <Mail className="h-8 w-8 text-gray-600" />
                 </div>
@@ -151,8 +160,18 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-black flex flex-col">
       <div className="flex justify-between items-center p-6">
-        <div className="text-white font-bold text-2xl">
-          Vlitrix
+        <div className="flex items-center space-x-4">
+          <Button
+            onClick={() => navigate('/')}
+            variant="ghost"
+            className="text-white hover:text-gray-300"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Home
+          </Button>
+          <div className="text-white font-bold text-2xl">
+            Vlitrix
+          </div>
         </div>
       </div>
 

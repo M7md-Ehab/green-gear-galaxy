@@ -1,5 +1,7 @@
 
 import { useState } from 'react';
+import { collection, addDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -22,21 +24,31 @@ const Contact = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate form submission
-    setTimeout(() => {
-      toast.success('Message sent successfully');
+    try {
+      // Save contact form data to Firebase Firestore
+      await addDoc(collection(db, 'contacts'), {
+        ...formData,
+        timestamp: new Date(),
+        status: 'new'
+      });
+      
+      toast.success('Message sent successfully! We will get back to you soon.');
       setFormData({
         name: '',
         email: '',
         subject: '',
         message: ''
       });
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Failed to send message. Please try again.');
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -56,7 +68,7 @@ const Contact = () => {
                   <Mail className="text-brand-green h-6 w-6 mt-1" />
                   <div>
                     <h3 className="font-medium">Email</h3>
-                    <p className="text-gray-300 mt-1">info@vlitrix.com</p>
+                    <p className="text-gray-300 mt-1">mehab882011@gmail.com</p>
                     <p className="text-gray-300">support@vlitrix.com</p>
                   </div>
                 </div>

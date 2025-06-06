@@ -1,4 +1,3 @@
-
 import { Link } from 'react-router-dom';
 import { ShieldCheck, Truck, CreditCard, Clock, Zap, Cpu, Award } from 'lucide-react';
 import { useInView } from 'react-intersection-observer';
@@ -27,7 +26,7 @@ const Index = () => {
     <div className="min-h-screen flex flex-col bg-black text-white overflow-hidden">
       <Navbar />
       <main className="flex-grow">
-        {/* Hero Section with Enhanced Asus-inspired animations */}
+        {/* Hero Section */}
         <section ref={heroRef} className="relative h-screen flex items-center overflow-hidden">
           {/* Enhanced animated background elements */}
           <div className="absolute inset-0 z-0 animated-bg">
@@ -52,38 +51,38 @@ const Index = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-black via-black/95 to-transparent z-10"></div>
           
           <div className="container-custom relative z-20">
-            <div className={`max-w-3xl transition-all duration-1000 ${heroInView ? 'animate-fade-in' : 'opacity-0'}`}>
-              <div className="animate-fade-in">
+            <div className={`max-w-3xl transition-all duration-1000 ${heroInView ? 'opacity-100' : 'opacity-0'}`}>
+              <div>
                 <h1 className="text-6xl md:text-7xl font-bold mb-6 leading-tight">
-                  <span className="block slide-in-right">Next Generation</span>
-                  <span className="block gradient-text neon-glow animate-scale-in delay-300">
+                  <span className="block">Next Generation</span>
+                  <span className="block bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-green">
                     Gaming Machines
                   </span>
                 </h1>
               </div>
               
-              <div className="animate-fade-in delay-500">
+              <div>
                 <p className="text-xl md:text-2xl text-gray-300 mb-8 leading-relaxed">
                   Experience unprecedented entertainment with our cutting-edge 
-                  <span className="text-brand-green font-semibold neon-glow"> claw machines</span> and 
-                  <span className="text-brand-green font-semibold neon-glow"> vending machines</span> 
+                  <span className="text-brand-green font-semibold"> claw machines</span> and 
+                  <span className="text-brand-green font-semibold"> vending machines </span> 
                   designed for the modern arcade.
                 </p>
               </div>
               
-              <div className="flex flex-wrap gap-6 animate-fade-in delay-700">
-                <Link to="/products?type=claw" className="btn-primary hover-scale pulse-glow group">
-                  <span className="group-hover:animate-pulse">Explore Claw Machines</span>
+              <div className="flex flex-wrap gap-6">
+                <Link to="/products?type=claw" className="btn-primary group">
+                  <span className="group-hover:scale-105 transition-transform">Discover Gaming Machines</span>
                 </Link>
-                <Link to="/products?type=vending" className="btn-secondary hover-scale group">
-                  <span className="group-hover:animate-pulse">View Vending Machines</span>
+                <Link to="/products?type=vending" className="btn-secondary group">
+                  <span className="group-hover:scale-105 transition-transform">Browse Smart Vendors</span>
                 </Link>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Features Section with enhanced animations */}
+        {/* Features Section */}
         <section ref={featuresRef} className="py-20 bg-gradient-to-b from-black to-gray-900 relative overflow-hidden">
           {/* Enhanced background animation */}
           <div className="absolute inset-0 opacity-10">
@@ -92,8 +91,8 @@ const Index = () => {
           </div>
           
           <div className="container-custom relative z-10">
-            <div className={`text-center mb-16 transition-all duration-1000 ${featuresInView ? 'animate-fade-in' : 'opacity-0'}`}>
-              <h2 className="text-4xl font-bold mb-6 gradient-text">Why Choose Vlitrix?</h2>
+            <div className={`text-center mb-16 transition-all duration-1000 ${featuresInView ? 'opacity-100' : 'opacity-0'}`}>
+              <h2 className="text-4xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-green">Why Choose Vlitrix?</h2>
               <p className="text-gray-400 max-w-2xl mx-auto text-lg">
                 Discover the future of gaming entertainment with our innovative technology
               </p>
@@ -121,7 +120,7 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Featured Products Section with improved animations */}
+        {/* Featured Products Section */}
         <section ref={productsRef} className="py-20 bg-black relative overflow-hidden">
           {/* Enhanced animated background */}
           <div className="absolute inset-0">
@@ -130,8 +129,8 @@ const Index = () => {
           </div>
           
           <div className="container-custom relative z-10">
-            <div className={`text-center mb-16 transition-all duration-1000 ${productsInView ? 'animate-fade-in' : 'opacity-0'}`}>
-              <h2 className="text-4xl font-bold mb-6 gradient-text neon-glow">Featured Gaming Machines</h2>
+            <div className={`text-center mb-16 transition-all duration-1000 ${productsInView ? 'opacity-100' : 'opacity-0'}`}>
+              <h2 className="text-4xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-green">Featured Gaming Machines</h2>
               <p className="text-gray-400 max-w-3xl mx-auto text-lg">
                 Experience the perfect blend of cutting-edge technology and entertainment with our premium claw and vending machines.
               </p>
@@ -147,40 +146,40 @@ const Index = () => {
               ))}
             </div>
 
-            <div className={`text-center mt-16 transition-all duration-1000 ${productsInView ? 'animate-fade-in delay-500' : 'opacity-0'}`}>
+            <div className={`text-center mt-16 transition-all duration-1000 ${productsInView ? 'opacity-100' : 'opacity-0'}`}>
               <div className="flex flex-wrap justify-center gap-4">
-                <Link to="/products?type=claw" className="btn-secondary hover-scale">
-                  View All Claw Machines
+                <Link to="/products?type=claw" className="btn-secondary group">
+                  <span className="group-hover:scale-105 transition-transform">View All Gaming Machines</span>
                 </Link>
-                <Link to="/products?type=vending" className="btn-secondary hover-scale">
-                  View All Vending Machines
+                <Link to="/products?type=vending" className="btn-secondary group">
+                  <span className="group-hover:scale-105 transition-transform">View All Smart Vendors</span>
                 </Link>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Technology Section with enhanced animations */}
+        {/* Technology Section - Updated */}
         <section ref={techRef} className="py-20 bg-gradient-to-b from-gray-900 to-black relative overflow-hidden">
           <div className="container-custom relative z-10">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-              <div className={`transition-all duration-1000 ${techInView ? 'animate-fade-in' : 'opacity-0'}`}>
-                <h2 className="text-4xl font-bold mb-6 gradient-text">Powered by Innovation</h2>
+              <div className={`transition-all duration-1000 ${techInView ? 'opacity-100' : 'opacity-0'}`}>
+                <h2 className="text-4xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-green">Advanced Engineering</h2>
                 <p className="text-gray-300 mb-8 text-lg leading-relaxed">
-                  Our machines feature state-of-the-art technology including AI-powered mechanics, 
-                  quantum precision systems, and holographic displays that redefine gaming entertainment.
+                  Our machines feature state-of-the-art technology including smart automation systems, 
+                  precision engineering, and advanced user interfaces that deliver exceptional gaming experiences.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                   {[
-                    { icon: Zap, title: "AI Powered", desc: "Smart automation" },
-                    { icon: Cpu, title: "Quantum Tech", desc: "Precision control" },
-                    { icon: Award, title: "Premium Quality", desc: "Award winning" }
+                    { icon: Zap, title: "Smart Systems", desc: "Intelligent automation" },
+                    { icon: Cpu, title: "Precision Tech", desc: "Engineered excellence" },
+                    { icon: Award, title: "Industry Leading", desc: "Award-winning design" }
                   ].map((tech, index) => (
-                    <div key={index} className={`text-center transition-all duration-1000 ${techInView ? `animate-fade-in delay-${(index + 2) * 100}` : 'opacity-0'}`}>
+                    <div key={index} className={`text-center transition-all duration-1000 ${techInView ? `opacity-100` : 'opacity-0'}`}>
                       <div className="bg-brand-green/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3 hover:bg-brand-green/20 transition-colors group tech-border">
-                        <tech.icon className="h-8 w-8 text-brand-green group-hover:animate-pulse" />
+                        <tech.icon className="h-8 w-8 text-brand-green" />
                       </div>
-                      <h4 className="font-semibold text-white mb-1 neon-glow">{tech.title}</h4>
+                      <h4 className="font-semibold text-white mb-1">{tech.title}</h4>
                       <p className="text-sm text-gray-400">{tech.desc}</p>
                     </div>
                   ))}

@@ -18,7 +18,24 @@ export interface Product {
 }
 
 export const products: Product[] = [
-  // Vending Machine Series
+  // Vending Machine Series - Standard Models
+  {
+    id: 't1-standard',
+    name: 'VendMax T1',
+    price: 6999,
+    description: 'Smart vending machine with modern payment systems and basic inventory management.',
+    image: '/placeholder.svg',
+    series: 'T1',
+    type: 'vending',
+    stock: 25,
+    specs: {
+      power: '220V/110V',
+      dimensions: '180 x 80 x 82 cm',
+      weight: '260 kg',
+      capacity: '400 products',
+      features: ['Digital Payment', 'Basic Inventory', 'LED Display', 'Energy Efficient']
+    }
+  },
   {
     id: 't1-pro',
     name: 'VendMax T1 Pro',
@@ -34,6 +51,23 @@ export const products: Product[] = [
       weight: '280 kg',
       capacity: '450 products',
       features: ['AI Inventory', 'Contactless Payment', 'Remote Monitoring', 'Climate Control']
+    }
+  },
+  {
+    id: 's1-standard',
+    name: 'VendMax S1',
+    price: 4999,
+    description: 'Compact vending solution perfect for small offices and retail spaces.',
+    image: '/placeholder.svg',
+    series: 'S1',
+    type: 'vending',
+    stock: 30,
+    specs: {
+      power: '220V/110V',
+      dimensions: '145 x 68 x 73 cm',
+      weight: '160 kg',
+      capacity: '250 products',
+      features: ['Compact Design', 'Basic Payment', 'Easy Maintenance', 'Cost Effective']
     }
   },
   {
@@ -54,6 +88,23 @@ export const products: Product[] = [
     }
   },
   {
+    id: 'x1-standard',
+    name: 'VendMax X1',
+    price: 9999,
+    description: 'Enterprise vending machine with advanced features and multi-zone cooling.',
+    image: '/placeholder.svg',
+    series: 'X1',
+    type: 'vending',
+    stock: 12,
+    specs: {
+      power: '220V/110V',
+      dimensions: '185 x 82 x 88 cm',
+      weight: '320 kg',
+      capacity: '550 products',
+      features: ['Multi-Zone Cooling', 'Advanced Display', 'Enterprise Grade', 'High Capacity']
+    }
+  },
+  {
     id: 'x1-pro',
     name: 'VendMax X1 Pro',
     price: 12999,
@@ -71,7 +122,23 @@ export const products: Product[] = [
     }
   },
   
-  // Claw Machine Series
+  // Claw Machine Series - Standard and Pro Models
+  {
+    id: 'k1-standard',
+    name: 'ClawMaster K1',
+    price: 3499,
+    description: 'Standard claw machine with reliable mechanics and basic lighting for entertainment venues.',
+    image: '/placeholder.svg',
+    series: 'K1',
+    type: 'claw',
+    stock: 20,
+    specs: {
+      power: '220V/110V',
+      dimensions: '80 x 80 x 175 cm',
+      weight: '100 kg',
+      features: ['Standard Claw Control', 'Basic Lighting', 'Coin Operation', 'Durable Build']
+    }
+  },
   {
     id: 'k1-pro',
     name: 'ClawMaster K1 Pro',
@@ -89,6 +156,22 @@ export const products: Product[] = [
     }
   },
   {
+    id: 'n1-standard',
+    name: 'ClawMaster N1',
+    price: 2499,
+    description: 'Compact claw machine designed for smaller spaces with standard joystick controls.',
+    image: '/placeholder.svg',
+    series: 'N1',
+    type: 'claw',
+    stock: 25,
+    specs: {
+      power: '220V/110V',
+      dimensions: '65 x 65 x 155 cm',
+      weight: '70 kg',
+      features: ['Standard Joystick', 'Compact Size', 'Basic Operation', 'Space Efficient']
+    }
+  },
+  {
     id: 'n1-pro',
     name: 'ClawMaster N1 Pro',
     price: 3499,
@@ -102,6 +185,22 @@ export const products: Product[] = [
       dimensions: '70 x 70 x 160 cm',
       weight: '85 kg',
       features: ['Modern Joystick', 'Compact Design', 'Easy Maintenance', 'Multiple Game Modes']
+    }
+  },
+  {
+    id: 'l1-standard',
+    name: 'ClawMaster L1',
+    price: 5999,
+    description: 'Luxury claw machine with premium materials and advanced display technology.',
+    image: '/placeholder.svg',
+    series: 'L1',
+    type: 'claw',
+    stock: 10,
+    specs: {
+      power: '220V/110V',
+      dimensions: '90 x 90 x 195 cm',
+      weight: '140 kg',
+      features: ['Premium Display', 'Luxury Materials', 'Advanced Controls', 'Professional Grade']
     }
   },
   {

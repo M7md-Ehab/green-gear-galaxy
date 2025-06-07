@@ -39,7 +39,7 @@ const Cart = () => {
                     {/* Product Image */}
                     <div className="sm:w-40 h-40 bg-black flex-shrink-0">
                       <img 
-                        src={item.product.image} 
+                        src={item.product.images[0]} 
                         alt={item.product.name} 
                         className="object-contain w-full h-full p-4"
                       />

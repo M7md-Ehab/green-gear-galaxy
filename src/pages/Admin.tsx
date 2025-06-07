@@ -1,35 +1,54 @@
 
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/use-firebase-auth';
+import { useAdminAuth } from '@/hooks/use-admin-auth';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import OrderSearch from '@/components/admin/OrderSearch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield, Users, Package, TrendingUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Shield, Users, Package, TrendingUp, LogOut } from 'lucide-react';
 
 const Admin = () => {
-  const { user, isLoggedIn } = useAuth();
+  const { adminUser, isAdminLoggedIn, adminLogout } = useAdminAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isLoggedIn) {
-      navigate('/auth');
+    if (!isAdminLoggedIn) {
+      navigate('/admin/auth');
     }
-  }, [isLoggedIn, navigate]);
+  }, [isAdminLoggedIn, navigate]);
 
-  if (!isLoggedIn) {
+  if (!isAdminLoggedIn) {
     return null;
   }
+
+  const handleLogout = () => {
+    adminLogout();
+    navigate('/');
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">
       <Navbar />
       <main className="flex-grow py-12">
         <div className="container-custom">
-          <div className="flex items-center gap-3 mb-8">
-            <Shield className="h-8 w-8 text-brand-green" />
-            <h1 className="text-4xl font-bold">Admin Dashboard</h1>
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <Shield className="h-8 w-8 text-brand-green" />
+              <div>
+                <h1 className="text-4xl font-bold">Admin Dashboard</h1>
+                <p className="text-gray-400 mt-1">Welcome back, {adminUser?.username}</p>
+              </div>
+            </div>
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              className="border-gray-700 text-white hover:bg-gray-800"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

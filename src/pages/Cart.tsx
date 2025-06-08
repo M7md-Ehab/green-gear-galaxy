@@ -1,4 +1,3 @@
-
 import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Minus, Trash, ArrowRight } from 'lucide-react';
 
@@ -39,7 +38,7 @@ const Cart = () => {
                     {/* Product Image */}
                     <div className="sm:w-40 h-40 bg-black flex-shrink-0">
                       <img 
-                        src={item.product.images[0]} 
+                        src={item.product.images && item.product.images.length > 0 ? item.product.images[0] : '/placeholder.svg'} 
                         alt={item.product.name} 
                         className="object-contain w-full h-full p-4"
                       />
@@ -105,7 +104,6 @@ const Cart = () => {
                 </div>
               </div>
               
-              {/* Order Summary */}
               <div className="lg:col-span-1">
                 <div className="bg-gray-900/50 rounded-lg p-6">
                   <h2 className="text-xl font-bold mb-6">Order Summary</h2>

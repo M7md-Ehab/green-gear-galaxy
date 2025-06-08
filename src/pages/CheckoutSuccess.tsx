@@ -22,7 +22,7 @@ const CheckoutSuccess = () => {
               <CheckCircle className="h-12 w-12 text-green-500" />
             </div>
             
-            <h1 className="text-3xl font-bold">Order Confirmed!</h1>
+            <h1 className="text-3xl font-bold text-white">Order Confirmed!</h1>
             <p className="text-gray-400 text-lg">
               Thank you for your purchase. Your order has been successfully placed and will be processed shortly.
             </p>
@@ -42,9 +42,9 @@ const CheckoutSuccess = () => {
           <div className="space-y-4">
             <Button 
               asChild 
-              className="w-full bg-green-500 hover:bg-green-400 text-black font-medium"
+              className="w-full bg-green-500 hover:bg-green-400 text-black font-medium h-12"
             >
-              <Link to="/">
+              <Link to="/" className="flex items-center justify-center">
                 Return to Home
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
@@ -53,9 +53,9 @@ const CheckoutSuccess = () => {
             <Button 
               asChild 
               variant="outline" 
-              className="w-full border-gray-600 text-white hover:bg-gray-800"
+              className="w-full border-gray-600 text-white hover:bg-gray-800 h-12"
             >
-              <Link to="/products">
+              <Link to="/products" className="flex items-center justify-center">
                 Continue Shopping
               </Link>
             </Button>

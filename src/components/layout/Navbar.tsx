@@ -1,10 +1,11 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Menu, X, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
 import { useAuth } from '@/hooks/use-firebase-auth';
+import CurrencySelector from '@/components/CurrencySelector';
+import LanguageSelector from '@/components/LanguageSelector';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -30,6 +31,8 @@ const Navbar = () => {
         </div>
 
         <div className="hidden md:flex items-center space-x-4">
+          <CurrencySelector />
+          <LanguageSelector />
           {isLoggedIn ? (
             <Link to="/dashboard" aria-label="Profile">
               <Button variant="ghost" size="icon">

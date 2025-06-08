@@ -4,11 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Warehouse, Search, Package, AlertTriangle } from 'lucide-react';
+import { Warehouse, Search, Package, AlertTriangle, Edit, Save, X } from 'lucide-react';
 import { products } from '@/data/products';
+import { useCurrency } from '@/hooks/use-currency';
 
 const InventoryManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingProduct, setEditingProduct] = useState<string | null>(null);
+  const [editPrice, setEditPrice] = useState('');
+  const [editStock, setEditStock] = useState('');
+  const { formatPrice, currentCurrency, convertPrice } = useCurrency();
   
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -17,6 +22,26 @@ const InventoryManagement = () => {
 
   const lowStockProducts = products.filter(product => product.stock < 10);
 
+  const handleEdit = (productId: string, currentPrice: number, currentStock: number) => {
+    setEditingProduct(productId);
+    setEditPrice(currentPrice.toString());
+    setEditStock(currentStock.toString());
+  };
+
+  const handleSave = (productId: string) => {
+    // In a real app, this would update the database
+    console.log(`Updating product ${productId}: price=${editPrice}, stock=${editStock}`);
+    setEditingProduct(null);
+    setEditPrice('');
+    setEditStock('');
+  };
+
+  const handleCancel = () => {
+    setEditingProduct(null);
+    setEditPrice('');
+    setEditStock('');
+  };
+
   return (
     <div className="space-y-6">
       <Card className="bg-gray-900 border-gray-700">
@@ -24,6 +49,9 @@ const InventoryManagement = () => {
           <CardTitle className="flex items-center gap-2 text-white">
             <Warehouse className="h-5 w-5 text-brand-green" />
             Inventory Management
+            <Badge variant="secondary" className="ml-auto">
+              Currency: {currentCurrency.code}
+            </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -65,10 +93,54 @@ const InventoryManagement = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Badge variant={product.stock > 20 ? "default" : product.stock > 5 ? "secondary" : "destructive"}>
-                      {product.stock} units
-                    </Badge>
-                    <span className="text-sm text-gray-400">${product.price.toLocaleString()}</span>
+                    {editingProduct === product.id ? (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={editStock}
+                          onChange={(e) => setEditStock(e.target.value)}
+                          className="w-16 h-8 text-xs bg-gray-700 border-gray-600 text-white"
+                          placeholder="Stock"
+                        />
+                        <Input
+                          value={editPrice}
+                          onChange={(e) => setEditPrice(e.target.value)}
+                          className="w-20 h-8 text-xs bg-gray-700 border-gray-600 text-white"
+                          placeholder="Price"
+                        />
+                        <Button
+                          size="sm"
+                          onClick={() => handleSave(product.id)}
+                          className="h-8 px-2 bg-green-600 hover:bg-green-700"
+                        >
+                          <Save className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleCancel}
+                          className="h-8 px-2 border-gray-600 text-white hover:bg-gray-700"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        <Badge variant={product.stock > 20 ? "default" : product.stock > 5 ? "secondary" : "destructive"}>
+                          {product.stock} units
+                        </Badge>
+                        <span className="text-sm text-gray-400">
+                          {formatPrice(convertPrice(product.price, 'USD'))}
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleEdit(product.id, product.price, product.stock)}
+                          className="h-8 px-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}

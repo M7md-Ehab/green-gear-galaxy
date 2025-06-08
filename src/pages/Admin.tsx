@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '@/hooks/use-admin-auth';
 import Navbar from '@/components/layout/Navbar';
@@ -13,12 +13,35 @@ import { Shield, Users, Package, TrendingUp, LogOut, Warehouse } from 'lucide-re
 const Admin = () => {
   const { adminUser, isAdminLoggedIn, adminLogout } = useAdminAuth();
   const navigate = useNavigate();
+  const [stats, setStats] = useState({
+    activeUsers: 2847,
+    userGrowth: 18,
+    totalOrders: 1234,
+    orderGrowth: 12,
+    monthlyRevenue: 89421,
+    revenueGrowth: 24,
+    productsInStock: 156
+  });
 
   useEffect(() => {
     if (!isAdminLoggedIn) {
       navigate('/admin/auth');
     }
   }, [isAdminLoggedIn, navigate]);
+
+  // Simulate real-time updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStats(prev => ({
+        ...prev,
+        activeUsers: prev.activeUsers + Math.floor(Math.random() * 5),
+        totalOrders: prev.totalOrders + Math.floor(Math.random() * 3),
+        monthlyRevenue: prev.monthlyRevenue + Math.floor(Math.random() * 100)
+      }));
+    }, 30000); // Update every 30 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   if (!isAdminLoggedIn) {
     return null;
@@ -59,8 +82,8 @@ const Admin = () => {
                 <Users className="h-4 w-4 text-brand-green" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">2,847</div>
-                <p className="text-xs text-gray-400">+18% from last month</p>
+                <div className="text-2xl font-bold text-white">{stats.activeUsers.toLocaleString()}</div>
+                <p className="text-xs text-green-400">+{stats.userGrowth}% from last month</p>
               </CardContent>
             </Card>
 
@@ -70,8 +93,8 @@ const Admin = () => {
                 <Package className="h-4 w-4 text-brand-green" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">1,234</div>
-                <p className="text-xs text-gray-400">+12% from last month</p>
+                <div className="text-2xl font-bold text-white">{stats.totalOrders.toLocaleString()}</div>
+                <p className="text-xs text-green-400">+{stats.orderGrowth}% from last month</p>
               </CardContent>
             </Card>
 
@@ -81,8 +104,8 @@ const Admin = () => {
                 <TrendingUp className="h-4 w-4 text-brand-green" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">$89,421</div>
-                <p className="text-xs text-gray-400">+24% from last month</p>
+                <div className="text-2xl font-bold text-white">${stats.monthlyRevenue.toLocaleString()}</div>
+                <p className="text-xs text-green-400">+{stats.revenueGrowth}% from last month</p>
               </CardContent>
             </Card>
 
@@ -92,7 +115,7 @@ const Admin = () => {
                 <Warehouse className="h-4 w-4 text-brand-green" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">156</div>
+                <div className="text-2xl font-bold text-white">{stats.productsInStock}</div>
                 <p className="text-xs text-gray-400">Across all series</p>
               </CardContent>
             </Card>

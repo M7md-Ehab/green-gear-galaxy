@@ -18,11 +18,11 @@ export interface Product {
 }
 
 export const products: Product[] = [
-  // Vending Machine Series - Standard Models
+  // Vending Machine Series - Standard Models (prices in EGP)
   {
     id: 't1-standard',
     name: 'T1',
-    price: 6999,
+    price: 219999,
     description: 'Smart vending machine with modern payment systems and basic inventory management.',
     images: [
       '/placeholder.svg',
@@ -48,7 +48,7 @@ export const products: Product[] = [
   {
     id: 't1-pro',
     name: 'T1 Pro',
-    price: 8999,
+    price: 283699,
     description: 'Professional vending machine with AI-powered inventory management and contactless payment systems.',
     images: [
       '/placeholder.svg',
@@ -74,7 +74,7 @@ export const products: Product[] = [
   {
     id: 's1-standard',
     name: 'S1',
-    price: 4999,
+    price: 157199,
     description: 'Compact vending solution perfect for small offices and retail spaces.',
     images: [
       '/placeholder.svg',
@@ -100,7 +100,7 @@ export const products: Product[] = [
   {
     id: 's1-pro',
     name: 'S1 Pro',
-    price: 6499,
+    price: 204399,
     description: 'Compact smart vending solution perfect for offices and small businesses.',
     images: [
       '/placeholder.svg',
@@ -126,7 +126,7 @@ export const products: Product[] = [
   {
     id: 'x1-standard',
     name: 'X1',
-    price: 9999,
+    price: 314799,
     description: 'Enterprise vending machine with advanced features and multi-zone cooling.',
     images: [
       '/placeholder.svg',
@@ -152,7 +152,7 @@ export const products: Product[] = [
   {
     id: 'x1-pro',
     name: 'X1 Pro',
-    price: 12999,
+    price: 408999,
     description: 'Enterprise-grade vending machine with advanced analytics and multi-zone temperature control.',
     images: [
       '/placeholder.svg',
@@ -176,11 +176,11 @@ export const products: Product[] = [
     }
   },
   
-  // Claw Machine Series - Standard and Pro Models
+  // Claw Machine Series - Standard and Pro Models (prices in EGP)
   {
     id: 'k1-standard',
     name: 'K1',
-    price: 3499,
+    price: 109999,
     description: 'Standard claw machine with reliable mechanics and basic lighting for entertainment venues.',
     images: [
       '/placeholder.svg',
@@ -205,7 +205,7 @@ export const products: Product[] = [
   {
     id: 'k1-pro',
     name: 'K1 Pro',
-    price: 4999,
+    price: 157199,
     description: 'Premium claw machine with precision control and LED lighting effects for maximum player engagement.',
     images: [
       '/placeholder.svg',
@@ -230,7 +230,7 @@ export const products: Product[] = [
   {
     id: 'n1-standard',
     name: 'N1',
-    price: 2499,
+    price: 78599,
     description: 'Compact claw machine designed for smaller spaces with standard joystick controls.',
     images: [
       '/placeholder.svg',
@@ -255,7 +255,7 @@ export const products: Product[] = [
   {
     id: 'n1-pro',
     name: 'N1 Pro',
-    price: 3499,
+    price: 109999,
     description: 'Compact claw machine designed for smaller spaces with modern joystick controls.',
     images: [
       '/placeholder.svg',
@@ -280,7 +280,7 @@ export const products: Product[] = [
   {
     id: 'l1-standard',
     name: 'L1',
-    price: 5999,
+    price: 188599,
     description: 'Luxury claw machine with premium materials and advanced display technology.',
     images: [
       '/placeholder.svg',
@@ -305,7 +305,7 @@ export const products: Product[] = [
   {
     id: 'l1-pro',
     name: 'L1 Pro',
-    price: 7999,
+    price: 251599,
     description: 'Luxury claw machine with premium materials, holographic displays, and advanced prize management.',
     images: [
       '/placeholder.svg',

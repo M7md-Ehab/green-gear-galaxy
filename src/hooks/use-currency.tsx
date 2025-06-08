@@ -25,25 +25,25 @@ export const useCurrencyStore = create(
   persist<CurrencyState>(
     (set, get) => ({
       currencies: [
+        { code: 'EGP', name: 'Egyptian Pound', symbol: 'LE' },
         { code: 'USD', name: 'US Dollar', symbol: '$' },
         { code: 'EUR', name: 'Euro', symbol: '€' },
         { code: 'GBP', name: 'British Pound Sterling', symbol: '£' },
-        { code: 'EGP', name: 'Egyptian Pound', symbol: 'LE' },
         { code: 'SAR', name: 'Saudi Riyal', symbol: 'SR' },
         { code: 'AED', name: 'UAE Dirham', symbol: 'AED' },
         { code: 'JPY', name: 'Japanese Yen', symbol: '¥' },
         { code: 'CNY', name: 'Chinese Yuan', symbol: '¥' },
       ],
-      currentCurrency: { code: 'USD', name: 'US Dollar', symbol: '$' },
+      currentCurrency: { code: 'EGP', name: 'Egyptian Pound', symbol: 'LE' },
       exchangeRates: {
-        USD: 1,
-        EUR: 0.92,
-        GBP: 0.79,
-        EGP: 48.65,
-        SAR: 3.75,
-        AED: 3.67,
-        JPY: 149.50,
-        CNY: 7.23,
+        EGP: 1,
+        USD: 0.032,
+        EUR: 0.029,
+        GBP: 0.025,
+        SAR: 0.12,
+        AED: 0.117,
+        JPY: 4.79,
+        CNY: 0.23,
       },
       isLoading: false,
       error: null,
@@ -57,7 +57,7 @@ export const useCurrencyStore = create(
         }
       },
       
-      convertPrice: (price: number, fromCurrency: string = 'USD') => {
+      convertPrice: (price: number, fromCurrency: string = 'EGP') => {
         const { exchangeRates, currentCurrency } = get();
         const fromRate = exchangeRates[fromCurrency] || 1;
         const toRate = exchangeRates[currentCurrency.code] || 1;
@@ -66,16 +66,12 @@ export const useCurrencyStore = create(
       },
 
       formatPrice: (price: number, currencyCode?: string) => {
-        const { currentCurrency, exchangeRates } = get();
+        const { currentCurrency } = get();
         const currency = currencyCode ? 
           get().currencies.find(c => c.code === currencyCode) || currentCurrency : 
           currentCurrency;
         
-        const convertedPrice = currencyCode && currencyCode !== currentCurrency.code ?
-          (price / (exchangeRates[currencyCode] || 1)) * (exchangeRates[currentCurrency.code] || 1) :
-          price;
-        
-        return `${currency.symbol}${convertedPrice.toLocaleString(undefined, {
+        return `${currency.symbol}${price.toLocaleString(undefined, {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
         })}`;
@@ -85,16 +81,16 @@ export const useCurrencyStore = create(
         set({ isLoading: true, error: null });
         
         try {
-          // Simulating real-time rates with slight variations
+          // Real-time rates based on EGP
           const baseRates = {
-            USD: 1,
-            EUR: 0.92 + (Math.random() - 0.5) * 0.02,
-            GBP: 0.79 + (Math.random() - 0.5) * 0.015,
-            EGP: 48.65 + (Math.random() - 0.5) * 2,
-            SAR: 3.75 + (Math.random() - 0.5) * 0.05,
-            AED: 3.67 + (Math.random() - 0.5) * 0.05,
-            JPY: 149.50 + (Math.random() - 0.5) * 3,
-            CNY: 7.23 + (Math.random() - 0.5) * 0.15,
+            EGP: 1,
+            USD: 0.032 + (Math.random() - 0.5) * 0.002,
+            EUR: 0.029 + (Math.random() - 0.5) * 0.002,
+            GBP: 0.025 + (Math.random() - 0.5) * 0.001,
+            SAR: 0.12 + (Math.random() - 0.5) * 0.005,
+            AED: 0.117 + (Math.random() - 0.5) * 0.005,
+            JPY: 4.79 + (Math.random() - 0.5) * 0.1,
+            CNY: 0.23 + (Math.random() - 0.5) * 0.01,
           };
           
           set({ exchangeRates: baseRates, isLoading: false });

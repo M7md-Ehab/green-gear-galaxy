@@ -7,13 +7,14 @@ import { Badge } from '@/components/ui/badge';
 import { Warehouse, Search, Package, AlertTriangle, Edit, Save, X } from 'lucide-react';
 import { products } from '@/data/products';
 import { useCurrency } from '@/hooks/use-currency';
+import { toast } from 'sonner';
 
 const InventoryManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
   const [editPrice, setEditPrice] = useState('');
   const [editStock, setEditStock] = useState('');
-  const { formatPrice, currentCurrency, convertPrice } = useCurrency();
+  const { formatPrice, currentCurrency } = useCurrency();
   
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -29,8 +30,24 @@ const InventoryManagement = () => {
   };
 
   const handleSave = (productId: string) => {
-    // In a real app, this would update the database
-    console.log(`Updating product ${productId}: price=${editPrice}, stock=${editStock}`);
+    const newPrice = parseFloat(editPrice);
+    const newStock = parseInt(editStock);
+    
+    if (isNaN(newPrice) || isNaN(newStock) || newPrice <= 0 || newStock < 0) {
+      toast.error('Invalid price or stock value');
+      return;
+    }
+
+    // Update the product in the products array
+    const productIndex = products.findIndex(p => p.id === productId);
+    if (productIndex !== -1) {
+      products[productIndex].price = newPrice;
+      products[productIndex].stock = newStock;
+      
+      toast.success(`Updated ${products[productIndex].name} successfully`);
+      console.log(`Product ${productId} updated: price=${newPrice} ${currentCurrency.code}, stock=${newStock}`);
+    }
+    
     setEditingProduct(null);
     setEditPrice('');
     setEditStock('');
@@ -49,7 +66,7 @@ const InventoryManagement = () => {
           <CardTitle className="flex items-center gap-2 text-white">
             <Warehouse className="h-5 w-5 text-brand-green" />
             Inventory Management
-            <Badge variant="secondary" className="ml-auto">
+            <Badge variant="secondary" className="ml-auto bg-brand-green text-black">
               Currency: {currentCurrency.code}
             </Badge>
           </CardTitle>
@@ -62,7 +79,7 @@ const InventoryManagement = () => {
                 placeholder="Search products..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-gray-800 border-gray-600 text-white"
+                className="pl-10 bg-gray-800 border-gray-600 text-white placeholder:text-gray-400"
               />
             </div>
 
@@ -84,7 +101,7 @@ const InventoryManagement = () => {
 
             <div className="max-h-96 overflow-y-auto space-y-3">
               {filteredProducts.map(product => (
-                <div key={product.id} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                <div key={product.id} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg border border-gray-700">
                   <div className="flex items-center gap-3">
                     <Package className="h-4 w-4 text-brand-green" />
                     <div>
@@ -100,17 +117,27 @@ const InventoryManagement = () => {
                           onChange={(e) => setEditStock(e.target.value)}
                           className="w-16 h-8 text-xs bg-gray-700 border-gray-600 text-white"
                           placeholder="Stock"
+                          type="number"
+                          min="0"
                         />
-                        <Input
-                          value={editPrice}
-                          onChange={(e) => setEditPrice(e.target.value)}
-                          className="w-20 h-8 text-xs bg-gray-700 border-gray-600 text-white"
-                          placeholder="Price"
-                        />
+                        <div className="relative">
+                          <Input
+                            value={editPrice}
+                            onChange={(e) => setEditPrice(e.target.value)}
+                            className="w-24 h-8 text-xs bg-gray-700 border-gray-600 text-white pl-6"
+                            placeholder="Price"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                          />
+                          <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">
+                            {currentCurrency.symbol}
+                          </span>
+                        </div>
                         <Button
                           size="sm"
                           onClick={() => handleSave(product.id)}
-                          className="h-8 px-2 bg-green-600 hover:bg-green-700"
+                          className="h-8 px-2 bg-brand-green hover:bg-brand-green/90 text-black"
                         >
                           <Save className="h-3 w-3" />
                         </Button>
@@ -128,8 +155,8 @@ const InventoryManagement = () => {
                         <Badge variant={product.stock > 20 ? "default" : product.stock > 5 ? "secondary" : "destructive"}>
                           {product.stock} units
                         </Badge>
-                        <span className="text-sm text-gray-400">
-                          {formatPrice(convertPrice(product.price, 'USD'))}
+                        <span className="text-sm text-white font-medium">
+                          {formatPrice(product.price)}
                         </span>
                         <Button
                           size="sm"

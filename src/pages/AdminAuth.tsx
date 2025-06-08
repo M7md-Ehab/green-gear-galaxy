@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Lock, User, ArrowLeft, Shield } from 'lucide-react';
+import { Lock, User, Shield } from 'lucide-react';
 
 import { useAdminAuth } from '@/hooks/use-admin-auth';
 import { Button } from '@/components/ui/button';
@@ -57,35 +57,31 @@ const AdminAuth = () => {
 
   return (
     <div className="min-h-screen bg-black flex flex-col">
-      <div className="flex justify-between items-center p-6">
-        <div className="flex items-center space-x-4">
-          <Button
+      {/* Header with home page styling */}
+      <div className="py-4 border-b border-border/40">
+        <div className="container-custom flex items-center justify-between">
+          <button 
             onClick={() => navigate('/')}
-            variant="ghost"
-            className="text-white hover:text-gray-300"
+            className="flex items-center cursor-pointer"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Home
-          </Button>
-          <div className="text-white font-bold text-2xl">
-            Vlitrix
-          </div>
+            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-green">Vlitrix</span>
+          </button>
         </div>
       </div>
 
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-md">
-          <div className="bg-white rounded-lg p-8 shadow-lg">
+          <div className="bg-gray-900/50 rounded-lg p-8 shadow-lg border border-gray-700">
             <div className="text-center space-y-6">
-              <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                <Shield className="h-8 w-8 text-gray-600" />
+              <div className="mx-auto w-16 h-16 bg-brand-green/20 rounded-full flex items-center justify-center">
+                <Shield className="h-8 w-8 text-brand-green" />
               </div>
               
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                <h1 className="text-3xl font-bold text-white mb-2">
                   Admin Access
                 </h1>
-                <p className="text-gray-600">
+                <p className="text-gray-400">
                   Enter your admin credentials to continue
                 </p>
               </div>
@@ -97,13 +93,13 @@ const AdminAuth = () => {
                     name="username"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-left block text-gray-700">Username</FormLabel>
+                        <FormLabel className="text-left block text-gray-300">Username</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                             <Input
                               placeholder="Enter admin username"
-                              className="h-12 text-lg pl-10 bg-white border-gray-300 text-gray-900"
+                              className="h-12 text-lg pl-10 bg-gray-800 border-gray-600 text-white placeholder:text-gray-400 focus:border-brand-green"
                               {...field}
                             />
                           </div>
@@ -118,14 +114,14 @@ const AdminAuth = () => {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-left block text-gray-700">Password</FormLabel>
+                        <FormLabel className="text-left block text-gray-300">Password</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                             <Input
                               type="password"
                               placeholder="Enter admin password"
-                              className="h-12 text-lg pl-10 bg-white border-gray-300 text-gray-900"
+                              className="h-12 text-lg pl-10 bg-gray-800 border-gray-600 text-white placeholder:text-gray-400 focus:border-brand-green"
                               {...field}
                             />
                           </div>
@@ -137,7 +133,7 @@ const AdminAuth = () => {
 
                   <Button
                     type="submit"
-                    className="w-full h-12 bg-black hover:bg-gray-800 text-white text-lg font-semibold"
+                    className="w-full h-12 bg-brand-green hover:bg-brand-green/90 text-black text-lg font-semibold"
                     disabled={isLoading}
                   >
                     {isLoading ? 'Signing In...' : 'Sign In as Admin'}

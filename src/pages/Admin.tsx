@@ -5,9 +5,10 @@ import { useAdminAuth } from '@/hooks/use-admin-auth';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import OrderSearch from '@/components/admin/OrderSearch';
+import InventoryManagement from '@/components/admin/InventoryManagement';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Shield, Users, Package, TrendingUp, LogOut } from 'lucide-react';
+import { Shield, Users, Package, TrendingUp, LogOut, Warehouse } from 'lucide-react';
 
 const Admin = () => {
   const { adminUser, isAdminLoggedIn, adminLogout } = useAdminAuth();
@@ -54,12 +55,12 @@ const Admin = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card className="bg-gray-900 border-gray-700">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-300">Total Users</CardTitle>
+                <CardTitle className="text-sm font-medium text-gray-300">Active Users</CardTitle>
                 <Users className="h-4 w-4 text-brand-green" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">1,234</div>
-                <p className="text-xs text-gray-400">+12% from last month</p>
+                <div className="text-2xl font-bold text-white">2,847</div>
+                <p className="text-xs text-gray-400">+18% from last month</p>
               </CardContent>
             </Card>
 
@@ -69,35 +70,42 @@ const Admin = () => {
                 <Package className="h-4 w-4 text-brand-green" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">567</div>
-                <p className="text-xs text-gray-400">+8% from last month</p>
+                <div className="text-2xl font-bold text-white">1,234</div>
+                <p className="text-xs text-gray-400">+12% from last month</p>
               </CardContent>
             </Card>
 
             <Card className="bg-gray-900 border-gray-700">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-300">Revenue</CardTitle>
+                <CardTitle className="text-sm font-medium text-gray-300">Monthly Revenue</CardTitle>
                 <TrendingUp className="h-4 w-4 text-brand-green" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">$45,678</div>
-                <p className="text-xs text-gray-400">+15% from last month</p>
+                <div className="text-2xl font-bold text-white">$89,421</div>
+                <p className="text-xs text-gray-400">+24% from last month</p>
               </CardContent>
             </Card>
 
             <Card className="bg-gray-900 border-gray-700">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-300">Active Products</CardTitle>
-                <Package className="h-4 w-4 text-brand-green" />
+                <CardTitle className="text-sm font-medium text-gray-300">Products in Stock</CardTitle>
+                <Warehouse className="h-4 w-4 text-brand-green" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">12</div>
-                <p className="text-xs text-gray-400">All series available</p>
+                <div className="text-2xl font-bold text-white">156</div>
+                <p className="text-xs text-gray-400">Across all series</p>
               </CardContent>
             </Card>
           </div>
 
-          <OrderSearch />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div>
+              <OrderSearch />
+            </div>
+            <div>
+              <InventoryManagement />
+            </div>
+          </div>
         </div>
       </main>
       <Footer />

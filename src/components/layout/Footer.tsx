@@ -3,6 +3,10 @@ import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Youtube } from 'lucide-react';
 
 const Footer = () => {
+  const scrollToBottom = () => {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  };
+
   return (
     <footer className="bg-black border-t border-gray-800 text-white">
       <div className="container-custom py-12">
@@ -44,6 +48,14 @@ const Footer = () => {
               <li><Link to="/products?series=K1" className="text-gray-400 hover:text-green-500 transition-colors">K1 Series</Link></li>
               <li><Link to="/products?series=N1" className="text-gray-400 hover:text-green-500 transition-colors">N1 Series</Link></li>
               <li><Link to="/products?series=L1" className="text-gray-400 hover:text-green-500 transition-colors">L1 Series</Link></li>
+              <li>
+                <button 
+                  onClick={scrollToBottom}
+                  className="text-gray-400 hover:text-green-500 transition-colors"
+                >
+                  Explore Products
+                </button>
+              </li>
             </ul>
           </div>
 

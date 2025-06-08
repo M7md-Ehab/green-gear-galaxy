@@ -1,4 +1,3 @@
-
 import { Link } from 'react-router-dom';
 import { ShieldCheck, Truck, CreditCard, Clock, Zap, Cpu, Award } from 'lucide-react';
 import { useInView } from 'react-intersection-observer';
@@ -53,16 +52,10 @@ const Index = () => {
               
               <div className="flex flex-wrap gap-6">
                 <Link 
-                  to="/products?type=claw" 
+                  to="/products" 
                   className="bg-green-500 text-black font-medium py-4 px-8 rounded-md hover:bg-green-400 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-green-500/25"
                 >
-                  Discover Gaming Machines
-                </Link>
-                <Link 
-                  to="/products?type=vending" 
-                  className="bg-transparent border-2 border-green-500 text-green-500 font-medium py-4 px-8 rounded-md hover:bg-green-500 hover:text-black transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-green-500/25"
-                >
-                  Browse Smart Vendors
+                  Explore All Products
                 </Link>
               </div>
             </div>
@@ -123,18 +116,6 @@ const Index = () => {
 
             <div className={`text-center mt-16 transition-all duration-1000 ${productsInView ? 'opacity-100' : 'opacity-0'}`}>
               <div className="flex flex-wrap justify-center gap-4">
-                <Link 
-                  to="/products?type=claw" 
-                  className="bg-transparent border-2 border-green-500 text-green-500 font-medium py-3 px-6 rounded-md hover:bg-green-500 hover:text-black transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-green-500/25"
-                >
-                  View All Gaming Machines
-                </Link>
-                <Link 
-                  to="/products?type=vending" 
-                  className="bg-transparent border-2 border-green-500 text-green-500 font-medium py-3 px-6 rounded-md hover:bg-green-500 hover:text-black transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-green-500/25"
-                >
-                  View All Smart Vendors
-                </Link>
                 <Link 
                   to="/products"
                   className="bg-green-500 text-black font-medium py-3 px-6 rounded-md hover:bg-green-400 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-green-500/25"

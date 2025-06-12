@@ -6,20 +6,21 @@ import { useCart } from '@/hooks/use-cart';
 import { useAuth } from '@/hooks/use-firebase-auth';
 import CurrencySelector from '@/components/CurrencySelector';
 import LanguageSelector from '@/components/LanguageSelector';
-
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
-  const { items, itemsCount } = useCart();
-  const { isLoggedIn } = useAuth();
-  
+  const {
+    items,
+    itemsCount
+  } = useCart();
+  const {
+    isLoggedIn
+  } = useAuth();
   const cartCount = itemsCount();
-
-  return (
-    <nav className="py-4 border-b border-border/40">
+  return <nav className="py-4 border-b border-border/40">
       <div className="container-custom flex items-center justify-between">
         <Link to="/" className="flex items-center">
-          <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-green">Mehab</span>
+          <span className="text-2xl font-bold bg-clip-text bg-gradient-to-r from-white to-brand-green text-white">Vlitrix</span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -33,28 +34,22 @@ const Navbar = () => {
         <div className="hidden md:flex items-center space-x-4">
           <CurrencySelector />
           <LanguageSelector />
-          {isLoggedIn ? (
-            <Link to="/dashboard" aria-label="Profile">
+          {isLoggedIn ? <Link to="/dashboard" aria-label="Profile">
               <Button variant="ghost" size="icon">
                 <User className="h-5 w-5" />
               </Button>
-            </Link>
-          ) : (
-            <Link to="/auth" aria-label="Sign in / Log in">
+            </Link> : <Link to="/auth" aria-label="Sign in / Log in">
               <Button variant="ghost" className="flex items-center gap-1">
                 <User className="h-5 w-5" />
                 <span className="ml-1">Sign in</span>
               </Button>
-            </Link>
-          )}
+            </Link>}
           <Link to="/cart" className="relative">
             <Button variant="ghost" size="icon">
               <ShoppingCart className="h-5 w-5" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-brand-green text-black text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+              {cartCount > 0 && <span className="absolute -top-1 -right-1 bg-brand-green text-black text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                   {cartCount}
-                </span>
-              )}
+                </span>}
             </Button>
           </Link>
         </div>
@@ -64,11 +59,9 @@ const Navbar = () => {
           <Link to="/cart" className="relative mr-4">
             <Button variant="ghost" size="icon">
               <ShoppingCart className="h-5 w-5" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-brand-green text-black text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+              {cartCount > 0 && <span className="absolute -top-1 -right-1 bg-brand-green text-black text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                   {cartCount}
-                </span>
-              )}
+                </span>}
             </Button>
           </Link>
           <Button variant="ghost" size="icon" onClick={() => setIsOpen(!isOpen)}>
@@ -78,23 +71,15 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Navigation Menu */}
-      {isOpen && (
-        <div className="md:hidden absolute top-16 inset-x-0 z-50 bg-background border-b border-border/40 animate-fade-in">
+      {isOpen && <div className="md:hidden absolute top-16 inset-x-0 z-50 bg-background border-b border-border/40 animate-fade-in">
           <div className="container-custom py-4 flex flex-col space-y-4">
             <Link to="/" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Home</Link>
             <Link to="/products" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Products</Link>
             <Link to="/about" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>About</Link>
             <Link to="/contact" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Contact</Link>
-            {isLoggedIn ? (
-              <Link to="/dashboard" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Dashboard</Link>
-            ) : (
-              <Link to="/auth" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Sign in / Log in</Link>
-            )}
+            {isLoggedIn ? <Link to="/dashboard" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Dashboard</Link> : <Link to="/auth" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Sign in / Log in</Link>}
           </div>
-        </div>
-      )}
-    </nav>
-  );
+        </div>}
+    </nav>;
 };
-
 export default Navbar;

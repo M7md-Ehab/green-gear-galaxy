@@ -4,9 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, User } from 'lucide-react';
 
 import { useAuth } from '@/hooks/use-firebase-auth';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -17,6 +18,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import LanguageSelector from '@/components/LanguageSelector';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -35,6 +37,7 @@ type SignupFormValues = z.infer<typeof signupSchema>;
 const Auth = () => {
   const navigate = useNavigate();
   const { isLoggedIn, login, signup, resetPassword, sendVerificationEmail } = useAuth();
+  const { t } = useLanguage();
   const [isSignUp, setIsSignUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -107,28 +110,19 @@ const Auth = () => {
 
   if (needsVerification) {
     return (
-      <div className="min-h-screen bg-black flex flex-col">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex flex-col">
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="w-full max-w-md">
-            <div className="bg-white rounded-lg p-8 shadow-lg">
+            <div className="bg-gray-900/80 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-gray-700">
               <div className="text-center space-y-6">
-                <Button
-                  onClick={() => setNeedsVerification(false)}
-                  variant="ghost"
-                  className="absolute top-4 left-4 text-gray-600 hover:text-gray-800"
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back
-                </Button>
-                
-                <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                  <Mail className="h-8 w-8 text-gray-600" />
+                <div className="mx-auto w-20 h-20 bg-brand-green/20 rounded-full flex items-center justify-center">
+                  <Mail className="h-10 w-10 text-brand-green" />
                 </div>
                 
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900 mb-2">Check Your Email</h1>
-                  <p className="text-gray-600">
-                    We've sent you a verification link. Please check your email and click the link to verify your account.
+                  <h1 className="text-3xl font-bold text-white mb-2">{t('checkEmail')}</h1>
+                  <p className="text-gray-400">
+                    {t('verificationSent')}
                   </p>
                 </div>
 
@@ -136,17 +130,17 @@ const Auth = () => {
                   <Button
                     onClick={handleResendVerification}
                     variant="outline"
-                    className="w-full"
+                    className="w-full border-gray-600 text-white hover:bg-gray-800"
                   >
-                    Resend Verification Email
+                    {t('resendVerification')}
                   </Button>
                   
                   <Button
                     onClick={() => setNeedsVerification(false)}
                     variant="ghost"
-                    className="w-full"
+                    className="w-full text-gray-400 hover:text-white"
                   >
-                    Back to Login
+                    {t('backToLogin')}
                   </Button>
                 </div>
               </div>
@@ -158,34 +152,38 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black flex flex-col">
-      <div className="flex justify-between items-center p-6">
-        <div className="flex items-center space-x-4">
-          <Button
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex flex-col">
+      {/* Header */}
+      <div className="py-6 border-b border-gray-800/50 backdrop-blur-sm">
+        <div className="container-custom flex items-center justify-between">
+          <button 
             onClick={() => navigate('/')}
-            variant="ghost"
-            className="text-white hover:text-gray-300"
+            className="flex items-center cursor-pointer group"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Home
-          </Button>
-          <div className="text-white font-bold text-2xl">
-            Vlitrix
-          </div>
+            <span className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-green group-hover:from-brand-green group-hover:to-white transition-all duration-300">
+              Vlitrix
+            </span>
+          </button>
+          <LanguageSelector />
         </div>
       </div>
 
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-md">
-          <div className="bg-white rounded-lg p-8 shadow-lg">
-            <div className="text-center space-y-6">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  {isSignUp ? 'Create Account' : 'Welcome Back'}
-                </h1>
-                <p className="text-gray-600">
-                  {isSignUp ? 'Join Vlitrix today' : 'Sign in to your account'}
-                </p>
+          <div className="bg-gray-900/80 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-gray-700">
+            <div className="text-center space-y-8">
+              <div className="space-y-4">
+                <div className="mx-auto w-20 h-20 bg-brand-green/20 rounded-full flex items-center justify-center">
+                  <User className="h-10 w-10 text-brand-green" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-white mb-2">
+                    {isSignUp ? t('createAccount') : t('welcomeBack')}
+                  </h1>
+                  <p className="text-gray-400">
+                    {isSignUp ? t('joinVlitrix') : t('signInToAccount')}
+                  </p>
+                </div>
               </div>
 
               {isSignUp ? (
@@ -196,13 +194,16 @@ const Auth = () => {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-left block text-gray-700">Full Name</FormLabel>
+                          <FormLabel className="text-left block text-gray-300">{t('fullName')}</FormLabel>
                           <FormControl>
-                            <Input
-                              placeholder="Enter your full name"
-                              className="h-12 text-lg bg-white border-gray-300 text-gray-900"
-                              {...field}
-                            />
+                            <div className="relative">
+                              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                              <Input
+                                placeholder={t('enterFullName')}
+                                className="h-12 text-lg pl-10 bg-gray-800/50 border-gray-600 text-white placeholder:text-gray-500 focus:border-brand-green focus:bg-gray-800"
+                                {...field}
+                              />
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -214,14 +215,14 @@ const Auth = () => {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-left block text-gray-700">Email Address</FormLabel>
+                          <FormLabel className="text-left block text-gray-300">{t('emailAddress')}</FormLabel>
                           <FormControl>
                             <div className="relative">
                               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                               <Input
                                 type="email"
                                 placeholder="name@example.com"
-                                className="h-12 text-lg pl-10 bg-white border-gray-300 text-gray-900"
+                                className="h-12 text-lg pl-10 bg-gray-800/50 border-gray-600 text-white placeholder:text-gray-500 focus:border-brand-green focus:bg-gray-800"
                                 {...field}
                               />
                             </div>
@@ -236,20 +237,20 @@ const Auth = () => {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-left block text-gray-700">Password</FormLabel>
+                          <FormLabel className="text-left block text-gray-300">{t('password')}</FormLabel>
                           <FormControl>
                             <div className="relative">
                               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                               <Input
                                 type={showPassword ? "text" : "password"}
-                                placeholder="Create a secure password"
-                                className="h-12 text-lg pl-10 pr-10 bg-white border-gray-300 text-gray-900"
+                                placeholder={t('createSecurePassword')}
+                                className="h-12 text-lg pl-10 pr-10 bg-gray-800/50 border-gray-600 text-white placeholder:text-gray-500 focus:border-brand-green focus:bg-gray-800"
                                 {...field}
                               />
                               <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
                               >
                                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                               </button>
@@ -262,10 +263,10 @@ const Auth = () => {
 
                     <Button
                       type="submit"
-                      className="w-full h-12 bg-black hover:bg-gray-800 text-white text-lg font-semibold"
+                      className="w-full h-12 bg-brand-green hover:bg-brand-green/90 text-black text-lg font-semibold transition-all duration-300"
                       disabled={isLoading}
                     >
-                      {isLoading ? 'Creating Account...' : 'Create Account'}
+                      {isLoading ? t('creatingAccount') : t('createAccount')}
                     </Button>
                   </form>
                 </Form>
@@ -277,14 +278,14 @@ const Auth = () => {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-left block text-gray-700">Email Address</FormLabel>
+                          <FormLabel className="text-left block text-gray-300">{t('emailAddress')}</FormLabel>
                           <FormControl>
                             <div className="relative">
                               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                               <Input
                                 type="email"
                                 placeholder="name@example.com"
-                                className="h-12 text-lg pl-10 bg-white border-gray-300 text-gray-900"
+                                className="h-12 text-lg pl-10 bg-gray-800/50 border-gray-600 text-white placeholder:text-gray-500 focus:border-brand-green focus:bg-gray-800"
                                 {...field}
                               />
                             </div>
@@ -299,20 +300,20 @@ const Auth = () => {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-left block text-gray-700">Password</FormLabel>
+                          <FormLabel className="text-left block text-gray-300">{t('password')}</FormLabel>
                           <FormControl>
                             <div className="relative">
                               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                               <Input
                                 type={showPassword ? "text" : "password"}
-                                placeholder="Enter your password"
-                                className="h-12 text-lg pl-10 pr-10 bg-white border-gray-300 text-gray-900"
+                                placeholder={t('enterPassword')}
+                                className="h-12 text-lg pl-10 pr-10 bg-gray-800/50 border-gray-600 text-white placeholder:text-gray-500 focus:border-brand-green focus:bg-gray-800"
                                 {...field}
                               />
                               <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
                               >
                                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                               </button>
@@ -325,10 +326,10 @@ const Auth = () => {
 
                     <Button
                       type="submit"
-                      className="w-full h-12 bg-black hover:bg-gray-800 text-white text-lg font-semibold"
+                      className="w-full h-12 bg-brand-green hover:bg-brand-green/90 text-black text-lg font-semibold transition-all duration-300"
                       disabled={isLoading}
                     >
-                      {isLoading ? 'Signing In...' : 'Sign In'}
+                      {isLoading ? t('signingIn') : t('signIn')}
                     </Button>
                   </form>
                 </Form>
@@ -338,18 +339,18 @@ const Auth = () => {
                 <button
                   type="button"
                   onClick={handleForgotPassword}
-                  className="text-gray-600 hover:text-gray-800 text-sm"
+                  className="text-gray-400 hover:text-brand-green text-sm transition-colors"
                 >
-                  Forgot your password?
+                  {t('forgotPassword')}
                 </button>
                 
                 <div className="text-center">
                   <button
                     type="button"
                     onClick={() => setIsSignUp(!isSignUp)}
-                    className="text-gray-600 hover:text-gray-800 text-sm"
+                    className="text-gray-400 hover:text-brand-green text-sm transition-colors"
                   >
-                    {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Create one"}
+                    {isSignUp ? t('alreadyHaveAccount') : t('dontHaveAccount')}
                   </button>
                 </div>
               </div>

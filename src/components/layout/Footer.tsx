@@ -1,10 +1,16 @@
 
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Facebook, Instagram, Youtube } from 'lucide-react';
 
 const Footer = () => {
-  const scrollToBottom = () => {
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  const navigate = useNavigate();
+  const currentYear = new Date().getFullYear();
+
+  const scrollToTop = () => {
+    navigate('/products');
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
   };
 
   return (
@@ -50,7 +56,7 @@ const Footer = () => {
               <li><Link to="/products?series=L1" className="text-gray-400 hover:text-green-500 transition-colors">L1 Series</Link></li>
               <li>
                 <button 
-                  onClick={scrollToBottom}
+                  onClick={scrollToTop}
                   className="text-gray-400 hover:text-green-500 transition-colors"
                 >
                   Explore Products
@@ -82,7 +88,7 @@ const Footer = () => {
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
           <p className="text-gray-400">
-            © 2024 Vlitrix. All rights reserved.
+            © {currentYear} Vlitrix. All rights reserved.
           </p>
         </div>
       </div>

@@ -11,8 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Shield, LogOut } from 'lucide-react';
 
 const Admin = () => {
-  const { admin
-, isAdminLoggedIn, adminLogout } = useAdminAuth();
+  const { adminUser, isAdminLoggedIn, adminLogout } = useAdminAuth();
   const navigate = useNavigate();
 
   useEffect(() => {

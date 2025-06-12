@@ -1,10 +1,12 @@
-
 import { Link, useNavigate } from 'react-router-dom';
 import { Facebook, Instagram, Youtube } from 'lucide-react';
+import { useProducts } from '@/hooks/use-products';
 
 const Footer = () => {
   const navigate = useNavigate();
+  const { getUniqueSeries } = useProducts();
   const currentYear = new Date().getFullYear();
+  const uniqueSeries = getUniqueSeries();
 
   const scrollToTop = () => {
     navigate('/products');
@@ -48,12 +50,16 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold mb-4">Products</h4>
             <ul className="space-y-2">
-              <li><Link to="/products?series=T" className="text-gray-400 hover:text-green-500 transition-colors">T Series</Link></li>
-              <li><Link to="/products?series=S" className="text-gray-400 hover:text-green-500 transition-colors">S Series</Link></li>
-              <li><Link to="/products?series=X" className="text-gray-400 hover:text-green-500 transition-colors">X Series</Link></li>
-              <li><Link to="/products?series=K" className="text-gray-400 hover:text-green-500 transition-colors">K Series</Link></li>
-              <li><Link to="/products?series=N" className="text-gray-400 hover:text-green-500 transition-colors">N Series</Link></li>
-              <li><Link to="/products?series=L" className="text-gray-400 hover:text-green-500 transition-colors">L Series</Link></li>
+              {uniqueSeries.map(series => (
+                <li key={series}>
+                  <Link 
+                    to={`/products?series=${series}`} 
+                    className="text-gray-400 hover:text-green-500 transition-colors"
+                  >
+                    {series} Series
+                  </Link>
+                </li>
+              ))}
               <li>
                 <button 
                   onClick={scrollToTop}
@@ -81,7 +87,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li><a href="mailto:support@vlitrix.com" className="text-gray-400 hover:text-green-500 transition-colors">Email Support</a></li>
               <li><span className="text-gray-400">+1 (555) 123-4567</span></li>
-              <li><span className="text-gray-400">Mon-Fri 9AM-6PM EST</span></li>
+              <li><span className="text-gray-400">Mon - Fri 9AM - 6PM EST</span></li>
             </ul>
           </div>
         </div>

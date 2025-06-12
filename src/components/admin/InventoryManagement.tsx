@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,10 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Warehouse, Search, Package, AlertTriangle, Edit, Save, X, Plus, Trash, Upload } from 'lucide-react';
-import { products } from '@/data/products';
+import { Warehouse, Search, Package, AlertTriangle, Edit, Save, X, Plus, Trash, Upload, Image } from 'lucide-react';
 import { useCurrency } from '@/hooks/use-currency';
-import { toast } from 'sonner';
+import { useProducts } from '@/hooks/use-products';
 import { Product } from '@/data/products';
 
 const InventoryManagement = () => {
@@ -22,7 +20,10 @@ const InventoryManagement = () => {
   const [editSeries, setEditSeries] = useState('');
   const [editType, setEditType] = useState<'vending' | 'claw'>('vending');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [editingImages, setEditingImages] = useState<File[]>([]);
   const { formatPrice, currentCurrency } = useCurrency();
+  const { products, loading, addProduct, updateProduct, deleteProduct } = useProducts();
   
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -30,6 +31,15 @@ const InventoryManagement = () => {
   );
 
   const lowStockProducts = products.filter(product => product.stock < 10);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, isEditing = false) => {
+    const files = Array.from(e.target.files || []);
+    if (isEditing) {
+      setEditingImages(files);
+    } else {
+      setSelectedImages(files);
+    }
+  };
 
   const handleEdit = (product: Product) => {
     setEditingProduct(product.id);
@@ -39,38 +49,31 @@ const InventoryManagement = () => {
     setEditDescription(product.description);
     setEditSeries(product.series);
     setEditType(product.type);
+    setEditingImages([]);
   };
 
-  const handleSave = (productId: string) => {
+  const handleSave = async (productId: string) => {
     const newPrice = parseFloat(editPrice);
     const newStock = parseInt(editStock);
     
     if (isNaN(newPrice) || isNaN(newStock) || newPrice <= 0 || newStock < 0) {
-      toast.error('Invalid price or stock value');
       return;
     }
 
     if (!editName.trim() || !editDescription.trim() || !editSeries.trim()) {
-      toast.error('Name, description, and series cannot be empty');
       return;
     }
 
-    const productIndex = products.findIndex(p => p.id === productId);
-    if (productIndex !== -1) {
-      products[productIndex] = {
-        ...products[productIndex],
-        price: newPrice,
-        stock: newStock,
-        name: editName.trim(),
-        description: editDescription.trim(),
-        series: editSeries.trim(),
-        type: editType
-      };
-      
-      toast.success(`Updated ${editName} successfully`);
-      console.log(`Product ${productId} updated:`, products[productIndex]);
-    }
-    
+    const updates = {
+      price: newPrice,
+      stock: newStock,
+      name: editName.trim(),
+      description: editDescription.trim(),
+      series: editSeries.trim(),
+      type: editType
+    };
+
+    await updateProduct(productId, updates, editingImages);
     handleCancel();
   };
 
@@ -82,33 +85,27 @@ const InventoryManagement = () => {
     setEditDescription('');
     setEditSeries('');
     setEditType('vending');
+    setSelectedImages([]);
+    setEditingImages([]);
   };
 
-  const handleDelete = (productId: string, productName: string) => {
-    const productIndex = products.findIndex(p => p.id === productId);
-    if (productIndex !== -1) {
-      products.splice(productIndex, 1);
-      toast.success(`Deleted ${productName} successfully`);
-      console.log(`Product ${productId} deleted`);
-    }
+  const handleDelete = async (productId: string) => {
+    await deleteProduct(productId);
   };
 
-  const handleAddProduct = () => {
+  const handleAddProduct = async () => {
     const newPrice = parseFloat(editPrice);
     const newStock = parseInt(editStock);
     
     if (isNaN(newPrice) || isNaN(newStock) || newPrice <= 0 || newStock < 0) {
-      toast.error('Invalid price or stock value');
       return;
     }
 
     if (!editName.trim() || !editDescription.trim() || !editSeries.trim()) {
-      toast.error('All fields are required');
       return;
     }
 
-    const newProduct: Product = {
-      id: `${editSeries.toLowerCase()}-${Date.now()}`,
+    const newProduct = {
       name: editName.trim(),
       price: newPrice,
       description: editDescription.trim(),
@@ -124,13 +121,18 @@ const InventoryManagement = () => {
       }
     };
 
-    products.push(newProduct);
-    toast.success(`Added ${editName} successfully`);
-    console.log('New product added:', newProduct);
-    
+    await addProduct(newProduct, selectedImages);
     setShowAddForm(false);
     handleCancel();
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-white">Loading products...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -255,6 +257,22 @@ const InventoryManagement = () => {
                         rows={3}
                       />
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">Product Images</label>
+                      <div className="flex items-center gap-4">
+                        <Input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={(e) => handleImageChange(e)}
+                          className="bg-gray-700 border-gray-600 text-white file:bg-brand-green file:text-black file:border-0 file:rounded file:px-3 file:py-1"
+                        />
+                        <div className="flex items-center gap-1 text-sm text-gray-400">
+                          <Image className="h-4 w-4" />
+                          {selectedImages.length} image(s) selected
+                        </div>
+                      </div>
+                    </div>
                     <div className="flex justify-end gap-2">
                       <Button
                         onClick={handleAddProduct}
@@ -352,6 +370,21 @@ const InventoryManagement = () => {
                           rows={3}
                         />
                       </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Add New Images</label>
+                        <Input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={(e) => handleImageChange(e, true)}
+                          className="bg-gray-700 border-gray-600 text-white file:bg-brand-green file:text-black file:border-0 file:rounded file:px-3 file:py-1"
+                        />
+                        {editingImages.length > 0 && (
+                          <div className="mt-2 text-sm text-gray-400">
+                            {editingImages.length} new image(s) selected
+                          </div>
+                        )}
+                      </div>
                       <div className="flex justify-end gap-2">
                         <Button
                           size="sm"
@@ -424,7 +457,7 @@ const InventoryManagement = () => {
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => handleDelete(product.id, product.name)}
+                            onClick={() => handleDelete(product.id)}
                             className="text-gray-400 hover:text-red-500 hover:bg-gray-700"
                           >
                             <Trash className="h-4 w-4" />

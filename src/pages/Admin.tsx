@@ -6,11 +6,13 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import OrderSearch from '@/components/admin/OrderSearch';
 import InventoryManagement from '@/components/admin/InventoryManagement';
+import AdminConfig from '@/components/admin/AdminConfig';
 import { Button } from '@/components/ui/button';
 import { Shield, LogOut } from 'lucide-react';
 
 const Admin = () => {
-  const { adminUser, isAdminLoggedIn, adminLogout } = useAdminAuth();
+  const { admin
+, isAdminLoggedIn, adminLogout } = useAdminAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -51,12 +53,13 @@ const Admin = () => {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div>
-              <OrderSearch />
-            </div>
-            <div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
               <InventoryManagement />
+            </div>
+            <div className="space-y-8">
+              <AdminConfig />
+              <OrderSearch />
             </div>
           </div>
         </div>

@@ -1,6 +1,7 @@
 
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { toast } from 'sonner';
+import { ADMIN_CREDENTIALS } from '@/components/admin/AdminConfig';
 
 interface AdminUser {
   id: string;
@@ -24,12 +25,6 @@ export const useAdminAuth = () => {
     throw new Error('useAdminAuth must be used within an AdminAuthProvider');
   }
   return context;
-};
-
-// Default admin credentials (in a real app, this would be in a secure backend)
-const ADMIN_CREDENTIALS = {
-  username: 'admin',
-  password: 'admin123'
 };
 
 interface AdminAuthProviderProps {

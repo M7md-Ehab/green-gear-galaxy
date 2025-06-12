@@ -20,7 +20,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
   const isWishlisted = isInWishlist(product.id);
-  const convertedPrice = convertPrice(product.price, 'USD');
+  const convertedPrice = convertPrice(product.price, 'EGP');
 
   const handleWishlistToggle = () => {
     if (isWishlisted) {
@@ -42,10 +42,14 @@ const ProductCard = ({ product }: ProductCardProps) => {
     setCurrentImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length);
   };
 
+  const handleImageClick = () => {
+    window.open(`/products/${product.id}`, '_blank');
+  };
+
   return (
     <Card className="group bg-black border border-gray-800 hover:shadow-2xl hover:scale-105 overflow-hidden transition-all duration-300 hover:border-green-500 focus-within:border-green-500 focus-within:shadow-lg focus-within:shadow-green-500/20">
       <div className="relative overflow-hidden">
-        <div className="aspect-square bg-gray-900 relative">
+        <div className="aspect-square bg-gray-900 relative cursor-pointer" onClick={handleImageClick}>
           <img
             src={product.images[currentImageIndex]}
             alt={product.name}
@@ -59,7 +63,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={prevImage}
+              onClick={(e) => {
+                e.stopPropagation();
+                prevImage();
+              }}
               className="p-2 rounded-full bg-black/70 backdrop-blur-sm text-green-500 hover:text-green-400 hover:bg-black/80 transition-all duration-200"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -67,7 +74,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={nextImage}
+              onClick={(e) => {
+                e.stopPropagation();
+                nextImage();
+              }}
               className="p-2 rounded-full bg-black/70 backdrop-blur-sm text-green-500 hover:text-green-400 hover:bg-black/80 transition-all duration-200"
             >
               <ArrowRight className="h-4 w-4" />
@@ -79,7 +89,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
             {product.images.map((_, index) => (
               <button
                 key={index}
-                onClick={() => setCurrentImageIndex(index)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrentImageIndex(index);
+                }}
                 className={`w-2 h-2 rounded-full transition-all duration-200 ${
                   index === currentImageIndex ? 'bg-green-500' : 'bg-gray-600'
                 }`}
@@ -91,7 +104,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleWishlistToggle}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleWishlistToggle();
+              }}
               className={`p-2 rounded-full bg-black/70 backdrop-blur-sm shadow-lg border ${
                 isWishlisted 
                   ? 'text-red-500' 
@@ -104,7 +120,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleAddToCart}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAddToCart();
+              }}
               className="p-2 rounded-full bg-black/70 backdrop-blur-sm shadow-lg border text-gray-400 hover:text-green-500 hover:scale-110 transition-all duration-200"
             >
               <ShoppingCart className="h-4 w-4" />
@@ -150,12 +169,12 @@ const ProductCard = ({ product }: ProductCardProps) => {
             </div>
 
             <div className="pt-4 border-t border-gray-800 group-hover:border-green-500/30 transition-colors duration-300">
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="flex justify-between">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="flex justify-between items-center">
                   <span className="text-gray-500 group-hover:text-gray-400 transition-colors duration-300">Type:</span>
                   <span className="text-gray-300 group-hover:text-white capitalize transition-colors duration-300">{product.type}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-gray-500 group-hover:text-gray-400 transition-colors duration-300">Stock:</span>
                   <span className="text-gray-300 group-hover:text-white transition-colors duration-300">{product.stock}</span>
                 </div>

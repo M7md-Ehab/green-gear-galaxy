@@ -48,12 +48,12 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold mb-4">Products</h4>
             <ul className="space-y-2">
-              <li><Link to="/products?series=T1" className="text-gray-400 hover:text-green-500 transition-colors">T1 Series</Link></li>
-              <li><Link to="/products?series=S1" className="text-gray-400 hover:text-green-500 transition-colors">S1 Series</Link></li>
-              <li><Link to="/products?series=X1" className="text-gray-400 hover:text-green-500 transition-colors">X1 Series</Link></li>
-              <li><Link to="/products?series=K1" className="text-gray-400 hover:text-green-500 transition-colors">K1 Series</Link></li>
-              <li><Link to="/products?series=N1" className="text-gray-400 hover:text-green-500 transition-colors">N1 Series</Link></li>
-              <li><Link to="/products?series=L1" className="text-gray-400 hover:text-green-500 transition-colors">L1 Series</Link></li>
+              <li><Link to="/products?series=T" className="text-gray-400 hover:text-green-500 transition-colors">T Series</Link></li>
+              <li><Link to="/products?series=S" className="text-gray-400 hover:text-green-500 transition-colors">S Series</Link></li>
+              <li><Link to="/products?series=X" className="text-gray-400 hover:text-green-500 transition-colors">X Series</Link></li>
+              <li><Link to="/products?series=K" className="text-gray-400 hover:text-green-500 transition-colors">K Series</Link></li>
+              <li><Link to="/products?series=N" className="text-gray-400 hover:text-green-500 transition-colors">N Series</Link></li>
+              <li><Link to="/products?series=L" className="text-gray-400 hover:text-green-500 transition-colors">L Series</Link></li>
               <li>
                 <button 
                   onClick={scrollToTop}

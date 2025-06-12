@@ -15,10 +15,12 @@ interface CurrencyState {
   exchangeRates: Record<string, number>;
   isLoading: boolean;
   error: string | null;
+  apiToken: string | null;
   setCurrency: (currencyCode: string) => void;
   convertPrice: (price: number, fromCurrency: string) => number;
   updateExchangeRates: () => Promise<void>;
   formatPrice: (price: number, currencyCode?: string) => string;
+  setApiToken: (token: string) => void;
 }
 
 export const useCurrencyStore = create(
@@ -47,6 +49,7 @@ export const useCurrencyStore = create(
       },
       isLoading: false,
       error: null,
+      apiToken: null,
       
       setCurrency: (currencyCode) => {
         const { currencies } = get();
@@ -81,32 +84,59 @@ export const useCurrencyStore = create(
         })}`;
       },
 
+      setApiToken: (token: string) => {
+        set({ apiToken: token });
+      },
+
       updateExchangeRates: async () => {
+        const { apiToken } = get();
         set({ isLoading: true, error: null });
         
         try {
-          // Simulate real-time API call with more realistic fluctuations
-          // Based on current EGP exchange rates (as of 2024)
-          const baseRates = {
-            EGP: 1,
-            USD: 0.032 + (Math.random() - 0.5) * 0.001, // ±0.0005 variation
-            EUR: 0.030 + (Math.random() - 0.5) * 0.001, // ±0.0005 variation  
-            GBP: 0.025 + (Math.random() - 0.5) * 0.0008, // ±0.0004 variation
-            SAR: 0.120 + (Math.random() - 0.5) * 0.002, // ±0.001 variation
-            AED: 0.118 + (Math.random() - 0.5) * 0.002, // ±0.001 variation
-            JPY: 4.85 + (Math.random() - 0.5) * 0.05, // ±0.025 variation
-            CNY: 0.234 + (Math.random() - 0.5) * 0.005, // ±0.0025 variation
-          };
-          
-          // Ensure rates don't go negative or too extreme
-          Object.keys(baseRates).forEach(key => {
-            if (key !== 'EGP') {
-              baseRates[key] = Math.max(baseRates[key], baseRates[key] * 0.95);
+          if (apiToken) {
+            // Use FXRates API
+            const response = await fetch(`https://api.fxratesapi.com/latest?api_key=${apiToken}&base=EGP&currencies=USD,EUR,GBP,SAR,AED,JPY,CNY`);
+            
+            if (!response.ok) {
+              throw new Error('Failed to fetch exchange rates');
             }
-          });
-          
-          set({ exchangeRates: baseRates, isLoading: false });
-          console.log('Exchange rates updated:', baseRates);
+            
+            const data = await response.json();
+            
+            if (data.success && data.rates) {
+              const rates = {
+                EGP: 1,
+                ...data.rates
+              };
+              
+              set({ exchangeRates: rates, isLoading: false });
+              console.log('Exchange rates updated from FXRates API:', rates);
+            } else {
+              throw new Error('Invalid API response');
+            }
+          } else {
+            // Fallback to simulated rates with realistic fluctuations
+            const baseRates = {
+              EGP: 1,
+              USD: 0.032 + (Math.random() - 0.5) * 0.001,
+              EUR: 0.030 + (Math.random() - 0.5) * 0.001,
+              GBP: 0.025 + (Math.random() - 0.5) * 0.0008,
+              SAR: 0.120 + (Math.random() - 0.5) * 0.002,
+              AED: 0.118 + (Math.random() - 0.5) * 0.002,
+              JPY: 4.85 + (Math.random() - 0.5) * 0.05,
+              CNY: 0.234 + (Math.random() - 0.5) * 0.005,
+            };
+            
+            // Ensure rates don't go negative or too extreme
+            Object.keys(baseRates).forEach(key => {
+              if (key !== 'EGP') {
+                baseRates[key] = Math.max(baseRates[key], baseRates[key] * 0.95);
+              }
+            });
+            
+            set({ exchangeRates: baseRates, isLoading: false });
+            console.log('Exchange rates updated (simulated):', baseRates);
+          }
         } catch (error) {
           set({ error: 'Failed to update exchange rates', isLoading: false });
           console.error('Currency update error:', error);
@@ -126,18 +156,20 @@ export const useCurrency = () => {
     exchangeRates,
     isLoading, 
     error,
+    apiToken,
     setCurrency,
     convertPrice,
     updateExchangeRates,
-    formatPrice
+    formatPrice,
+    setApiToken
   } = useCurrencyStore();
   
-  // Update exchange rates every 30 seconds for more realistic real-time feel
+  // Update exchange rates every 30 seconds
   useEffect(() => {
     updateExchangeRates();
     const interval = setInterval(updateExchangeRates, 30 * 1000);
     return () => clearInterval(interval);
-  }, [updateExchangeRates]);
+  }, [updateExchangeRates, apiToken]);
   
   return {
     currencies,
@@ -145,9 +177,11 @@ export const useCurrency = () => {
     exchangeRates,
     isLoading,
     error,
+    apiToken,
     setCurrency,
     convertPrice,
     updateExchangeRates,
-    formatPrice
+    formatPrice,
+    setApiToken
   };
 };

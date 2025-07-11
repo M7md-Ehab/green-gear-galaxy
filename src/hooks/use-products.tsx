@@ -1,67 +1,88 @@
 
 import { useState, useEffect } from 'react';
-import { Product } from '@/data/products';
-import { 
-  addProductToFirebase, 
-  updateProductInFirebase, 
-  deleteProductFromFirebase,
-  uploadProductImage,
-  subscribeToProducts
-} from '@/services/firebase-products';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+
+export interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  image_url: string;
+  in_stock: boolean;
+  inventory_count: number;
+  created_at: string;
+  updated_at: string;
+}
 
 export const useProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('in_stock', true)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      setProducts(data || []);
+      setError(null);
+    } catch (err: any) {
+      setError(err.message);
+      console.error('Error fetching products:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const unsubscribe = subscribeToProducts((firebaseProducts) => {
-      setProducts(firebaseProducts);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+    fetchProducts();
   }, []);
 
-  const addProduct = async (product: Omit<Product, 'id'>, images?: File[]) => {
+  const addProduct = async (product: Omit<Product, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      let imageUrls = ['/placeholder.svg'];
-      
-      const productId = await addProductToFirebase(product);
-      
-      if (images && images.length > 0) {
-        const uploadPromises = images.map((file, index) => 
-          uploadProductImage(file, productId, index)
-        );
-        imageUrls = await Promise.all(uploadPromises);
-        
-        // Update product with image URLs
-        await updateProductInFirebase(productId, { images: imageUrls });
+      const { data, error } = await supabase
+        .from('products')
+        .insert([product])
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
       }
       
       toast.success('Product added successfully');
-      return productId;
-    } catch (error) {
+      await fetchProducts(); // Refresh the products list
+      return data.id;
+    } catch (error: any) {
       toast.error('Failed to add product');
       throw error;
     }
   };
 
-  const updateProduct = async (productId: string, updates: Partial<Product>, newImages?: File[]) => {
+  const updateProduct = async (productId: string, updates: Partial<Product>) => {
     try {
-      let imageUrls = updates.images || [];
-      
-      if (newImages && newImages.length > 0) {
-        const uploadPromises = newImages.map((file, index) => 
-          uploadProductImage(file, productId, index)
-        );
-        const newImageUrls = await Promise.all(uploadPromises);
-        imageUrls = [...imageUrls, ...newImageUrls];
+      const { error } = await supabase
+        .from('products')
+        .update(updates)
+        .eq('id', productId);
+
+      if (error) {
+        throw error;
       }
       
-      await updateProductInFirebase(productId, { ...updates, images: imageUrls });
       toast.success('Product updated successfully');
-    } catch (error) {
+      await fetchProducts(); // Refresh the products list
+    } catch (error: any) {
       toast.error('Failed to update product');
       throw error;
     }
@@ -69,25 +90,86 @@ export const useProducts = () => {
 
   const deleteProduct = async (productId: string) => {
     try {
-      await deleteProductFromFirebase(productId);
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', productId);
+
+      if (error) {
+        throw error;
+      }
+      
       toast.success('Product deleted successfully');
-    } catch (error) {
+      await fetchProducts(); // Refresh the products list
+    } catch (error: any) {
       toast.error('Failed to delete product');
       throw error;
     }
   };
 
-  const getUniqueSeries = () => {
-    const seriesSet = new Set(products.map(product => product.series.charAt(0)));
-    return Array.from(seriesSet).sort();
+  const getProduct = async (id: string): Promise<Product | null> => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (err: any) {
+      console.error('Error fetching product:', err);
+      return null;
+    }
+  };
+
+  const searchProducts = async (query: string, category?: string): Promise<Product[]> => {
+    try {
+      let queryBuilder = supabase
+        .from('products')
+        .select('*')
+        .eq('in_stock', true);
+
+      if (category && category !== 'all') {
+        queryBuilder = queryBuilder.eq('category', category);
+      }
+
+      if (query) {
+        queryBuilder = queryBuilder.or(`name.ilike.%${query}%,description.ilike.%${query}%`);
+      }
+
+      const { data, error } = await queryBuilder
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      return data || [];
+    } catch (err: any) {
+      console.error('Error searching products:', err);
+      return [];
+    }
+  };
+
+  const getUniqueCategories = () => {
+    const categoriesSet = new Set(products.map(product => product.category));
+    return Array.from(categoriesSet).sort();
   };
 
   return {
     products,
     loading,
+    error,
     addProduct,
     updateProduct,
     deleteProduct,
-    getUniqueSeries
+    getProduct,
+    searchProducts,
+    getUniqueCategories,
+    fetchProducts,
   };
 };

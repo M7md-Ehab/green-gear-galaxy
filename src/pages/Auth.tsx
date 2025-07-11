@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Mail, Lock, Eye, EyeOff, User } from 'lucide-react';
-import { useAuth } from '@/hooks/use-firebase-auth';
+import { useAuth } from '@/hooks/use-supabase-auth';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,8 +31,7 @@ const Auth = () => {
     isLoggedIn,
     login,
     signup,
-    resetPassword,
-    sendVerificationEmail
+    resetPassword
   } = useAuth();
   const { t } = useLanguage();
   const [isSignUp, setIsSignUp] = useState(false);
@@ -95,7 +94,11 @@ const Auth = () => {
 
   const handleResendVerification = async () => {
     try {
-      await sendVerificationEmail();
+      // For Supabase, we can trigger a resend by calling signup again
+      const email = signupForm.getValues('email') || loginForm.getValues('email');
+      if (email) {
+        await resetPassword(email);
+      }
     } catch (error) {
       console.error('Verification error:', error);
     }

@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "sonner";
 
 import { LanguageProvider } from '@/contexts/LanguageContext';
-import { AuthProvider } from '@/hooks/use-firebase-auth';
+import { AuthProvider } from '@/hooks/use-supabase-auth';
 import { AdminAuthProvider } from '@/hooks/use-admin-auth';
 import IndexPage from '@/pages/Index';
 import ProductDetail from '@/pages/ProductDetail';

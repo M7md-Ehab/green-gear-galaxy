@@ -5,10 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Warehouse, Search, Package, AlertTriangle, Edit, Save, X, Plus, Trash, Upload, Image } from 'lucide-react';
+import { Warehouse, Search, Package, AlertTriangle, Edit, Save, X, Plus, Trash } from 'lucide-react';
 import { useCurrency } from '@/hooks/use-currency';
-import { useProducts } from '@/hooks/use-products';
-import { Product } from '@/data/products';
+import { useProducts, Product } from '@/hooks/use-products';
 
 const InventoryManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -17,39 +16,25 @@ const InventoryManagement = () => {
   const [editStock, setEditStock] = useState('');
   const [editName, setEditName] = useState('');
   const [editDescription, setEditDescription] = useState('');
-  const [editSeries, setEditSeries] = useState('');
-  const [editType, setEditType] = useState<'vending' | 'claw'>('vending');
+  const [editCategory, setEditCategory] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
-  const [selectedImages, setSelectedImages] = useState<File[]>([]);
-  const [editingImages, setEditingImages] = useState<File[]>([]);
   const { formatPrice, currentCurrency } = useCurrency();
   const { products, loading, addProduct, updateProduct, deleteProduct } = useProducts();
   
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.series.toLowerCase().includes(searchTerm.toLowerCase())
+    product.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const lowStockProducts = products.filter(product => product.stock < 10);
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, isEditing = false) => {
-    const files = Array.from(e.target.files || []);
-    if (isEditing) {
-      setEditingImages(files);
-    } else {
-      setSelectedImages(files);
-    }
-  };
+  const lowStockProducts = products.filter(product => product.inventory_count < 10);
 
   const handleEdit = (product: Product) => {
     setEditingProduct(product.id);
     setEditPrice(product.price.toString());
-    setEditStock(product.stock.toString());
+    setEditStock(product.inventory_count.toString());
     setEditName(product.name);
     setEditDescription(product.description);
-    setEditSeries(product.series);
-    setEditType(product.type);
-    setEditingImages([]);
+    setEditCategory(product.category);
   };
 
   const handleSave = async (productId: string) => {
@@ -60,20 +45,19 @@ const InventoryManagement = () => {
       return;
     }
 
-    if (!editName.trim() || !editDescription.trim() || !editSeries.trim()) {
+    if (!editName.trim() || !editDescription.trim() || !editCategory.trim()) {
       return;
     }
 
     const updates = {
       price: newPrice,
-      stock: newStock,
+      inventory_count: newStock,
       name: editName.trim(),
       description: editDescription.trim(),
-      series: editSeries.trim(),
-      type: editType
+      category: editCategory.trim(),
     };
 
-    await updateProduct(productId, updates, editingImages);
+    await updateProduct(productId, updates);
     handleCancel();
   };
 
@@ -83,10 +67,7 @@ const InventoryManagement = () => {
     setEditStock('');
     setEditName('');
     setEditDescription('');
-    setEditSeries('');
-    setEditType('vending');
-    setSelectedImages([]);
-    setEditingImages([]);
+    setEditCategory('');
   };
 
   const handleDelete = async (productId: string) => {
@@ -101,7 +82,7 @@ const InventoryManagement = () => {
       return;
     }
 
-    if (!editName.trim() || !editDescription.trim() || !editSeries.trim()) {
+    if (!editName.trim() || !editDescription.trim() || !editCategory.trim()) {
       return;
     }
 
@@ -109,19 +90,13 @@ const InventoryManagement = () => {
       name: editName.trim(),
       price: newPrice,
       description: editDescription.trim(),
-      series: editSeries.trim(),
-      type: editType,
-      stock: newStock,
-      images: ['/placeholder.svg'],
-      specs: {
-        power: '220V/110V',
-        dimensions: 'Standard',
-        weight: 'Standard',
-        features: ['Standard Features']
-      }
+      category: editCategory.trim(),
+      inventory_count: newStock,
+      image_url: '/placeholder.svg',
+      in_stock: true,
     };
 
-    await addProduct(newProduct, selectedImages);
+    await addProduct(newProduct);
     setShowAddForm(false);
     handleCancel();
   };
@@ -176,7 +151,7 @@ const InventoryManagement = () => {
                 <div className="space-y-1">
                   {lowStockProducts.map(product => (
                     <div key={product.id} className="text-sm text-gray-300">
-                      {product.name} - Only {product.stock} left
+                      {product.name} - Only {product.inventory_count} left
                     </div>
                   ))}
                 </div>
@@ -201,28 +176,16 @@ const InventoryManagement = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1">Series</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Category</label>
                         <Input
-                          value={editSeries}
-                          onChange={(e) => setEditSeries(e.target.value)}
+                          value={editCategory}
+                          onChange={(e) => setEditCategory(e.target.value)}
                           className="bg-gray-700 border-gray-600 text-white"
-                          placeholder="e.g., T1, S1, X1"
+                          placeholder="e.g., Electronics, Home, Accessories"
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1">Type</label>
-                        <Select value={editType} onValueChange={(value: 'vending' | 'claw') => setEditType(value)}>
-                          <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="vending">Vending</SelectItem>
-                            <SelectItem value="claw">Claw</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-300 mb-1">Stock</label>
                         <Input
@@ -256,22 +219,6 @@ const InventoryManagement = () => {
                         placeholder="Product description"
                         rows={3}
                       />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-1">Product Images</label>
-                      <div className="flex items-center gap-4">
-                        <Input
-                          type="file"
-                          multiple
-                          accept="image/*"
-                          onChange={(e) => handleImageChange(e)}
-                          className="bg-gray-700 border-gray-600 text-white file:bg-brand-green file:text-black file:border-0 file:rounded file:px-3 file:py-1"
-                        />
-                        <div className="flex items-center gap-1 text-sm text-gray-400">
-                          <Image className="h-4 w-4" />
-                          {selectedImages.length} image(s) selected
-                        </div>
-                      </div>
                     </div>
                     <div className="flex justify-end gap-2">
                       <Button
@@ -314,28 +261,16 @@ const InventoryManagement = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">Series</label>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">Category</label>
                           <Input
-                            value={editSeries}
-                            onChange={(e) => setEditSeries(e.target.value)}
+                            value={editCategory}
+                            onChange={(e) => setEditCategory(e.target.value)}
                             className="bg-gray-700 border-gray-600 text-white"
-                            placeholder="Series"
+                            placeholder="Category"
                           />
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">Type</label>
-                          <Select value={editType} onValueChange={(value: 'vending' | 'claw') => setEditType(value)}>
-                            <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="vending">Vending</SelectItem>
-                              <SelectItem value="claw">Claw</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-300 mb-1">Stock</label>
                           <Input
@@ -370,21 +305,6 @@ const InventoryManagement = () => {
                           rows={3}
                         />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1">Add New Images</label>
-                        <Input
-                          type="file"
-                          multiple
-                          accept="image/*"
-                          onChange={(e) => handleImageChange(e, true)}
-                          className="bg-gray-700 border-gray-600 text-white file:bg-brand-green file:text-black file:border-0 file:rounded file:px-3 file:py-1"
-                        />
-                        {editingImages.length > 0 && (
-                          <div className="mt-2 text-sm text-gray-400">
-                            {editingImages.length} new image(s) selected
-                          </div>
-                        )}
-                      </div>
                       <div className="flex justify-end gap-2">
                         <Button
                           size="sm"
@@ -413,7 +333,7 @@ const InventoryManagement = () => {
                           onClick={() => window.open(`/products/${product.id}`, '_blank')}
                         >
                           <img
-                            src={product.images[0]}
+                            src={product.image_url}
                             alt={product.name}
                             className="w-full h-full object-cover hover:scale-110 transition-transform duration-200"
                           />
@@ -421,21 +341,20 @@ const InventoryManagement = () => {
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
                             <h3 className="font-medium text-white">{product.name}</h3>
-                            <Badge variant={product.type === 'vending' ? 'default' : 'secondary'} className="text-xs">
-                              {product.type}
+                            <Badge variant="secondary" className="text-xs">
+                              {product.category}
                             </Badge>
                           </div>
-                          <p className="text-sm text-gray-400 mb-2">{product.series} Series</p>
                           <p className="text-sm text-gray-300 line-clamp-2">{product.description}</p>
                           <div className="flex items-center gap-6 mt-3">
                             <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-400">Type:</span>
-                              <span className="text-sm text-white capitalize">{product.type}</span>
+                              <span className="text-xs text-gray-400">Category:</span>
+                              <span className="text-sm text-white capitalize">{product.category}</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="text-xs text-gray-400">Stock:</span>
-                              <Badge variant={product.stock > 20 ? "default" : product.stock > 5 ? "secondary" : "destructive"}>
-                                {product.stock}
+                              <Badge variant={product.inventory_count > 20 ? "default" : product.inventory_count > 5 ? "secondary" : "destructive"}>
+                                {product.inventory_count}
                               </Badge>
                             </div>
                           </div>

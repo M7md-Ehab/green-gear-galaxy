@@ -4,9 +4,9 @@ import { useProducts } from '@/hooks/use-products';
 
 const Footer = () => {
   const navigate = useNavigate();
-  const { getUniqueSeries } = useProducts();
+  const { getUniqueCategories } = useProducts();
   const currentYear = new Date().getFullYear();
-  const uniqueSeries = getUniqueSeries();
+  const uniqueCategories = getUniqueCategories();
 
   const scrollToTop = () => {
     navigate('/products');
@@ -50,13 +50,13 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold mb-4">Products</h4>
             <ul className="space-y-2">
-              {uniqueSeries.map(series => (
-                <li key={series}>
+              {uniqueCategories.map(category => (
+                <li key={category}>
                   <Link 
-                    to={`/products?series=${series}`} 
+                    to={`/products?category=${category}`} 
                     className="text-gray-400 hover:text-green-500 transition-colors"
                   >
-                    {series} Series
+                    {category}
                   </Link>
                 </li>
               ))}

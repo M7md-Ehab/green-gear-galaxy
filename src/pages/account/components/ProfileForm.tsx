@@ -40,7 +40,7 @@ const ProfileForm = ({ onCancel }: ProfileFormProps) => {
 
   useEffect(() => {
     if (user) {
-      form.setValue('name', user.displayName || '');
+      form.setValue('name', user?.user_metadata?.display_name || '');
       form.setValue('email', user.email || '');
     }
   }, [user, form]);
@@ -48,7 +48,7 @@ const ProfileForm = ({ onCancel }: ProfileFormProps) => {
   const onSubmit = async (data: ProfileFormValues) => {
     setIsLoading(true);
     try {
-      await updateUserProfile(data.name, data.email);
+      await updateUserProfile({ display_name: data.name, full_name: data.name });
       onCancel(); // Navigate back to dashboard
     } catch (error) {
       // Error handled in the auth service

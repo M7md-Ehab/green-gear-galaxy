@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
-import { collection, addDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -29,12 +28,20 @@ const Contact = () => {
     setIsSubmitting(true);
     
     try {
-      // Save contact form data to Firebase Firestore
-      await addDoc(collection(db, 'contacts'), {
-        ...formData,
-        timestamp: new Date(),
-        status: 'new'
-      });
+      // Save contact form data to Supabase
+      const { error } = await supabase
+        .from('contacts')
+        .insert({
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message,
+          status: 'new'
+        });
+      
+      if (error) {
+        throw error;
+      }
       
       toast.success('Message sent successfully! We will get back to you soon.');
       setFormData({

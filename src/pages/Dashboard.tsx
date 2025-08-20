@@ -58,7 +58,7 @@ const Dashboard = () => {
               <div className="space-y-4">
                 <div>
                   <p className="text-sm text-gray-400">Name</p>
-                  <p className="font-medium">{user?.displayName || 'User'}</p>
+                  <p className="font-medium">{user?.user_metadata?.display_name || user?.email}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Email</p>
@@ -66,7 +66,7 @@ const Dashboard = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Email Verified</p>
-                  <p className="font-medium">{user?.emailVerified ? 'Yes' : 'No'}</p>
+                  <p className="font-medium">{user?.email_confirmed_at ? 'Yes' : 'No'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Preferred Currency</p>

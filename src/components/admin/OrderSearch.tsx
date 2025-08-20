@@ -1,7 +1,5 @@
-
 import { useState } from 'react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,19 +8,15 @@ import { toast } from 'sonner';
 
 interface Order {
   id: string;
-  userId: string;
-  userEmail: string;
-  userName: string;
-  products: Array<{
-    id: string;
-    name: string;
+  user_id: string;
+  total: number;
+  status: string;
+  created_at: string;
+  order_items: Array<{
+    product_id: string;
     quantity: number;
     price: number;
   }>;
-  total: number;
-  status: string;
-  createdAt: any;
-  shippingAddress: any;
 }
 
 const OrderSearch = () => {
@@ -38,21 +32,28 @@ const OrderSearch = () => {
 
     setIsLoading(true);
     try {
-      const ordersRef = collection(db, 'orders');
-      const q = query(ordersRef, where('userId', '==', searchUserId.trim()));
-      const querySnapshot = await getDocs(q);
-      
-      const orderData: Order[] = [];
-      querySnapshot.forEach((doc) => {
-        orderData.push({ id: doc.id, ...doc.data() } as Order);
-      });
+      const { data: orders, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          order_items (
+            product_id,
+            quantity,
+            price
+          )
+        `)
+        .eq('user_id', searchUserId.trim());
 
-      setOrders(orderData);
+      if (error) {
+        throw error;
+      }
+
+      setOrders(orders || []);
       
-      if (orderData.length === 0) {
+      if (!orders || orders.length === 0) {
         toast.info('No orders found for this user ID');
       } else {
-        toast.success(`Found ${orderData.length} order(s)`);
+        toast.success(`Found ${orders.length} order(s)`);
       }
     } catch (error) {
       console.error('Error searching orders:', error);
@@ -101,21 +102,20 @@ const OrderSearch = () => {
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4 text-brand-green" />
                       <div>
-                        <p className="font-medium">{order.userName}</p>
-                        <p className="text-sm text-gray-600">{order.userEmail}</p>
+                        <p className="font-medium">User ID: {order.user_id}</p>
                       </div>
                     </div>
                     
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-brand-green" />
                       <p className="text-sm">
-                        {order.createdAt?.toDate?.()?.toLocaleDateString() || 'N/A'}
+                        {new Date(order.created_at).toLocaleDateString()}
                       </p>
                     </div>
                     
                     <div className="flex items-center gap-2">
                       <DollarSign className="h-4 w-4 text-brand-green" />
-                      <p className="font-medium">${order.total?.toFixed(2) || '0.00'}</p>
+                      <p className="font-medium">${(order.total / 100).toFixed(2)}</p>
                     </div>
                   </div>
                   
@@ -123,10 +123,10 @@ const OrderSearch = () => {
                     <div className="flex items-start gap-2">
                       <Package className="h-4 w-4 text-brand-green mt-1" />
                       <div className="flex-1">
-                        <p className="font-medium mb-2">Products:</p>
-                        {order.products?.map((product, index) => (
+                        <p className="font-medium mb-2">Order Items:</p>
+                        {order.order_items?.map((item, index) => (
                           <div key={index} className="text-sm text-gray-600">
-                            {product.name} × {product.quantity} - ${product.price?.toFixed(2)}
+                            Product ID: {item.product_id} × {item.quantity} - ${(item.price / 100).toFixed(2)}
                           </div>
                         ))}
                       </div>

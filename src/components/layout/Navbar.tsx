@@ -27,6 +27,7 @@ const Navbar = () => {
         <div className="hidden md:flex items-center space-x-8">
           <Link to="/" className="font-medium hover:text-brand-green transition-colors">Home</Link>
           <Link to="/products" className="font-medium hover:text-brand-green transition-colors">Products</Link>
+          <Link to="/accessories" className="font-medium hover:text-brand-green transition-colors">Accessories</Link>
           <Link to="/about" className="font-medium hover:text-brand-green transition-colors">About</Link>
           <Link to="/contact" className="font-medium hover:text-brand-green transition-colors">Contact</Link>
         </div>
@@ -75,6 +76,7 @@ const Navbar = () => {
           <div className="container-custom py-4 flex flex-col space-y-4">
             <Link to="/" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Home</Link>
             <Link to="/products" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Products</Link>
+            <Link to="/accessories" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Accessories</Link>
             <Link to="/about" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>About</Link>
             <Link to="/contact" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Contact</Link>
             {isLoggedIn ? <Link to="/dashboard" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Dashboard</Link> : <Link to="/auth" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Sign in / Log in</Link>}

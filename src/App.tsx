@@ -25,6 +25,7 @@ import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import TermsAndConditions from '@/pages/TermsAndConditions';
 import About from '@/pages/About';
 import Contact from '@/pages/Contact';
+import Accessories from '@/pages/Accessories';
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
           <Router>
             <Routes>
               <Route path="/" element={<IndexPage />} />
+              <Route path="/accessories" element={<Accessories />} />
               <Route path="/products" element={<Products />} />
               <Route path="/products/:productId" element={<ProductDetail />} />
               <Route path="/cart" element={<Cart />} />

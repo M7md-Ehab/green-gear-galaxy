@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/hooks/use-firebase-auth';
+import { useAuth } from '@/hooks/use-supabase-auth';
 import {
   Form,
   FormControl,

@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { useCart } from '@/hooks/use-cart';
 import { useCurrency } from '@/hooks/use-currency';
-import { useAuth } from '@/hooks/use-firebase-auth';
+import { useAuth } from '@/hooks/use-supabase-auth';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';

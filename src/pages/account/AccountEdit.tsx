@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { useAuth } from '@/hooks/use-firebase-auth';
+import { useAuth } from '@/hooks/use-supabase-auth';
 import ProfileForm from './components/ProfileForm';
 import LoadingSpinner from './components/LoadingSpinner';
 

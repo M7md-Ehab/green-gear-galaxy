@@ -6,7 +6,7 @@ export interface Product {
   description: string;
   images: string[];
   series: string;
-  type: 'vending' | 'claw';
+  type: 'vending' | 'claw' | 'accessory';
   stock: number;
   specs: {
     power: string;
@@ -325,6 +325,92 @@ export const products: Product[] = [
       dimensions: '95 x 95 x 200 cm',
       weight: '160 kg',
       features: ['Holographic Display', 'Premium Materials', 'Advanced Prize Management', 'Custom Themes']
+    }
+  },
+
+  // Accessories
+  {
+    id: 'acc-1',
+    name: 'Accessory Option 1',
+    price: 12999,
+    description: 'Premium accessory for enhanced functionality and performance.',
+    images: [
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg', 
+      '/placeholder.svg'
+    ],
+    series: 'Accessories',
+    type: 'accessory',
+    stock: 50,
+    specs: {
+      power: 'N/A',
+      dimensions: '30 x 20 x 15 cm',
+      weight: '2 kg',
+      features: ['Universal Compatibility', 'Easy Installation', 'Durable Material', 'Warranty Included']
+    }
+  },
+  {
+    id: 'acc-2',
+    name: 'Accessory Option 2',
+    price: 18999,
+    description: 'Advanced accessory with smart features and remote control capabilities.',
+    images: [
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg', 
+      '/placeholder.svg'
+    ],
+    series: 'Accessories',
+    type: 'accessory',
+    stock: 35,
+    specs: {
+      power: '12V DC',
+      dimensions: '25 x 25 x 10 cm',
+      weight: '1.5 kg',
+      features: ['Remote Control', 'Smart Features', 'LED Indicators', 'Quick Setup']
+    }
+  },
+  {
+    id: 'acc-3',
+    name: 'Accessory Option 3',
+    price: 24999,
+    description: 'Professional accessory for commercial use with enhanced durability.',
+    images: [
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg', 
+      '/placeholder.svg'
+    ],
+    series: 'Accessories',
+    type: 'accessory',
+    stock: 25,
+    specs: {
+      power: '24V DC',
+      dimensions: '40 x 30 x 20 cm',
+      weight: '3 kg',
+      features: ['Commercial Grade', 'Weather Resistant', 'Extended Warranty', 'Professional Support']
+    }
+  },
+  {
+    id: 'acc-4',
+    name: 'Accessory Option 4',
+    price: 35999,
+    description: 'Premium accessory bundle with advanced monitoring and analytics capabilities.',
+    images: [
+      '/placeholder.svg',
+      '/placeholder.svg',
+      '/placeholder.svg', 
+      '/placeholder.svg'
+    ],
+    series: 'Accessories',
+    type: 'accessory',
+    stock: 15,
+    specs: {
+      power: '220V AC',
+      dimensions: '50 x 40 x 30 cm',
+      weight: '5 kg',
+      features: ['Advanced Analytics', 'Real-time Monitoring', 'Mobile App Integration', 'Cloud Connectivity']
     }
   }
 ];

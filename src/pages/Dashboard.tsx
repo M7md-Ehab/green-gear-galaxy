@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/use-firebase-auth';
+import { useAuth } from '@/hooks/use-supabase-auth';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { useCurrency } from '@/hooks/use-currency';
 import { Product } from '@/data/products';

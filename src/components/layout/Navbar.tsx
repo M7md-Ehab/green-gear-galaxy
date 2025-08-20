@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Menu, X, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
-import { useAuth } from '@/hooks/use-firebase-auth';
+import { useAuth } from '@/hooks/use-supabase-auth';
 import CurrencySelector from '@/components/CurrencySelector';
 import LanguageSelector from '@/components/LanguageSelector';
 const Navbar = () => {

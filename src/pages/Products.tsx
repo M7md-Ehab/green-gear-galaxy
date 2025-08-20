@@ -15,7 +15,7 @@ const Products = () => {
   const [selectedType, setSelectedType] = useState<'vending' | 'claw' | null>(null);
   
   const series = Array.from(new Set(products.map(p => p.series)));
-  const types = Array.from(new Set(products.map(p => p.type)));
+  const types = Array.from(new Set(products.map(p => p.type))).filter(type => type !== 'accessory');
   
   useEffect(() => {
     if (seriesParam) {
@@ -88,7 +88,7 @@ const Products = () => {
                       ? 'bg-brand-green text-black shadow-lg shadow-brand-green/30' 
                       : 'bg-gray-800 text-white hover:bg-gray-700 border border-gray-600'
                   }`}
-                  onClick={() => handleTypeFilter(type as 'vending' | 'claw')}
+                   onClick={() => handleTypeFilter(type as 'vending' | 'claw')}
                 >
                   {type} Machines
                 </button>

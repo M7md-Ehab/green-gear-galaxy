@@ -69,7 +69,7 @@ const Accessories = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground">
+    <div className="min-h-screen flex flex-col bg-black text-white">
       <Navbar />
       <main className="flex-grow py-12">
         <div className="container-custom">

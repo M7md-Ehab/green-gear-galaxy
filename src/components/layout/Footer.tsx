@@ -50,7 +50,11 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold mb-4">Products</h4>
             <ul className="space-y-2">
-              {uniqueCategories.map(category => (
+              {uniqueCategories.filter(category => 
+                category !== 'electronics' && 
+                category !== 'home' && 
+                category !== 'accessory'
+              ).map(category => (
                 <li key={category}>
                   <Link 
                     to={`/products?category=${category}`} 
@@ -60,6 +64,14 @@ const Footer = () => {
                   </Link>
                 </li>
               ))}
+              <li>
+                <Link 
+                  to="/accessories"
+                  className="text-gray-400 hover:text-green-500 transition-colors"
+                >
+                  Accessories
+                </Link>
+              </li>
               <li>
                 <button 
                   onClick={scrollToTop}
@@ -85,9 +97,11 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold mb-4">Support</h4>
             <ul className="space-y-2">
-              <li><a href="mailto:support@vlitrix.com" className="text-gray-400 hover:text-green-500 transition-colors">Email Support</a></li>
-              <li><span className="text-gray-400">+1 (555) 123-4567</span></li>
-              <li><span className="text-gray-400">Mon - Fri 9AM - 6PM EST</span></li>
+              <li><a href="mailto:mehab882011@gmail.com" className="text-gray-400 hover:text-green-500 transition-colors">mehab882011@gmail.com</a></li>
+              <li><a href="mailto:support@vlitrix.com" className="text-gray-400 hover:text-green-500 transition-colors">support@vlitrix.com</a></li>
+              <li><span className="text-gray-400">+20 (123) 456-7890</span></li>
+              <li><span className="text-gray-400">Sun - Thu 9AM - 6PM EET</span></li>
+              <li><span className="text-gray-400">Fri: 10AM - 4PM EET</span></li>
             </ul>
           </div>
         </div>

@@ -18,6 +18,7 @@ import AccountEdit from '@/pages/account/AccountEdit';
 import Admin from '@/pages/Admin';
 import AdminAuth from '@/pages/AdminAuth';
 import NotFound from '@/pages/NotFound';
+import HowToOrder from '@/pages/HowToOrder';
 
 // New pages
 import ReturnPolicy from '@/pages/ReturnPolicy';
@@ -54,6 +55,7 @@ function App() {
               <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/how-to-order" element={<HowToOrder />} />
               
               <Route path="*" element={<NotFound />} />
             </Routes>

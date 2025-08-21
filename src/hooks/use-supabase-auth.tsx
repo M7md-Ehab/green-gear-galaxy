@@ -13,6 +13,8 @@ interface SupabaseAuthState {
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error?: string }>;
   updateUserProfile: (data: { display_name?: string; full_name?: string }) => Promise<{ error?: string }>;
+  signInWithGoogle: () => Promise<void>;
+  signInWithTwitter: () => Promise<void>;
 }
 
 const AuthContext = createContext<SupabaseAuthState | undefined>(undefined);
@@ -279,6 +281,52 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+
+      if (error) {
+        toast({
+          title: "Google Sign In Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        throw error;
+      }
+    } catch (error: any) {
+      console.error('Google sign in error:', error);
+      throw error;
+    }
+  };
+
+  const signInWithTwitter = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'twitter',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+
+      if (error) {
+        toast({
+          title: "Twitter Sign In Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        throw error;
+      }
+    } catch (error: any) {
+      console.error('Twitter sign in error:', error);
+      throw error;
+    }
+  };
+
   const authState: SupabaseAuthState = {
     user,
     session,
@@ -289,6 +337,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     logout,
     resetPassword,
     updateUserProfile,
+    signInWithGoogle,
+    signInWithTwitter,
   };
 
   return (

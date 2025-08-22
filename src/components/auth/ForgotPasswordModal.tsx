@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Mail, ArrowLeft, Clock } from 'lucide-react';
-import { useAuth } from '@/hooks/use-supabase-auth';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface ForgotPasswordModalProps {
@@ -13,18 +13,13 @@ interface ForgotPasswordModalProps {
 }
 
 const ForgotPasswordModal = ({ isOpen, onClose }: ForgotPasswordModalProps) => {
-  const [step, setStep] = useState<'email' | 'code'>('email');
+  const [step, setStep] = useState<'email' | 'code' | 'password'>('email');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState(['', '', '', '', '', '']);
+  const [newPassword, setNewPassword] = useState('');
   const [attempts, setAttempts] = useState(0);
   const [cooldown, setCooldown] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const { resetPassword } = useAuth();
-
-  // Generate random 6-digit code for simulation
-  const [verificationCode] = useState(() => 
-    Math.floor(100000 + Math.random() * 900000).toString()
-  );
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -49,14 +44,21 @@ const ForgotPasswordModal = ({ isOpen, onClose }: ForgotPasswordModalProps) => {
 
     setIsLoading(true);
     try {
-      await resetPassword(email);
+      const { error } = await supabase.functions.invoke('send-otp', {
+        body: { email }
+      });
+
+      if (error) {
+        throw error;
+      }
+
       setStep('code');
       setAttempts(0);
       setCooldown(60);
       toast.success(`Verification code sent to ${email}`);
-      console.log('Verification code for demo:', verificationCode);
-    } catch (error) {
-      toast.error('Failed to send verification code');
+    } catch (error: any) {
+      console.error('Error sending OTP:', error);
+      toast.error(error.message || 'Failed to send verification code');
     } finally {
       setIsLoading(false);
     }
@@ -91,50 +93,98 @@ const ForgotPasswordModal = ({ isOpen, onClose }: ForgotPasswordModalProps) => {
       return;
     }
 
-    setAttempts(prev => prev + 1);
+    setStep('password');
+  };
 
-    if (enteredCode === verificationCode) {
-      toast.success('Code verified! Password reset email sent.');
-      handleClose();
-    } else {
-      if (attempts + 1 >= 8) {
-        toast.error('Too many failed attempts. New code sent.');
-        setAttempts(0);
-        setCooldown(60);
-        setCode(['', '', '', '', '', '']);
-        // Generate new code
-        const newCode = Math.floor(100000 + Math.random() * 900000).toString();
-        console.log('New verification code for demo:', newCode);
-      } else {
-        toast.error(`Invalid code. ${8 - (attempts + 1)} attempts remaining.`);
-        setCode(['', '', '', '', '', '']);
-        const firstInput = document.getElementById('code-0');
-        firstInput?.focus();
+  const handleResetPassword = async () => {
+    if (!newPassword || newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters long');
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-otp', {
+        body: { 
+          email, 
+          otpCode: code.join(''), 
+          newPassword 
+        }
+      });
+
+      if (error) {
+        throw error;
       }
+
+      if (data?.success) {
+        toast.success('Password reset successful! You can now log in with your new password.');
+        handleClose();
+      }
+    } catch (error: any) {
+      console.error('Error verifying OTP:', error);
+      const newAttempts = attempts + 1;
+      setAttempts(newAttempts);
+      
+      if (newAttempts >= 8 || error.message?.includes("Too many attempts")) {
+        toast.error('Too many attempts. Please request a new code.');
+        setStep('email');
+        setCode(['', '', '', '', '', '']);
+        setAttempts(0);
+      } else {
+        toast.error(error.message || `Wrong code. ${8 - newAttempts} attempts remaining.`);
+        setStep('code');
+        setCode(['', '', '', '', '', '']);
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleRequestNewCode = () => {
+  const handleRequestNewCode = async () => {
     if (cooldown > 0) {
       toast.error(`Please wait ${cooldown} seconds before requesting a new code`);
       return;
     }
     
-    setCooldown(60);
-    setAttempts(0);
-    setCode(['', '', '', '', '', '']);
-    const newCode = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log('New verification code for demo:', newCode);
-    toast.success('New verification code sent!');
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.functions.invoke('send-otp', {
+        body: { email }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setCooldown(60);
+      setAttempts(0);
+      setCode(['', '', '', '', '', '']);
+      toast.success('New verification code sent!');
+    } catch (error: any) {
+      console.error('Error sending new OTP:', error);
+      toast.error(error.message || 'Failed to send new verification code');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleClose = () => {
     setStep('email');
     setEmail('');
     setCode(['', '', '', '', '', '']);
+    setNewPassword('');
     setAttempts(0);
     setCooldown(0);
     onClose();
+  };
+
+  const handleBack = () => {
+    if (step === 'code') {
+      setStep('email');
+    } else if (step === 'password') {
+      setStep('code');
+    }
   };
 
   return (
@@ -142,17 +192,18 @@ const ForgotPasswordModal = ({ isOpen, onClose }: ForgotPasswordModalProps) => {
       <DialogContent className="sm:max-w-md bg-gray-900 border-gray-700 text-white">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-white">
-            {step === 'code' && (
+            {step !== 'email' && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setStep('email')}
+                onClick={handleBack}
                 className="text-gray-400 hover:text-white p-1"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             )}
-            {step === 'email' ? 'Reset Password' : 'Enter Verification Code'}
+            {step === 'email' ? 'Reset Password' : 
+             step === 'code' ? 'Enter Verification Code' : 'Set New Password'}
           </DialogTitle>
         </DialogHeader>
 
@@ -189,7 +240,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }: ForgotPasswordModalProps) => {
               {isLoading ? 'Sending...' : cooldown > 0 ? `Wait ${cooldown}s` : 'Send Verification Code'}
             </Button>
           </div>
-        ) : (
+        ) : step === 'code' ? (
           <div className="space-y-6">
             <div className="text-center">
               <p className="text-gray-400 mb-2">
@@ -227,7 +278,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }: ForgotPasswordModalProps) => {
               <Button
                 variant="outline"
                 onClick={handleRequestNewCode}
-                disabled={cooldown > 0}
+                disabled={cooldown > 0 || isLoading}
                 className="w-full border-gray-600 text-gray-300 hover:bg-gray-800"
               >
                 {cooldown > 0 ? (
@@ -240,6 +291,39 @@ const ForgotPasswordModal = ({ isOpen, onClose }: ForgotPasswordModalProps) => {
                 )}
               </Button>
             </div>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="text-center">
+              <p className="text-gray-400 mb-2">
+                Enter your new password
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="new-password" className="text-gray-300">
+                New Password
+              </Label>
+              <Input
+                id="new-password"
+                type="password"
+                placeholder="Enter new password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-500"
+              />
+              <p className="text-sm text-gray-500">
+                Password must be at least 6 characters long
+              </p>
+            </div>
+
+            <Button
+              onClick={handleResetPassword}
+              disabled={isLoading}
+              className="w-full bg-brand-green hover:bg-brand-green/90 text-black"
+            >
+              {isLoading ? 'Updating Password...' : 'Reset Password'}
+            </Button>
           </div>
         )}
       </DialogContent>

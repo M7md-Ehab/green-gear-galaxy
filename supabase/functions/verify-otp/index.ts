@@ -41,12 +41,11 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     if (fetchError || !otpRecord) {
-      // Increment attempts if record exists
+      // Increment attempts for all OTPs with this email (prevent brute force)
       await supabase
         .from('password_reset_otps')
         .update({ attempts: supabase.raw('attempts + 1') })
-        .eq('email', email)
-        .eq('otp_code', otpCode);
+        .eq('email', email);
 
       return new Response(JSON.stringify({ error: "Invalid OTP code" }), {
         status: 400,
@@ -62,8 +61,8 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Check if too many attempts
-    if (otpRecord.attempts >= 8) {
+    // Check if too many attempts (reduced from 8 to 5 for better security)
+    if (otpRecord.attempts >= 5) {
       return new Response(JSON.stringify({ error: "Too many attempts. Please request a new code." }), {
         status: 400,
         headers: { "Content-Type": "application/json", ...corsHeaders },

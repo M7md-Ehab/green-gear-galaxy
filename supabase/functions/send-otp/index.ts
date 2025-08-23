@@ -32,6 +32,47 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    // Rate limiting check: prevent too many OTP requests
+    const { data: recentOTP, error: fetchError } = await supabase
+      .from('password_reset_otps')
+      .select('created_at')
+      .eq('email', email)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (!fetchError && recentOTP && recentOTP.length > 0) {
+      const lastOTPTime = new Date(recentOTP[0].created_at).getTime();
+      const now = Date.now();
+      const cooldownPeriod = 60 * 1000; // 60 seconds cooldown
+
+      if (now - lastOTPTime < cooldownPeriod) {
+        return new Response(JSON.stringify({ 
+          error: "Please wait before requesting another code",
+          retryAfter: Math.ceil((cooldownPeriod - (now - lastOTPTime)) / 1000)
+        }), {
+          status: 429,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+    }
+
+    // Check daily limit (5 OTPs per email per day)
+    const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const { data: dailyOTPs, error: dailyCheckError } = await supabase
+      .from('password_reset_otps')
+      .select('id')
+      .eq('email', email)
+      .gte('created_at', dayAgo.toISOString());
+
+    if (!dailyCheckError && dailyOTPs && dailyOTPs.length >= 5) {
+      return new Response(JSON.stringify({ 
+        error: "Daily limit reached. Please try again tomorrow." 
+      }), {
+        status: 429,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     // Generate 6-digit OTP
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
@@ -60,9 +101,9 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Send email with OTP
+    // Send email with OTP - fixed sender for security
     const emailResponse = await resend.emails.send({
-      from: "Vlitrix <onboarding@resend.dev>",
+      from: "Password Reset <noreply@resend.dev>",
       to: [email],
       subject: "Password Reset Code - Vlitrix",
       html: `

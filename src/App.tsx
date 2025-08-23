@@ -5,7 +5,7 @@ import { Toaster as SonnerToaster } from "sonner";
 
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { AuthProvider } from '@/hooks/use-supabase-auth';
-import { AdminAuthProvider } from '@/hooks/use-admin-auth';
+import { RoleAuthProvider } from '@/hooks/use-role-auth';
 import IndexPage from '@/pages/Index';
 import ProductDetail from '@/pages/ProductDetail';
 import Products from '@/pages/Products';
@@ -16,7 +16,7 @@ import Auth from '@/pages/Auth';
 import Dashboard from '@/pages/Dashboard';
 import AccountEdit from '@/pages/account/AccountEdit';
 import Admin from '@/pages/Admin';
-import AdminAuth from '@/pages/AdminAuth';
+
 import NotFound from '@/pages/NotFound';
 import HowToOrder from '@/pages/HowToOrder';
 
@@ -32,7 +32,7 @@ function App() {
   return (
     <LanguageProvider>
       <AuthProvider>
-        <AdminAuthProvider>
+        <RoleAuthProvider>
           <Router>
             <Routes>
               <Route path="/" element={<IndexPage />} />
@@ -47,7 +47,6 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/account/edit" element={<AccountEdit />} />
               <Route path="/admin" element={<Admin />} />
-              <Route path="/admin/auth" element={<AdminAuth />} />
               
               {/* New routes */}
               <Route path="/return-policy" element={<ReturnPolicy />} />
@@ -62,7 +61,7 @@ function App() {
             <SonnerToaster position="top-center" richColors closeButton />
             <Toaster />
           </Router>
-        </AdminAuthProvider>
+        </RoleAuthProvider>
       </AuthProvider>
     </LanguageProvider>
   );

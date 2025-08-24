@@ -198,28 +198,38 @@ const Auth = () => {
               {isSignUp ? (
                 <Form {...signupForm}>
                   <form onSubmit={signupForm.handleSubmit(onSignupSubmit)} className="space-y-6">
-                    <FormField
-                      control={signupForm.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem className="space-y-2">
-                          <FormLabel className="text-left block text-gray-300 text-sm font-medium">
-                            {t('fullName')}
-                          </FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                               <Input
-                                placeholder={t('enterFullName')}
-                                className="h-12 text-base pl-10 bg-gray-800/50 border-gray-600 text-white placeholder:text-gray-500 focus:border-brand-green focus:bg-gray-800"
-                                {...field}
-                               />
-                            </div>
-                          </FormControl>
-                          <FormMessage className="text-sm" />
-                        </FormItem>
-                      )}
-                    />
+                     <FormField
+                       control={signupForm.control}
+                       name="name"
+                       render={({ field }) => {
+                         console.log('Name field render:', field);
+                         return (
+                           <FormItem className="space-y-2">
+                             <FormLabel className="text-left block text-gray-300 text-sm font-medium">
+                               {t('fullName')}
+                             </FormLabel>
+                             <FormControl>
+                               <div className="relative">
+                                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                                 <Input
+                                   placeholder={t('enterFullName')}
+                                   className="h-12 text-base pl-10 bg-gray-800/50 border-gray-600 text-white placeholder:text-gray-500 focus:border-brand-green focus:bg-gray-800"
+                                   value={field.value || ''}
+                                   onChange={(e) => {
+                                     console.log('Name input onChange:', e.target.value);
+                                     field.onChange(e.target.value);
+                                   }}
+                                   onBlur={field.onBlur}
+                                   name={field.name}
+                                   ref={field.ref}
+                                 />
+                               </div>
+                             </FormControl>
+                             <FormMessage className="text-sm" />
+                           </FormItem>
+                         );
+                       }}
+                     />
 
                     <FormField
                       control={signupForm.control}

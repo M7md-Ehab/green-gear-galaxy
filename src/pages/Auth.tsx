@@ -209,11 +209,11 @@ const Auth = () => {
                           <FormControl>
                             <div className="relative">
                               <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                              <Input
+                               <Input
                                 placeholder={t('enterFullName')}
                                 className="h-12 text-base pl-10 bg-gray-800/50 border-gray-600 text-white placeholder:text-gray-500 focus:border-brand-green focus:bg-gray-800"
                                 {...field}
-                              />
+                               />
                             </div>
                           </FormControl>
                           <FormMessage className="text-sm" />

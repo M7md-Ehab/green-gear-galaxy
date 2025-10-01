@@ -8,7 +8,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { useCart } from '@/hooks/use-cart';
 import { useCurrency } from '@/hooks/use-currency';
-import { useAuth } from '@/hooks/use-supabase-auth';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -42,7 +41,6 @@ const Checkout = () => {
   const navigate = useNavigate();
   const { items, cartTotal, clearCart } = useCart();
   const { currentCurrency } = useCurrency();
-  const { user, isLoggedIn } = useAuth();
   const { t } = useLanguage();
   const [isProcessing, setIsProcessing] = useState(false);
   
@@ -51,7 +49,7 @@ const Checkout = () => {
     defaultValues: {
       firstName: '',
       lastName: '',
-      email: user?.email || '',
+      email: '',
       phone: '',
       address: '',
       city: '',

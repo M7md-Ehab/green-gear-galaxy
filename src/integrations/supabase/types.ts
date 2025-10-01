@@ -100,33 +100,6 @@ export type Database = {
         }
         Relationships: []
       }
-      password_reset_otps: {
-        Row: {
-          attempts: number
-          created_at: string
-          email: string
-          expires_at: string
-          id: string
-          otp_code: string
-        }
-        Insert: {
-          attempts?: number
-          created_at?: string
-          email: string
-          expires_at: string
-          id?: string
-          otp_code: string
-        }
-        Update: {
-          attempts?: number
-          created_at?: string
-          email?: string
-          expires_at?: string
-          id?: string
-          otp_code?: string
-        }
-        Relationships: []
-      }
       products: {
         Row: {
           category: string | null
@@ -229,18 +202,6 @@ export type Database = {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
-        }
-        Returns: boolean
-      }
-      secure_cleanup_expired_otps: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      validate_otp_operation: {
-        Args: {
-          email_param: string
-          operation_type: string
-          otp_code_param?: string
         }
         Returns: boolean
       }

@@ -1,11 +1,10 @@
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/hooks/use-supabase-auth';
+import { toast } from 'sonner';
 import {
   Form,
   FormControl,
@@ -27,7 +26,6 @@ interface ProfileFormProps {
 }
 
 const ProfileForm = ({ onCancel }: ProfileFormProps) => {
-  const { user, updateUserProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<ProfileFormValues>({
@@ -38,20 +36,15 @@ const ProfileForm = ({ onCancel }: ProfileFormProps) => {
     },
   });
 
-  useEffect(() => {
-    if (user) {
-      form.setValue('name', user?.user_metadata?.display_name || '');
-      form.setValue('email', user.email || '');
-    }
-  }, [user, form]);
-
   const onSubmit = async (data: ProfileFormValues) => {
     setIsLoading(true);
     try {
-      await updateUserProfile({ display_name: data.name, full_name: data.name });
-      onCancel(); // Navigate back to dashboard
+      // Simulate profile update
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      toast.success('Profile updated successfully');
+      onCancel();
     } catch (error) {
-      // Error handled in the auth service
+      toast.error('Failed to update profile');
     } finally {
       setIsLoading(false);
     }

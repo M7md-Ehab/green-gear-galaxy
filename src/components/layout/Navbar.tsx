@@ -5,9 +5,11 @@ import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
 import CurrencySelector from '@/components/CurrencySelector';
 import LanguageSelector from '@/components/LanguageSelector';
+import { useLanguage } from '@/contexts/LanguageContext';
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const {
     items,
     itemsCount
@@ -21,11 +23,11 @@ const Navbar = () => {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-8">
-          <Link to="/" className="font-medium hover:text-brand-green transition-colors">Home</Link>
-          <Link to="/products" className="font-medium hover:text-brand-green transition-colors">Products</Link>
-          <Link to="/accessories" className="font-medium hover:text-brand-green transition-colors">Accessories</Link>
-          <Link to="/about" className="font-medium hover:text-brand-green transition-colors">About</Link>
-          <Link to="/contact" className="font-medium hover:text-brand-green transition-colors">Contact</Link>
+          <Link to="/" className="font-medium hover:text-brand-green transition-colors">{t('home')}</Link>
+          <Link to="/products" className="font-medium hover:text-brand-green transition-colors">{t('products')}</Link>
+          <Link to="/accessories" className="font-medium hover:text-brand-green transition-colors">{t('accessories')}</Link>
+          <Link to="/about" className="font-medium hover:text-brand-green transition-colors">{t('about')}</Link>
+          <Link to="/contact" className="font-medium hover:text-brand-green transition-colors">{t('contact')}</Link>
         </div>
 
         <div className="hidden md:flex items-center space-x-4">
@@ -60,11 +62,11 @@ const Navbar = () => {
       {/* Mobile Navigation Menu */}
       {isOpen && <div className="md:hidden absolute top-16 inset-x-0 z-50 bg-background border-b border-border/40 animate-fade-in">
           <div className="container-custom py-4 flex flex-col space-y-4">
-            <Link to="/" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Home</Link>
-            <Link to="/products" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Products</Link>
-            <Link to="/accessories" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Accessories</Link>
-            <Link to="/about" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>About</Link>
-            <Link to="/contact" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>Contact</Link>
+            <Link to="/" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>{t('home')}</Link>
+            <Link to="/products" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>{t('products')}</Link>
+            <Link to="/accessories" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>{t('accessories')}</Link>
+            <Link to="/about" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>{t('about')}</Link>
+            <Link to="/contact" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>{t('contact')}</Link>
           </div>
         </div>}
     </nav>;

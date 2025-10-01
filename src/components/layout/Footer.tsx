@@ -1,9 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Facebook, Instagram, Youtube } from 'lucide-react';
 import { useProducts } from '@/hooks/use-products';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Footer = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const { getUniqueCategories } = useProducts();
   const currentYear = new Date().getFullYear();
   const uniqueCategories = getUniqueCategories();
@@ -22,7 +24,7 @@ const Footer = () => {
           <div>
             <h3 className="text-xl font-bold mb-4 text-green-500">Vlitrix</h3>
             <p className="text-gray-400 mb-4">
-              Leading provider of innovative gaming and vending machines for the modern entertainment industry.
+              {t('footer_desc')}
             </p>
             <div className="flex space-x-4">
               <a href="https://facebook.com" className="text-gray-400 hover:text-green-500 transition-colors">
@@ -48,7 +50,7 @@ const Footer = () => {
           </div>
 
           <div>
-            <h4 className="text-lg font-semibold mb-4">Products</h4>
+            <h4 className="text-lg font-semibold mb-4">{t('products')}</h4>
             <ul className="space-y-2">
               {uniqueCategories.filter(category => 
                 category !== 'electronics' && 
@@ -69,7 +71,7 @@ const Footer = () => {
                   to="/accessories"
                   className="text-gray-400 hover:text-green-500 transition-colors"
                 >
-                  Accessories
+                  {t('accessories')}
                 </Link>
               </li>
               <li>
@@ -77,25 +79,25 @@ const Footer = () => {
                   onClick={scrollToTop}
                   className="text-gray-400 hover:text-green-500 transition-colors"
                 >
-                  Explore Products
+                  {t('explore_products')}
                 </button>
               </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-lg font-semibold mb-4">Company</h4>
+            <h4 className="text-lg font-semibold mb-4">{t('company')}</h4>
             <ul className="space-y-2">
-              <li><Link to="/about" className="text-gray-400 hover:text-green-500 transition-colors">About Us</Link></li>
-              <li><Link to="/contact" className="text-gray-400 hover:text-green-500 transition-colors">Contact</Link></li>
-              <li><Link to="/privacy-policy" className="text-gray-400 hover:text-green-500 transition-colors">Privacy Policy</Link></li>
-              <li><Link to="/terms-and-conditions" className="text-gray-400 hover:text-green-500 transition-colors">Terms & Conditions</Link></li>
-              <li><Link to="/return-policy" className="text-gray-400 hover:text-green-500 transition-colors">Return Policy</Link></li>
+              <li><Link to="/about" className="text-gray-400 hover:text-green-500 transition-colors">{t('about_us')}</Link></li>
+              <li><Link to="/contact" className="text-gray-400 hover:text-green-500 transition-colors">{t('contact')}</Link></li>
+              <li><Link to="/privacy-policy" className="text-gray-400 hover:text-green-500 transition-colors">{t('privacy_policy')}</Link></li>
+              <li><Link to="/terms-and-conditions" className="text-gray-400 hover:text-green-500 transition-colors">{t('terms_conditions')}</Link></li>
+              <li><Link to="/return-policy" className="text-gray-400 hover:text-green-500 transition-colors">{t('return_policy')}</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-lg font-semibold mb-4">Support</h4>
+            <h4 className="text-lg font-semibold mb-4">{t('support')}</h4>
             <ul className="space-y-2">
               <li><a href="mailto:mehab882011@gmail.com" className="text-gray-400 hover:text-green-500 transition-colors">mehab882011@gmail.com</a></li>
               <li><a href="mailto:support@vlitrix.com" className="text-gray-400 hover:text-green-500 transition-colors">support@vlitrix.com</a></li>

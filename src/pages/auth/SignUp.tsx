@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { OtpVerificationModal } from '@/components/auth/OtpVerificationModal';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { z } from 'zod';
@@ -24,8 +25,9 @@ const SignUp = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState('');
   const { signUp } = useAuth();
-  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,15 +48,23 @@ const SignUp = () => {
     const { error } = await signUp(email, password);
     
     if (!error) {
-      navigate('/login');
+      setVerificationEmail(email);
+      setShowOtpModal(true);
     }
     setLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-black text-white">
-      <Navbar />
-      <main className="flex-grow flex items-center justify-center py-12">
+    <>
+      <OtpVerificationModal 
+        open={showOtpModal} 
+        onOpenChange={setShowOtpModal}
+        email={verificationEmail}
+      />
+      
+      <div className="min-h-screen flex flex-col bg-black text-white">
+        <Navbar />
+        <main className="flex-grow flex items-center justify-center py-12">
         <Card className="w-full max-w-md mx-4 bg-gray-900 border-gray-800">
           <CardHeader>
             <CardTitle className="text-2xl text-white">Create an account</CardTitle>
@@ -122,10 +132,11 @@ const SignUp = () => {
               </p>
             </form>
           </CardContent>
-        </Card>
-      </main>
-      <Footer />
-    </div>
+          </Card>
+        </main>
+        <Footer />
+      </div>
+    </>
   );
 };
 

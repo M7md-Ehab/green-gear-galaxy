@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Menu, X, User } from 'lucide-react';
+import { ShoppingCart, Menu, X, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
+import { useAuth } from '@/hooks/use-auth';
 import CurrencySelector from '@/components/CurrencySelector';
 import LanguageSelector from '@/components/LanguageSelector';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -10,6 +11,7 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { user, signOut } = useAuth();
   const {
     items,
     itemsCount
@@ -41,6 +43,29 @@ const Navbar = () => {
                 </span>}
             </Button>
           </Link>
+          
+          {user ? (
+            <>
+              <Link to="/dashboard">
+                <Button variant="ghost" size="icon">
+                  <User className="h-5 w-5" />
+                </Button>
+              </Link>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => signOut()}
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </>
+          ) : (
+            <Link to="/login">
+              <Button className="bg-brand-green hover:bg-brand-green/90 text-black">
+                Log In
+              </Button>
+            </Link>
+          )}
         </div>
 
         {/* Mobile Navigation Button */}
@@ -67,6 +92,30 @@ const Navbar = () => {
             <Link to="/accessories" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>{t('accessories')}</Link>
             <Link to="/about" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>{t('about')}</Link>
             <Link to="/contact" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>{t('contact')}</Link>
+            
+            {user ? (
+              <>
+                <Link to="/dashboard" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>
+                  Dashboard
+                </Link>
+                <Button 
+                  variant="ghost" 
+                  className="justify-start p-0 h-auto font-medium hover:text-brand-green"
+                  onClick={() => {
+                    signOut();
+                    setIsOpen(false);
+                  }}
+                >
+                  Log Out
+                </Button>
+              </>
+            ) : (
+              <Link to="/login" onClick={() => setIsOpen(false)}>
+                <Button className="w-full bg-brand-green hover:bg-brand-green/90 text-black">
+                  Log In
+                </Button>
+              </Link>
+            )}
           </div>
         </div>}
     </nav>;

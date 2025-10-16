@@ -74,28 +74,34 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          order_code: number | null
           status: string
           stripe_session_id: string | null
           total: number
           updated_at: string
+          user_email: string | null
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
+          order_code?: number | null
           status?: string
           stripe_session_id?: string | null
           total: number
           updated_at?: string
+          user_email?: string | null
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
+          order_code?: number | null
           status?: string
           stripe_session_id?: string | null
           total?: number
           updated_at?: string
+          user_email?: string | null
           user_id?: string
         }
         Relationships: []
@@ -198,6 +204,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_order_code: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

@@ -3,12 +3,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, User, Package, Calendar, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Order {
   id: string;
   user_id: string;
+  user_email: string;
+  order_code: number;
   total: number;
   status: string;
   created_at: string;
@@ -20,19 +23,22 @@ interface Order {
 }
 
 const OrderSearch = () => {
-  const [searchUserId, setSearchUserId] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [updatingOrders, setUpdatingOrders] = useState<Set<string>>(new Set());
 
   const handleSearch = async () => {
-    if (!searchUserId.trim()) {
-      toast.error('Please enter a user ID');
+    if (!searchQuery.trim()) {
+      toast.error('Please enter an email or order code');
       return;
     }
 
     setIsLoading(true);
     try {
-      const { data: orders, error } = await supabase
+      // Try to search by order code first (if it's a number)
+      const orderCode = parseInt(searchQuery.trim());
+      let query = supabase
         .from('orders')
         .select(`
           *,
@@ -41,8 +47,15 @@ const OrderSearch = () => {
             quantity,
             price
           )
-        `)
-        .eq('user_id', searchUserId.trim());
+        `);
+
+      if (!isNaN(orderCode)) {
+        query = query.eq('order_code', orderCode);
+      } else {
+        query = query.eq('user_email', searchQuery.trim());
+      }
+
+      const { data: orders, error } = await query;
 
       if (error) {
         throw error;
@@ -51,7 +64,7 @@ const OrderSearch = () => {
       setOrders(orders || []);
       
       if (!orders || orders.length === 0) {
-        toast.info('No orders found for this user ID');
+        toast.info('No orders found');
       } else {
         toast.success(`Found ${orders.length} order(s)`);
       }
@@ -60,6 +73,37 @@ const OrderSearch = () => {
       toast.error('Failed to search orders');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleStatusUpdate = async (orderId: string, newStatus: string) => {
+    setUpdatingOrders(prev => new Set(prev).add(orderId));
+    
+    try {
+      const { error } = await supabase.functions.invoke('update-order-status', {
+        body: {
+          order_id: orderId,
+          status: newStatus,
+        },
+      });
+
+      if (error) throw error;
+
+      // Update local state
+      setOrders(orders.map(order => 
+        order.id === orderId ? { ...order, status: newStatus } : order
+      ));
+
+      toast.success('Order status updated and customer notified');
+    } catch (error: any) {
+      console.error('Error updating order status:', error);
+      toast.error(`Failed to update status: ${error.message}`);
+    } finally {
+      setUpdatingOrders(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(orderId);
+        return newSet;
+      });
     }
   };
 
@@ -75,9 +119,10 @@ const OrderSearch = () => {
         <CardContent>
           <div className="flex gap-4">
             <Input
-              placeholder="Enter User ID"
-              value={searchUserId}
-              onChange={(e) => setSearchUserId(e.target.value)}
+              placeholder="Enter Email or Order Code"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               className="flex-1"
             />
             <Button 
@@ -97,25 +142,38 @@ const OrderSearch = () => {
           {orders.map((order) => (
             <Card key={order.id}>
               <CardContent className="p-6">
+                <div className="space-y-4 mb-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-bold">Order #{order.order_code}</h3>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4 text-brand-green" />
                       <div>
-                        <p className="font-medium">User ID: {order.user_id}</p>
+                        <p className="text-sm text-gray-400">Customer Email</p>
+                        <p className="font-medium">{order.user_email}</p>
                       </div>
                     </div>
                     
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-brand-green" />
-                      <p className="text-sm">
-                        {new Date(order.created_at).toLocaleDateString()}
-                      </p>
+                      <div>
+                        <p className="text-sm text-gray-400">Order Date</p>
+                        <p className="text-sm">
+                          {new Date(order.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
                     </div>
                     
                     <div className="flex items-center gap-2">
                       <DollarSign className="h-4 w-4 text-brand-green" />
-                      <p className="font-medium">${(order.total / 100).toFixed(2)}</p>
+                      <div>
+                        <p className="text-sm text-gray-400">Total</p>
+                        <p className="font-medium">${order.total.toFixed(2)}</p>
+                      </div>
                     </div>
                   </div>
                   
@@ -125,22 +183,32 @@ const OrderSearch = () => {
                       <div className="flex-1">
                         <p className="font-medium mb-2">Order Items:</p>
                         {order.order_items?.map((item, index) => (
-                          <div key={index} className="text-sm text-gray-600">
-                            Product ID: {item.product_id} × {item.quantity} - ${(item.price / 100).toFixed(2)}
+                          <div key={index} className="text-sm text-gray-300">
+                            Product ID: {item.product_id} × {item.quantity} - ${item.price.toFixed(2)}
                           </div>
                         ))}
                       </div>
                     </div>
                     
-                    <div className="flex justify-between items-center pt-4 border-t">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        order.status === 'completed' ? 'bg-green-100 text-green-800' :
-                        order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {order.status || 'pending'}
-                      </span>
-                      <span className="text-sm text-gray-500">Order ID: {order.id}</span>
+                    <div className="space-y-2 pt-4 border-t border-gray-700">
+                      <p className="text-sm text-gray-400">Update Order Status:</p>
+                      <Select
+                        value={order.status}
+                        onValueChange={(value) => handleStatusUpdate(order.id, value)}
+                        disabled={updatingOrders.has(order.id)}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="shipped">Shipped</SelectItem>
+                          <SelectItem value="finished">Finished</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {updatingOrders.has(order.id) && (
+                        <p className="text-xs text-gray-400">Updating and sending notification...</p>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CheckCircle, ArrowRight, Package, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,10 +7,18 @@ import { useCart } from '@/hooks/use-cart';
 
 const CheckoutSuccess = () => {
   const { clearCart } = useCart();
+  const [orderCode, setOrderCode] = useState<string | null>(null);
 
   useEffect(() => {
     // Clear the cart when the success page loads
     clearCart();
+    
+    // Get order code from session storage
+    const code = sessionStorage.getItem('lastOrderCode');
+    setOrderCode(code);
+    
+    // Clear it from session storage
+    sessionStorage.removeItem('lastOrderCode');
   }, [clearCart]);
 
   return (
@@ -23,6 +31,12 @@ const CheckoutSuccess = () => {
             </div>
             
             <h1 className="text-3xl font-bold text-white">Order Confirmed!</h1>
+            {orderCode && (
+              <div className="bg-brand-green/20 border border-brand-green rounded-lg p-4">
+                <p className="text-sm text-gray-300 mb-1">Your Order Code:</p>
+                <p className="text-2xl font-bold text-brand-green">#{orderCode}</p>
+              </div>
+            )}
             <p className="text-gray-400 text-lg">
               Thank you for your purchase. Your order has been successfully placed and will be processed shortly.
             </p>

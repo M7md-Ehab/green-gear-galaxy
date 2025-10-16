@@ -4,11 +4,12 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
-import { v4 as uuidv4 } from 'uuid';
 
 import { useCart } from '@/hooks/use-cart';
 import { useCurrency } from '@/hooks/use-currency';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/hooks/use-auth';
+import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,7 @@ const Checkout = () => {
   const { items, cartTotal, clearCart } = useCart();
   const { currentCurrency } = useCurrency();
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   
   const form = useForm<CheckoutFormValues>({
@@ -69,19 +71,47 @@ const Checkout = () => {
     setIsProcessing(true);
     
     try {
-      // Generate a unique order ID
-      const orderId = uuidv4();
-      
-      // Simulate order processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      // Prepare order data
+      const orderData = {
+        user_email: data.email,
+        user_id: user?.id || null,
+        customer_name: `${data.firstName} ${data.lastName}`,
+        customer_phone: data.phone,
+        customer_address: data.address,
+        customer_city: data.city,
+        payment_method: data.paymentMethod,
+        notes: data.notes || '',
+        items: items.map((item) => ({
+          product_id: item.product.id,
+          product_name: item.product.name,
+          quantity: item.quantity,
+          price: item.product.price,
+        })),
+        total: cartTotal(),
+      };
+
+      // Create order via edge function
+      const { data: orderResponse, error } = await supabase.functions.invoke(
+        'create-order',
+        {
+          body: orderData,
+        }
+      );
+
+      if (error) throw error;
+
+      console.log('Order created:', orderResponse);
+
+      // Store order code in session storage to show on success page
+      sessionStorage.setItem('lastOrderCode', orderResponse.order_code);
+
       // Clear cart and redirect to success page
       clearCart();
-      toast.success(t('order_success'));
+      toast.success('Order placed successfully!');
       navigate('/checkout/success');
     } catch (error: any) {
       console.error('Checkout error:', error);
-      toast.error(`${t('order_error')}: ${error.message}`);
+      toast.error(`Failed to place order: ${error.message}`);
       setIsProcessing(false);
     }
   };

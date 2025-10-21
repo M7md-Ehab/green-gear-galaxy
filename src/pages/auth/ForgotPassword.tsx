@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import { OtpVerificationModal } from '@/components/auth/OtpVerificationModal';
 import { z } from 'zod';
 
 const forgotPasswordSchema = z.object({
@@ -17,7 +18,7 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
   const { resetPassword } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,36 +36,11 @@ const ForgotPassword = () => {
     const { error: resetError } = await resetPassword(email);
     
     if (!resetError) {
-      setSuccess(true);
+      setShowOtpModal(true);
     }
     setLoading(false);
   };
 
-  if (success) {
-    return (
-      <div className="min-h-screen flex flex-col bg-black text-white">
-        <Navbar />
-        <main className="flex-grow flex items-center justify-center py-12">
-          <Card className="w-full max-w-md mx-4 bg-gray-900 border-gray-800">
-            <CardHeader>
-              <CardTitle className="text-2xl text-white">Check your email</CardTitle>
-              <CardDescription className="text-gray-400">
-                We've sent a password reset link to {email}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Link to="/login">
-                <Button className="w-full bg-brand-green hover:bg-brand-green/90 text-black">
-                  Back to Login
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">
@@ -112,6 +88,11 @@ const ForgotPassword = () => {
         </Card>
       </main>
       <Footer />
+      <OtpVerificationModal 
+        open={showOtpModal}
+        onOpenChange={setShowOtpModal}
+        email={email}
+      />
     </div>
   );
 };

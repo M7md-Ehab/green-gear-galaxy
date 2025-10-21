@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import { OtpVerificationModal } from '@/components/auth/OtpVerificationModal';
 import { z } from 'zod';
 
 const loginSchema = z.object({
@@ -19,6 +20,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [showOtpModal, setShowOtpModal] = useState(false);
   const { signIn, user } = useAuth();
   const navigate = useNavigate();
 
@@ -47,7 +49,7 @@ const Login = () => {
     const { error } = await signIn(email, password);
     
     if (!error) {
-      navigate('/');
+      setShowOtpModal(true);
     }
     setLoading(false);
   };
@@ -121,6 +123,11 @@ const Login = () => {
         </Card>
       </main>
       <Footer />
+      <OtpVerificationModal 
+        open={showOtpModal}
+        onOpenChange={setShowOtpModal}
+        email={email}
+      />
     </div>
   );
 };

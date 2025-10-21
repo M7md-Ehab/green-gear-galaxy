@@ -35,7 +35,12 @@ export function OtpVerificationModal({ open, onOpenChange, email }: OtpVerificat
     
     if (!error) {
       onOpenChange(false);
-      navigate('/');
+      // Check if this is a password reset (coming from forgot password page)
+      if (window.location.pathname === '/forgot-password') {
+        navigate('/reset-password');
+      } else {
+        navigate('/');
+      }
     }
     setLoading(false);
   };

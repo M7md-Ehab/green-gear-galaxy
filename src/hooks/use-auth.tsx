@@ -94,23 +94,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    // First verify the password
+    const { error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) {
-      if (error.message.includes('Email not confirmed')) {
+    if (signInError) {
+      if (signInError.message.includes('Email not confirmed')) {
         toast.error('Please verify your email before logging in');
-      } else if (error.message.includes('Invalid')) {
+      } else if (signInError.message.includes('Invalid')) {
         toast.error('Invalid email or password');
       } else {
-        toast.error(error.message);
+        toast.error(signInError.message);
       }
-      return { error };
+      return { error: signInError };
     }
 
-    toast.success('Logged in successfully!');
+    // Password is correct, sign out and send OTP
+    await supabase.auth.signOut();
+    
+    // Send OTP for login verification
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: false,
+      }
+    });
+
+    if (otpError) {
+      toast.error(otpError.message);
+      return { error: otpError };
+    }
+
+    toast.success('Check your email for the 6-digit verification code!');
     return { error: null };
   };
 
@@ -124,10 +141,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const resetPassword = async (email: string) => {
-    const redirectUrl = `${window.location.origin}/reset-password`;
-    
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: redirectUrl,
+    // Send OTP for password reset
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: false,
+      }
     });
 
     if (error) {
@@ -135,7 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error };
     }
 
-    toast.success('Password reset email sent! Check your inbox.');
+    toast.success('Check your email for the 6-digit verification code!');
     return { error: null };
   };
 

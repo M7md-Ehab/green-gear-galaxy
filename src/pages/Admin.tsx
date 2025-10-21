@@ -2,6 +2,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import OrderSearch from '@/components/admin/OrderSearch';
 import InventoryManagement from '@/components/admin/InventoryManagement';
+import SpendingAnalytics from '@/components/admin/SpendingAnalytics';
 import { Shield } from 'lucide-react';
 
 const Admin = () => {
@@ -21,7 +22,8 @@ const Admin = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 space-y-8">
+              <SpendingAnalytics />
               <InventoryManagement />
             </div>
             <div className="space-y-8">

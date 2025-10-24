@@ -71,6 +71,31 @@ const Checkout = () => {
     setIsProcessing(true);
     
     try {
+      // Fetch actual product IDs from database
+      const productIds = items.map(item => item.product.id);
+      const { data: dbProducts, error: productsError } = await supabase
+        .from('products')
+        .select('id, name')
+        .in('name', items.map(item => item.product.name));
+      
+      if (productsError) {
+        throw new Error('Failed to verify products');
+      }
+
+      // Map cart items to database product IDs
+      const orderItems = items.map((item) => {
+        const dbProduct = dbProducts?.find(p => p.name === item.product.name);
+        if (!dbProduct) {
+          throw new Error(`Product ${item.product.name} not found in database`);
+        }
+        return {
+          product_id: dbProduct.id,
+          product_name: item.product.name,
+          quantity: item.quantity,
+          price: item.product.price,
+        };
+      });
+
       // Prepare order data
       const orderData = {
         user_email: data.email,
@@ -81,12 +106,7 @@ const Checkout = () => {
         customer_city: data.city,
         payment_method: data.paymentMethod,
         notes: data.notes || '',
-        items: items.map((item) => ({
-          product_id: item.product.id,
-          product_name: item.product.name,
-          quantity: item.quantity,
-          price: item.product.price,
-        })),
+        items: orderItems,
         total: cartTotal(),
       };
 

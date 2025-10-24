@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 
-import { useCart } from '@/hooks/use-cart';
 import { useCurrency } from '@/hooks/use-currency';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/integrations/supabase/client';
+import { Product } from '@/hooks/use-products';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -38,13 +38,16 @@ const checkoutSchema = z.object({
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
 
-const Checkout = () => {
+const DirectCheckout = () => {
   const navigate = useNavigate();
-  const { items, cartTotal, clearCart } = useCart();
+  const [searchParams] = useSearchParams();
+  const productId = searchParams.get('productId');
   const { currentCurrency } = useCurrency();
   const { t } = useLanguage();
   const { user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
   
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
@@ -62,24 +65,46 @@ const Checkout = () => {
 
   const watchPaymentMethod = form.watch('paymentMethod');
 
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!productId) {
+        toast.error('No product selected');
+        navigate('/products');
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select('*')
+          .eq('id', productId)
+          .single();
+
+        if (error) throw error;
+        
+        setProduct(data);
+      } catch (error) {
+        console.error('Error fetching product:', error);
+        toast.error('Product not found');
+        navigate('/products');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [productId, navigate]);
+
   const onSubmit = async (data: CheckoutFormValues) => {
-    if (items.length === 0) {
-      toast.error('Your cart is empty');
+    if (!product) {
+      toast.error('No product selected');
       return;
     }
     
     setIsProcessing(true);
     
     try {
-      // Map cart items with their actual product IDs from the database
-      const orderItems = items.map((item) => ({
-        product_id: item.product.id,  // These are already UUIDs from the database
-        product_name: item.product.name,
-        quantity: item.quantity,
-        price: item.product.price,
-      }));
-
-      // Prepare order data
+      // Prepare order data for single product
       const orderData = {
         user_email: data.email,
         user_id: user?.id || null,
@@ -89,8 +114,13 @@ const Checkout = () => {
         customer_city: data.city,
         payment_method: data.paymentMethod,
         notes: data.notes || '',
-        items: orderItems,
-        total: cartTotal(),
+        items: [{
+          product_id: product.id,
+          product_name: product.name,
+          quantity: 1,
+          price: product.price,
+        }],
+        total: product.price,
       };
 
       // Create order via edge function
@@ -108,8 +138,7 @@ const Checkout = () => {
       // Store order code in session storage to show on success page
       sessionStorage.setItem('lastOrderCode', orderResponse.order_code);
 
-      // Clear cart and redirect to success page
-      clearCart();
+      // Redirect to success page
       toast.success('Order placed successfully!');
       navigate('/checkout/success');
     } catch (error: any) {
@@ -118,9 +147,16 @@ const Checkout = () => {
       setIsProcessing(false);
     }
   };
-  
-  if (items.length === 0 && !isProcessing) {
-    navigate('/cart');
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!product) {
     return null;
   }
 
@@ -129,7 +165,7 @@ const Checkout = () => {
       <Navbar />
       <main className="flex-grow py-12">
         <div className="container-custom">
-          <h1 className="text-4xl font-bold mb-8">{t('checkout')}</h1>
+          <h1 className="text-4xl font-bold mb-8">Buy Now Checkout</h1>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             {/* Checkout Form */}
@@ -305,21 +341,25 @@ const Checkout = () => {
                 <h2 className="text-xl font-bold mb-6">Order Summary</h2>
                 
                 <div className="space-y-4 mb-6">
-                  {/* Product List */}
-                  <div className="space-y-3">
-                    {items.map((item) => (
-                      <div key={item.product.id} className="flex justify-between text-sm">
-                        <span>
-                          {item.quantity} x {item.product.name}
-                        </span>
-                        <span>{currentCurrency.symbol}{(item.product.price * item.quantity).toLocaleString()} {currentCurrency.code}</span>
-                      </div>
-                    ))}
+                  {/* Product */}
+                  <div className="flex gap-4">
+                    <img 
+                      src={product.image_url} 
+                      alt={product.name}
+                      className="w-20 h-20 object-cover rounded"
+                    />
+                    <div className="flex-1">
+                      <h3 className="font-medium">{product.name}</h3>
+                      <p className="text-sm text-gray-400">Quantity: 1</p>
+                      <p className="text-green-500 font-bold mt-1">
+                        {currentCurrency.symbol}{product.price.toLocaleString()} {currentCurrency.code}
+                      </p>
+                    </div>
                   </div>
                   
                   <div className="border-t border-gray-700 pt-4 flex justify-between">
                     <span className="text-gray-400">Subtotal</span>
-                    <span>{currentCurrency.symbol}{cartTotal().toLocaleString()} {currentCurrency.code}</span>
+                    <span>{currentCurrency.symbol}{product.price.toLocaleString()} {currentCurrency.code}</span>
                   </div>
                   
                   <div className="flex justify-between">
@@ -329,7 +369,7 @@ const Checkout = () => {
                   
                   <div className="border-t border-gray-700 pt-4 flex justify-between">
                     <span className="font-bold">{t('total')}</span>
-                    <span className="font-bold text-lg">{currentCurrency.symbol}{cartTotal().toLocaleString()} {currentCurrency.code}</span>
+                    <span className="font-bold text-lg">{currentCurrency.symbol}{product.price.toLocaleString()} {currentCurrency.code}</span>
                   </div>
                 </div>
                 
@@ -354,4 +394,4 @@ const Checkout = () => {
   );
 };
 
-export default Checkout;
+export default DirectCheckout;

@@ -11,6 +11,7 @@ import ProductDetail from '@/pages/ProductDetail';
 import Products from '@/pages/Products';
 import Cart from '@/pages/Cart';
 import Checkout from '@/pages/Checkout';
+import DirectCheckout from '@/pages/DirectCheckout';
 import CheckoutSuccess from '@/pages/CheckoutSuccess';
 import Dashboard from '@/pages/Dashboard';
 import AccountEdit from '@/pages/account/AccountEdit';
@@ -45,6 +46,7 @@ function App() {
           <Route path="/products/:productId" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/direct-checkout" element={<DirectCheckout />} />
           <Route path="/checkout/success" element={<CheckoutSuccess />} />
           
           {/* Auth routes */}

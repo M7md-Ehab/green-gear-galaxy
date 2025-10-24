@@ -49,8 +49,8 @@ const ProductDetail = () => {
   };
 
   const handleBuyNow = () => {
-    addToCart(product);
-    navigate('/checkout');
+    // Direct to checkout with only this product
+    navigate(`/direct-checkout?productId=${product.id}`);
   };
 
   return (

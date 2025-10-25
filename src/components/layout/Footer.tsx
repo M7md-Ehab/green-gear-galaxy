@@ -2,23 +2,26 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Facebook, Instagram, Youtube } from 'lucide-react';
 import { useProducts } from '@/hooks/use-products';
 import { useLanguage } from '@/contexts/LanguageContext';
-
 const Footer = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
-  const { getUniqueCategories } = useProducts();
+  const {
+    t
+  } = useLanguage();
+  const {
+    getUniqueCategories
+  } = useProducts();
   const currentYear = new Date().getFullYear();
   const uniqueCategories = getUniqueCategories();
-
   const scrollToTop = () => {
     navigate('/products');
     setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
     }, 100);
   };
-
-  return (
-    <footer className="bg-black border-t border-gray-800 text-white">
+  return <footer className="bg-black border-t border-gray-800 text-white">
       <div className="container-custom py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
@@ -32,7 +35,7 @@ const Footer = () => {
               </a>
               <a href="https://x.com" className="text-gray-400 hover:text-green-500 transition-colors">
                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                 </svg>
               </a>
               <a href="https://instagram.com" className="text-gray-400 hover:text-green-500 transition-colors">
@@ -40,7 +43,7 @@ const Footer = () => {
               </a>
               <a href="https://tiktok.com" className="text-gray-400 hover:text-green-500 transition-colors">
                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43V7.56a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.05z"/>
+                  <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43V7.56a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.05z" />
                 </svg>
               </a>
               <a href="https://youtube.com" className="text-gray-400 hover:text-green-500 transition-colors">
@@ -52,33 +55,14 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold mb-4">{t('products')}</h4>
             <ul className="space-y-2">
-              {uniqueCategories.filter(category => 
-                category !== 'electronics' && 
-                category !== 'home' && 
-                category !== 'accessory'
-              ).map(category => (
-                <li key={category}>
-                  <Link 
-                    to={`/products?category=${category}`} 
-                    className="text-gray-400 hover:text-green-500 transition-colors"
-                  >
+              {uniqueCategories.filter(category => category !== 'electronics' && category !== 'home' && category !== 'accessory').map(category => <li key={category}>
+                  <Link to={`/products?category=${category}`} className="text-gray-400 hover:text-green-500 transition-colors">
                     {category}
                   </Link>
-                </li>
-              ))}
+                </li>)}
+              
               <li>
-                <Link 
-                  to="/accessories"
-                  className="text-gray-400 hover:text-green-500 transition-colors"
-                >
-                  {t('accessories')}
-                </Link>
-              </li>
-              <li>
-                <button 
-                  onClick={scrollToTop}
-                  className="text-gray-400 hover:text-green-500 transition-colors"
-                >
+                <button onClick={scrollToTop} className="text-gray-400 hover:text-green-500 transition-colors">
                   {t('explore_products')}
                 </button>
               </li>
@@ -114,8 +98,6 @@ const Footer = () => {
           </p>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;

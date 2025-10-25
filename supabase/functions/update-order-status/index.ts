@@ -1,15 +1,19 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface UpdateOrderRequest {
-  order_id: string;
-  status: "pending" | "shipped" | "finished";
-}
+// Input validation schema
+const UpdateOrderRequestSchema = z.object({
+  order_id: z.string().uuid(),
+  status: z.enum(['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'finished'])
+});
+
+interface UpdateOrderRequest extends z.infer<typeof UpdateOrderRequestSchema> {}
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
@@ -21,7 +25,8 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { order_id, status }: UpdateOrderRequest = await req.json();
+    const rawData = await req.json();
+    const { order_id, status } = UpdateOrderRequestSchema.parse(rawData);
 
     console.log("Updating order:", order_id, "to status:", status);
 
@@ -98,10 +103,16 @@ const handler = async (req: Request): Promise<Response> => {
     );
   } catch (error: any) {
     console.error("Error in update-order-status function:", error);
+    
+    const status = error instanceof z.ZodError ? 400 : 500;
+    const message = error instanceof z.ZodError 
+      ? `Validation error: ${error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')}`
+      : error.message;
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: message }),
       {
-        status: 500,
+        status,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );

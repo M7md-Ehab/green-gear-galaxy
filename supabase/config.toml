@@ -1,8 +1,9 @@
 project_id = "jmtsbdrmeohfoeibkglj"
 
-[functions.send-email]
-verify_jwt = false
+# send-email now requires authentication (JWT verification enabled by default)
+# Only other edge functions can call it securely
 
+# create-order remains public for guest checkout but has proper validation
 [functions.create-order]
 verify_jwt = false
 

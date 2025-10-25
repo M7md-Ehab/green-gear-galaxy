@@ -204,10 +204,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      generate_order_code: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
+      generate_order_code: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

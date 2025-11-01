@@ -94,8 +94,8 @@ export const useCurrencyStore = create(
         
         try {
           if (apiToken) {
-            // Use FXRates API
-            const response = await fetch(`https://api.fxratesapi.com/latest?api_key=${apiToken}&base=EGP&currencies=USD,EUR,GBP,SAR,AED,JPY,CNY`);
+            // Use CurrencyFreaks API
+            const response = await fetch(`https://api.currencyfreaks.com/v2.0/rates/latest?apikey=${apiToken}&symbols=USD,EUR,GBP,SAR,AED,JPY,CNY&base=EGP`);
             
             if (!response.ok) {
               throw new Error('Failed to fetch exchange rates');
@@ -103,14 +103,16 @@ export const useCurrencyStore = create(
             
             const data = await response.json();
             
-            if (data.success && data.rates) {
+            if (data.rates) {
               const rates = {
                 EGP: 1,
-                ...data.rates
+                ...Object.fromEntries(
+                  Object.entries(data.rates).map(([key, value]) => [key, parseFloat(value as string)])
+                )
               };
               
               set({ exchangeRates: rates, isLoading: false });
-              console.log('Exchange rates updated from FXRates API:', rates);
+              console.log('Exchange rates updated from CurrencyFreaks API:', rates);
             } else {
               throw new Error('Invalid API response');
             }

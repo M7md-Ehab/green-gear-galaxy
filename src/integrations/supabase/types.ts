@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      email_activity: {
+        Row: {
+          email_type: string
+          id: string
+          order_code: number | null
+          order_id: string | null
+          recipient_email: string
+          sent_at: string
+          status: string
+          subject: string
+        }
+        Insert: {
+          email_type: string
+          id?: string
+          order_code?: number | null
+          order_id?: string | null
+          recipient_email: string
+          sent_at?: string
+          status?: string
+          subject: string
+        }
+        Update: {
+          email_type?: string
+          id?: string
+          order_code?: number | null
+          order_id?: string | null
+          recipient_email?: string
+          sent_at?: string
+          status?: string
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_activity_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           created_at: string
@@ -73,6 +114,7 @@ export type Database = {
       orders: {
         Row: {
           created_at: string
+          customer_name: string | null
           id: string
           order_code: number | null
           status: string
@@ -84,6 +126,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          customer_name?: string | null
           id?: string
           order_code?: number | null
           status?: string
@@ -95,6 +138,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          customer_name?: string | null
           id?: string
           order_code?: number | null
           status?: string

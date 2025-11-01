@@ -93,6 +93,7 @@ const handler = async (req: Request): Promise<Response> => {
       .insert({
         user_id: orderData.user_id || null,
         user_email: orderData.user_email,
+        customer_name: orderData.customer_name,
         total: calculatedTotal, // Use server-calculated total
         status: "pending",
       })
@@ -127,60 +128,121 @@ const handler = async (req: Request): Promise<Response> => {
     const adminEmail = Deno.env.get("ADMIN_EMAIL") || "mehab882011@gmail.com";
     const orderCode = order.order_code;
 
-    // Prepare order details for email
-    const orderDetailsText = validatedItems
-      .map((item) => `${item.product_name} × ${item.quantity} - $${Number(item.price).toFixed(2)}`)
-      .join("\n");
+    // Prepare order items table for email
+    const orderItemsTable = validatedItems
+      .map((item) => 
+        `<tr style="border-bottom: 1px solid #ddd;">
+          <td style="padding: 10px;">${item.product_name}</td>
+          <td style="padding: 10px;">× ${item.quantity}</td>
+          <td style="padding: 10px; text-align: right;">$${Number(item.price).toFixed(2)}</td>
+        </tr>`
+      ).join('');
 
-    // Email to admin
+    // Email to admin with professional styling
     const adminEmailHtml = `
-      <h2>New Order Received — #${orderCode}</h2>
-      <p><strong>Order Code:</strong> ${orderCode}</p>
-      <p><strong>Customer Email:</strong> ${orderData.user_email}</p>
-      <p><strong>Customer Name:</strong> ${orderData.customer_name}</p>
-      <p><strong>Phone:</strong> ${orderData.customer_phone}</p>
-      <p><strong>Address:</strong> ${orderData.customer_address}, ${orderData.customer_city}</p>
-      <p><strong>Payment Method:</strong> ${orderData.payment_method}</p>
-      ${orderData.notes ? `<p><strong>Notes:</strong> ${orderData.notes}</p>` : ""}
-      <h3>Order Details:</h3>
-      <pre>${orderDetailsText}</pre>
-      <p><strong>Total:</strong> $${calculatedTotal.toFixed(2)}</p>
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #00ff94 0%, #00cc75 100%); padding: 20px; text-align: center;">
+          <h1 style="color: #000; margin: 0;">New Order Received</h1>
+        </div>
+        <div style="padding: 20px; background: #f9f9f9;">
+          <h2 style="color: #333;">Order #${orderCode}</h2>
+          <p><strong>Customer Name:</strong> ${orderData.customer_name}</p>
+          <p><strong>Customer Email:</strong> ${orderData.user_email}</p>
+          <p><strong>Phone:</strong> ${orderData.customer_phone}</p>
+          <p><strong>Address:</strong> ${orderData.customer_address}, ${orderData.customer_city}</p>
+          <p><strong>Payment Method:</strong> ${orderData.payment_method}</p>
+          ${orderData.notes ? `<p><strong>Notes:</strong> ${orderData.notes}</p>` : ""}
+          <h3 style="color: #333;">Order Items:</h3>
+          <table style="width: 100%; border-collapse: collapse;">
+            ${orderItemsTable}
+            <tr style="font-weight: bold; font-size: 16px;">
+              <td colspan="2" style="padding: 15px 10px;">Total:</td>
+              <td style="padding: 15px 10px; text-align: right;">$${calculatedTotal.toFixed(2)}</td>
+            </tr>
+          </table>
+        </div>
+        <div style="background: #333; color: #fff; padding: 15px; text-align: center; font-size: 12px;">
+          <p>Mehab Admin Panel</p>
+        </div>
+      </div>
     `;
 
-    await supabase.functions.invoke("send-email", {
-      body: {
-        to: adminEmail,
+    try {
+      await supabase.functions.invoke("send-email", {
+        body: {
+          to: adminEmail,
+          subject: `New Order Received — #${orderCode}`,
+          html: adminEmailHtml,
+        },
+      });
+
+      // Log admin email
+      await supabase.from("email_activity").insert({
+        order_id: order.id,
+        order_code: orderCode,
+        email_type: "admin_notification",
+        recipient_email: adminEmail,
         subject: `New Order Received — #${orderCode}`,
-        html: adminEmailHtml,
-      },
-    });
+        status: "sent"
+      });
 
-    console.log("Admin email sent");
+      console.log("Admin email sent");
+    } catch (error) {
+      console.error("Failed to send admin email:", error);
+    }
 
-    // Email to customer
+    // Email to customer with professional styling
     const customerEmailHtml = `
-      <h2>Order Confirmation — #${orderCode}</h2>
-      <p>Dear ${orderData.customer_name},</p>
-      <p>Thank you for your order! We have received your order and it is being processed.</p>
-      <p><strong>Your Order Code:</strong> ${orderCode}</p>
-      <p>Please save this code for tracking your order.</p>
-      <h3>Order Summary:</h3>
-      <pre>${orderDetailsText}</pre>
-      <p><strong>Total:</strong> $${calculatedTotal.toFixed(2)}</p>
-      <p><strong>Delivery Address:</strong> ${orderData.customer_address}, ${orderData.customer_city}</p>
-      <p>We will send you an email when your order has been shipped or completed.</p>
-      <p>Thank you for shopping with Mehab!</p>
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #00ff94 0%, #00cc75 100%); padding: 20px; text-align: center;">
+          <h1 style="color: #000; margin: 0;">Thank You for Your Order!</h1>
+        </div>
+        <div style="padding: 20px; background: #f9f9f9;">
+          <p>Hi ${orderData.customer_name},</p>
+          <p>Thank you for shopping with Mehab! Your order <strong>#${orderCode}</strong> has been received and is being processed.</p>
+          <p><strong>Your Order Code:</strong> ${orderCode}</p>
+          <p style="font-size: 12px; color: #666;">Please save this code for tracking your order.</p>
+          <h3 style="color: #333;">Order Summary:</h3>
+          <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            ${orderItemsTable}
+            <tr style="font-weight: bold; font-size: 16px;">
+              <td colspan="2" style="padding: 15px 10px;">Total:</td>
+              <td style="padding: 15px 10px; text-align: right;">$${calculatedTotal.toFixed(2)}</td>
+            </tr>
+          </table>
+          <p><strong>Delivery Address:</strong><br>${orderData.customer_address}, ${orderData.customer_city}</p>
+          <p>We'll send you another email when your order ships.</p>
+        </div>
+        <div style="background: #333; color: #fff; padding: 15px; text-align: center; font-size: 12px;">
+          <p>Thank you for shopping with Mehab!</p>
+          <p>Questions? Contact us at ${adminEmail}</p>
+        </div>
+      </div>
     `;
 
-    await supabase.functions.invoke("send-email", {
-      body: {
-        to: orderData.user_email,
-        subject: `Order Confirmation — #${orderCode}`,
-        html: customerEmailHtml,
-      },
-    });
+    try {
+      await supabase.functions.invoke("send-email", {
+        body: {
+          to: orderData.user_email,
+          subject: `Order Confirmation — #${orderCode}`,
+          html: customerEmailHtml,
+        },
+      });
 
-    console.log("Customer email sent");
+      // Log customer email
+      await supabase.from("email_activity").insert({
+        order_id: order.id,
+        order_code: orderCode,
+        email_type: "order_confirmation",
+        recipient_email: orderData.user_email,
+        subject: `Order Confirmation — #${orderCode}`,
+        status: "sent"
+      });
+
+      console.log("Customer email sent");
+    } catch (error) {
+      console.error("Failed to send customer email:", error);
+    }
 
     return new Response(
       JSON.stringify({

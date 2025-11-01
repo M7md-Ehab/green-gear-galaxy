@@ -33,7 +33,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Get order details before updating
     const { data: order, error: fetchError } = await supabase
       .from("orders")
-      .select("order_code, user_email, status")
+      .select("order_code, user_email, customer_name, status")
       .eq("id", order_id)
       .single();
 
@@ -57,38 +57,105 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Order updated successfully");
 
-    // Send email notification if status changed to shipped or finished
-    if ((status === "shipped" || status === "finished") && oldStatus !== status) {
+    // Send email notification if status changed to shipped, delivered, or finished
+    if ((status === "shipped" || status === "delivered" || status === "finished") && oldStatus !== status) {
       let emailSubject = "";
       let emailBody = "";
+      let emailType = "";
+      const customerName = order.customer_name || "Valued Customer";
 
       if (status === "shipped") {
-        emailSubject = `Your Order #${order.order_code} Has Been Shipped`;
+        emailType = "shipped";
+        emailSubject = `Your Order is on the Way 🚚 - #${order.order_code}`;
         emailBody = `
-          <h2>Order Shipped — #${order.order_code}</h2>
-          <p>Good news! Your order #${order.order_code} has been shipped.</p>
-          <p>It should arrive within the next few days.</p>
-          <p>Thank you for shopping with Mehab!</p>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: linear-gradient(135deg, #00ff94 0%, #00cc75 100%); padding: 20px; text-align: center;">
+              <h1 style="color: #000; margin: 0;">Your Order is on the Way! 🚚</h1>
+            </div>
+            <div style="padding: 20px; background: #f9f9f9;">
+              <p>Hi ${customerName},</p>
+              <p>Good news! Your order <strong>#${order.order_code}</strong> has been shipped and is on its way to you.</p>
+              <p>You can expect delivery within the next few days.</p>
+              <p>Thank you for choosing Mehab!</p>
+            </div>
+            <div style="background: #333; color: #fff; padding: 15px; text-align: center; font-size: 12px;">
+              <p>Thank you for shopping with Mehab!</p>
+            </div>
+          </div>
+        `;
+      } else if (status === "delivered") {
+        emailType = "delivered";
+        emailSubject = `Your Order Has Been Delivered 📦 - #${order.order_code}`;
+        emailBody = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: linear-gradient(135deg, #00ff94 0%, #00cc75 100%); padding: 20px; text-align: center;">
+              <h1 style="color: #000; margin: 0;">Your Order Has Been Delivered! 📦</h1>
+            </div>
+            <div style="padding: 20px; background: #f9f9f9;">
+              <p>Hi ${customerName},</p>
+              <p>Your order <strong>#${order.order_code}</strong> has been successfully delivered.</p>
+              <p>We hope you enjoy your purchase!</p>
+              <p>If you have any questions or concerns, please don't hesitate to contact us.</p>
+            </div>
+            <div style="background: #333; color: #fff; padding: 15px; text-align: center; font-size: 12px;">
+              <p>Thank you for shopping with Mehab!</p>
+            </div>
+          </div>
         `;
       } else if (status === "finished") {
-        emailSubject = `Your Order #${order.order_code} Is Now Complete`;
+        emailType = "finished";
+        emailSubject = `Your Order Is Complete ✅ - #${order.order_code}`;
         emailBody = `
-          <h2>Order Complete — #${order.order_code}</h2>
-          <p>Your order #${order.order_code} has been completed.</p>
-          <p>We hope you enjoy your purchase!</p>
-          <p>Thank you for shopping with Mehab!</p>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: linear-gradient(135deg, #00ff94 0%, #00cc75 100%); padding: 20px; text-align: center;">
+              <h1 style="color: #000; margin: 0;">Order Complete ✅</h1>
+            </div>
+            <div style="padding: 20px; background: #f9f9f9;">
+              <p>Hi ${customerName},</p>
+              <p>Your order <strong>#${order.order_code}</strong> has been completed.</p>
+              <p>We hope you're satisfied with your purchase!</p>
+              <p>We'd love to hear your feedback about your experience with Mehab.</p>
+            </div>
+            <div style="background: #333; color: #fff; padding: 15px; text-align: center; font-size: 12px;">
+              <p>Thank you for shopping with Mehab!</p>
+            </div>
+          </div>
         `;
       }
 
-      await supabase.functions.invoke("send-email", {
-        body: {
-          to: order.user_email,
-          subject: emailSubject,
-          html: emailBody,
-        },
-      });
+      try {
+        await supabase.functions.invoke("send-email", {
+          body: {
+            to: order.user_email,
+            subject: emailSubject,
+            html: emailBody,
+          },
+        });
 
-      console.log("Status update email sent to:", order.user_email);
+        // Log email activity
+        await supabase.from("email_activity").insert({
+          order_id: order_id,
+          order_code: order.order_code,
+          email_type: emailType,
+          recipient_email: order.user_email,
+          subject: emailSubject,
+          status: "sent"
+        });
+
+        console.log(`${emailType} email sent to:`, order.user_email);
+      } catch (error) {
+        console.error("Failed to send status update email:", error);
+        
+        // Log failed email attempt
+        await supabase.from("email_activity").insert({
+          order_id: order_id,
+          order_code: order.order_code,
+          email_type: emailType,
+          recipient_email: order.user_email,
+          subject: emailSubject,
+          status: "failed"
+        });
+      }
     }
 
     return new Response(

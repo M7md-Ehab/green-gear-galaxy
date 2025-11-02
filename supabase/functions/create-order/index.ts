@@ -18,7 +18,7 @@ const OrderRequestSchema = z.object({
   payment_method: z.enum(['online', 'cod']),
   notes: z.string().max(1000).optional(),
   items: z.array(z.object({
-    product_id: z.string().uuid(),
+    product_id: z.string().min(1),
     product_name: z.string().min(1).max(200),
     quantity: z.number().int().positive().max(100)
     // Note: price is NOT accepted from client - we fetch from DB

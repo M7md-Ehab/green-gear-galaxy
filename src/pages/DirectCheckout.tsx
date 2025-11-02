@@ -9,7 +9,7 @@ import { useCurrency } from '@/hooks/use-currency';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/integrations/supabase/client';
-import { Product } from '@/hooks/use-products';
+import { products, Product } from '@/data/products';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -66,33 +66,23 @@ const DirectCheckout = () => {
   const watchPaymentMethod = form.watch('paymentMethod');
 
   useEffect(() => {
-    const fetchProduct = async () => {
-      if (!productId) {
-        toast.error('No product selected');
-        navigate('/products');
-        return;
-      }
+    if (!productId) {
+      toast.error('No product selected');
+      navigate('/products');
+      return;
+    }
 
-      try {
-        const { data, error } = await supabase
-          .from('products')
-          .select('*')
-          .eq('id', productId)
-          .single();
-
-        if (error) throw error;
-        
-        setProduct(data);
-      } catch (error) {
-        console.error('Error fetching product:', error);
-        toast.error('Product not found');
-        navigate('/products');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProduct();
+    // Find product from hardcoded products
+    const foundProduct = products.find(p => p.id === productId);
+    
+    if (!foundProduct) {
+      toast.error('Product not found');
+      navigate('/products');
+    } else {
+      setProduct(foundProduct);
+    }
+    
+    setLoading(false);
   }, [productId, navigate]);
 
   const onSubmit = async (data: CheckoutFormValues) => {
@@ -344,7 +334,7 @@ const DirectCheckout = () => {
                   {/* Product */}
                   <div className="flex gap-4">
                     <img 
-                      src={product.image_url} 
+                      src={product.images[0]} 
                       alt={product.name}
                       className="w-20 h-20 object-cover rounded"
                     />

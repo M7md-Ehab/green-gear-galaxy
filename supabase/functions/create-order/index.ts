@@ -68,9 +68,10 @@ const handler = async (req: Request): Promise<Response> => {
         };
       } else {
         // Product not in database - use client-provided data (for hardcoded products)
+        // For hardcoded products, we don't store them in order_items with product_id
         console.log(`Product ${item.product_id} not found in DB, using client data`);
         return {
-          product_id: item.product_id,
+          product_id: null, // Don't store string IDs as UUIDs
           product_name: item.product_name,
           quantity: item.quantity,
           price: item.price

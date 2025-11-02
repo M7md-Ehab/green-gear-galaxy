@@ -15,7 +15,7 @@ const CurrencySelector = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="text-white hover:text-gray-300">
+        <Button variant="ghost" size="sm" className="text-white hover:text-black hover:bg-brand-green">
           <DollarSign className="h-4 w-4 mr-2" />
           <span className="hidden sm:inline">{currentCurrency.code}</span>
         </Button>

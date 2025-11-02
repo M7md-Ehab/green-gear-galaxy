@@ -41,7 +41,7 @@ type CheckoutFormValues = z.infer<typeof checkoutSchema>;
 const Checkout = () => {
   const navigate = useNavigate();
   const { items, cartTotal, clearCart } = useCart();
-  const { currentCurrency } = useCurrency();
+  const { currentCurrency, convertPrice } = useCurrency();
   const { t } = useLanguage();
   const { user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -71,12 +71,12 @@ const Checkout = () => {
     setIsProcessing(true);
     
     try {
-      // Map cart items with their actual product IDs from the database
+      // Map cart items - send string IDs for hardcoded products
       const orderItems = items.map((item) => ({
-        product_id: item.product.id,  // These are already UUIDs from the database
+        product_id: item.product.id,  // String ID from hardcoded products
         product_name: item.product.name,
         quantity: item.quantity,
-        price: item.product.price,
+        price: item.product.price, // Price in EGP
       }));
 
       // Prepare order data
@@ -90,7 +90,7 @@ const Checkout = () => {
         payment_method: data.paymentMethod,
         notes: data.notes || '',
         items: orderItems,
-        total: cartTotal(),
+        total: cartTotal(), // Total in EGP
       };
 
       // Create order via edge function
@@ -307,19 +307,22 @@ const Checkout = () => {
                 <div className="space-y-4 mb-6">
                   {/* Product List */}
                   <div className="space-y-3">
-                    {items.map((item) => (
-                      <div key={item.product.id} className="flex justify-between text-sm">
-                        <span>
-                          {item.quantity} x {item.product.name}
-                        </span>
-                        <span>{currentCurrency.symbol}{(item.product.price * item.quantity).toLocaleString()} {currentCurrency.code}</span>
-                      </div>
-                    ))}
+                    {items.map((item) => {
+                      const convertedPrice = convertPrice(item.product.price, 'EGP');
+                      return (
+                        <div key={item.product.id} className="flex justify-between text-sm">
+                          <span>
+                            {item.quantity} x {item.product.name}
+                          </span>
+                          <span>{currentCurrency.symbol}{(convertedPrice * item.quantity).toFixed(2)} {currentCurrency.code}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                   
                   <div className="border-t border-gray-700 pt-4 flex justify-between">
                     <span className="text-gray-400">Subtotal</span>
-                    <span>{currentCurrency.symbol}{cartTotal().toLocaleString()} {currentCurrency.code}</span>
+                    <span>{currentCurrency.symbol}{convertPrice(cartTotal(), 'EGP').toFixed(2)} {currentCurrency.code}</span>
                   </div>
                   
                   <div className="flex justify-between">
@@ -329,7 +332,7 @@ const Checkout = () => {
                   
                   <div className="border-t border-gray-700 pt-4 flex justify-between">
                     <span className="font-bold">{t('total')}</span>
-                    <span className="font-bold text-lg">{currentCurrency.symbol}{cartTotal().toLocaleString()} {currentCurrency.code}</span>
+                    <span className="font-bold text-lg">{currentCurrency.symbol}{convertPrice(cartTotal(), 'EGP').toFixed(2)} {currentCurrency.code}</span>
                   </div>
                 </div>
                 

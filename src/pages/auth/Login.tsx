@@ -48,15 +48,11 @@ const Login = () => {
     setLoading(true);
     const { error } = await signIn(email, password);
     
-    if (error) {
-      // If email not confirmed, show OTP modal
-      if (error.message.includes('Email not confirmed')) {
-        setShowOtpModal(true);
-      } else {
-        setErrors({ email: error.message });
-      }
+    if (!error) {
+      // OTP sent, show modal
+      setShowOtpModal(true);
     } else {
-      // Login successful, user will be redirected by useEffect
+      setErrors({ email: error.message });
     }
     setLoading(false);
   };
@@ -134,6 +130,7 @@ const Login = () => {
         open={showOtpModal}
         onOpenChange={setShowOtpModal}
         email={email}
+        type="signin"
       />
     </div>
   );

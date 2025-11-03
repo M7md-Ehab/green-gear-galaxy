@@ -92,6 +92,7 @@ const ForgotPassword = () => {
         open={showOtpModal}
         onOpenChange={setShowOtpModal}
         email={email}
+        type="recovery"
       />
     </div>
   );

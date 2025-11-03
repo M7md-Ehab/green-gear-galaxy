@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
 import {
@@ -16,14 +16,30 @@ interface OtpVerificationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   email: string;
+  type?: 'signup' | 'signin' | 'recovery';
 }
 
-export function OtpVerificationModal({ open, onOpenChange, email }: OtpVerificationModalProps) {
+export function OtpVerificationModal({ open, onOpenChange, email, type = 'signup' }: OtpVerificationModalProps) {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
   const { verifyOtp, resendOtp } = useAuth();
   const navigate = useNavigate();
+
+  // Cooldown timer for resend button (3 minutes = 180 seconds)
+  useEffect(() => {
+    if (open && cooldown === 0) {
+      setCooldown(180);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (cooldown > 0) {
+      const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [cooldown]);
 
   const handleVerify = async () => {
     if (otp.length !== 6) {
@@ -31,12 +47,15 @@ export function OtpVerificationModal({ open, onOpenChange, email }: OtpVerificat
     }
 
     setLoading(true);
-    const { error } = await verifyOtp(email, otp);
+    const { error } = await verifyOtp(email, otp, type);
     
     if (!error) {
       onOpenChange(false);
-      // Check if this is a password reset (coming from forgot password page)
-      if (window.location.pathname === '/forgot-password') {
+      setOtp('');
+      setCooldown(0);
+      
+      // Navigate based on type
+      if (type === 'recovery') {
         navigate('/reset-password');
       } else {
         navigate('/');
@@ -46,10 +65,22 @@ export function OtpVerificationModal({ open, onOpenChange, email }: OtpVerificat
   };
 
   const handleResend = async () => {
+    if (cooldown > 0) return;
+    
     setResending(true);
-    await resendOtp(email);
-    setOtp('');
+    const { error } = await resendOtp(email, type);
+    
+    if (!error) {
+      setCooldown(180); // Reset to 3 minutes
+      setOtp('');
+    }
     setResending(false);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -59,6 +90,8 @@ export function OtpVerificationModal({ open, onOpenChange, email }: OtpVerificat
           <DialogTitle className="text-white">Verify your email</DialogTitle>
           <DialogDescription className="text-gray-400">
             Enter the 6-digit code sent to {email}
+            <br />
+            <span className="text-xs text-gray-500 mt-1">Code expires in 10 minutes</span>
           </DialogDescription>
         </DialogHeader>
         
@@ -91,11 +124,11 @@ export function OtpVerificationModal({ open, onOpenChange, email }: OtpVerificat
 
             <Button
               onClick={handleResend}
-              disabled={resending}
+              disabled={resending || cooldown > 0}
               variant="ghost"
-              className="w-full text-brand-green hover:text-brand-green/90"
+              className="w-full text-brand-green hover:text-brand-green/90 disabled:opacity-50"
             >
-              {resending ? 'Sending...' : 'Resend Code'}
+              {resending ? 'Sending...' : cooldown > 0 ? `Resend code (${formatTime(cooldown)})` : 'Resend Code'}
             </Button>
           </div>
         </div>

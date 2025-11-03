@@ -13,8 +13,8 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
   updatePassword: (newPassword: string) => Promise<{ error: any }>;
-  verifyOtp: (email: string, token: string) => Promise<{ error: any }>;
-  resendOtp: (email: string) => Promise<{ error: any }>;
+  verifyOtp: (email: string, token: string, type?: 'signup' | 'signin' | 'recovery') => Promise<{ error: any }>;
+  resendOtp: (email: string, type?: 'signup' | 'signin' | 'recovery') => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -62,11 +62,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: null };
   };
 
-  const verifyOtp = async (email: string, token: string) => {
+  const verifyOtp = async (email: string, token: string, type: 'signup' | 'signin' | 'recovery' = 'signup') => {
+    const otpType = type === 'signin' ? 'email' : type;
+    
     const { data, error } = await supabase.auth.verifyOtp({
       email,
       token,
-      type: 'signup'
+      type: otpType as any
     });
 
     if (error) {
@@ -78,9 +80,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: null };
   };
 
-  const resendOtp = async (email: string) => {
+  const resendOtp = async (email: string, type: 'signup' | 'signin' | 'recovery' = 'signup') => {
+    const resendType = type === 'signin' ? 'email' : type;
+    
     const { error } = await supabase.auth.resend({
-      type: 'signup',
+      type: resendType as any,
       email
     });
 

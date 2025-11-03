@@ -193,31 +193,122 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Email to customer with professional styling
     const customerEmailHtml = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: linear-gradient(135deg, #00ff94 0%, #00cc75 100%); padding: 20px; text-align: center;">
-          <h1 style="color: #000; margin: 0;">Thank You for Your Order!</h1>
-        </div>
-        <div style="padding: 20px; background: #f9f9f9;">
-          <p>Hi ${orderData.customer_name},</p>
-          <p>Thank you for shopping with Mehab! Your order <strong>#${orderCode}</strong> has been received and is being processed.</p>
-          <p><strong>Your Order Code:</strong> ${orderCode}</p>
-          <p style="font-size: 12px; color: #666;">Please save this code for tracking your order.</p>
-          <h3 style="color: #333;">Order Summary:</h3>
-          <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-            ${orderItemsTable}
-            <tr style="font-weight: bold; font-size: 16px;">
-              <td colspan="2" style="padding: 15px 10px;">Total:</td>
-              <td style="padding: 15px 10px; text-align: right;">$${calculatedTotal.toFixed(2)}</td>
-            </tr>
-          </table>
-          <p><strong>Delivery Address:</strong><br>${orderData.customer_address}, ${orderData.customer_city}</p>
-          <p>We'll send you another email when your order ships.</p>
-        </div>
-        <div style="background: #333; color: #fff; padding: 15px; text-align: center; font-size: 12px;">
-          <p>Thank you for shopping with Mehab!</p>
-          <p>Questions? Contact us at ${adminEmail}</p>
-        </div>
-      </div>
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+        <table role="presentation" style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td align="center" style="padding: 40px 0;">
+              <table role="presentation" style="width: 600px; max-width: 100%; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                
+                <!-- Header with Logo -->
+                <tr>
+                  <td style="background: linear-gradient(135deg, #00ff94 0%, #00cc75 100%); padding: 40px 20px; text-align: center;">
+                    <img src="https://jmtsbdrmeohfoeibkglj.supabase.co/storage/v1/object/public/assets/logo.png" alt="Mehab Logo" style="width: 80px; height: auto; margin-bottom: 20px;" onerror="this.style.display='none'">
+                    <h1 style="color: #000000; margin: 0; font-size: 28px; font-weight: 700;">Order Confirmed!</h1>
+                    <p style="color: #1a1a1a; margin: 10px 0 0 0; font-size: 16px;">Thank you for your purchase</p>
+                  </td>
+                </tr>
+                
+                <!-- Order Code Badge -->
+                <tr>
+                  <td style="padding: 30px 40px 20px;">
+                    <div style="background: #f8f9fa; border-left: 4px solid #00ff94; padding: 15px 20px; border-radius: 4px;">
+                      <p style="margin: 0; color: #666; font-size: 13px; text-transform: uppercase; letter-spacing: 1px;">Order Number</p>
+                      <p style="margin: 5px 0 0 0; color: #000; font-size: 24px; font-weight: 700;">#${orderCode}</p>
+                    </div>
+                  </td>
+                </tr>
+                
+                <!-- Greeting -->
+                <tr>
+                  <td style="padding: 0 40px;">
+                    <p style="color: #333; font-size: 16px; line-height: 24px; margin: 0;">Hi <strong>${orderData.customer_name}</strong>,</p>
+                    <p style="color: #666; font-size: 15px; line-height: 24px; margin: 15px 0 0 0;">Your order has been confirmed and is being processed. We'll notify you when it ships.</p>
+                  </td>
+                </tr>
+                
+                <!-- Order Items -->
+                <tr>
+                  <td style="padding: 30px 40px 20px;">
+                    <h2 style="color: #333; font-size: 18px; font-weight: 600; margin: 0 0 20px 0;">Order Details</h2>
+                    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                      <thead>
+                        <tr style="border-bottom: 2px solid #e0e0e0;">
+                          <th style="padding: 12px 0; text-align: left; color: #666; font-size: 13px; font-weight: 600; text-transform: uppercase;">Product</th>
+                          <th style="padding: 12px 0; text-align: center; color: #666; font-size: 13px; font-weight: 600; text-transform: uppercase;">Qty</th>
+                          <th style="padding: 12px 0; text-align: right; color: #666; font-size: 13px; font-weight: 600; text-transform: uppercase;">Price</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${validatedItems.map(item => `
+                          <tr style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 16px 0; color: #333; font-size: 15px;">${item.product_name}</td>
+                            <td style="padding: 16px 0; text-align: center; color: #666; font-size: 15px;">× ${item.quantity}</td>
+                            <td style="padding: 16px 0; text-align: right; color: #333; font-size: 15px; font-weight: 500;">$${Number(item.price).toFixed(2)}</td>
+                          </tr>
+                        `).join('')}
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <td colspan="2" style="padding: 20px 0 10px 0; text-align: left; color: #333; font-size: 17px; font-weight: 700;">Total</td>
+                          <td style="padding: 20px 0 10px 0; text-align: right; color: #00cc75; font-size: 22px; font-weight: 700;">$${calculatedTotal.toFixed(2)}</td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </td>
+                </tr>
+                
+                <!-- Delivery Info -->
+                <tr>
+                  <td style="padding: 20px 40px;">
+                    <div style="background: #fafafa; border-radius: 6px; padding: 20px;">
+                      <h3 style="color: #333; font-size: 15px; font-weight: 600; margin: 0 0 12px 0;">Delivery Information</h3>
+                      <p style="color: #666; font-size: 14px; line-height: 22px; margin: 0;">
+                        <strong style="color: #333;">${orderData.customer_name}</strong><br>
+                        ${orderData.customer_phone}<br>
+                        ${orderData.customer_address}<br>
+                        ${orderData.customer_city}
+                      </p>
+                      ${orderData.notes ? `
+                        <p style="color: #666; font-size: 14px; line-height: 22px; margin: 15px 0 0 0; padding-top: 15px; border-top: 1px solid #e0e0e0;">
+                          <strong style="color: #333;">Note:</strong> ${orderData.notes}
+                        </p>
+                      ` : ''}
+                    </div>
+                  </td>
+                </tr>
+                
+                <!-- Payment Method -->
+                <tr>
+                  <td style="padding: 0 40px 30px;">
+                    <p style="color: #666; font-size: 14px; margin: 0;">
+                      <strong style="color: #333;">Payment Method:</strong> ${orderData.payment_method === 'cod' ? 'Cash on Delivery' : 'Online Payment'}
+                    </p>
+                  </td>
+                </tr>
+                
+                <!-- Footer -->
+                <tr>
+                  <td style="background-color: #1a1a1a; padding: 30px 40px; text-align: center;">
+                    <p style="color: #ffffff; font-size: 16px; margin: 0 0 10px 0; font-weight: 600;">Thank you for shopping with Mehab!</p>
+                    <p style="color: #999; font-size: 13px; margin: 0; line-height: 20px;">
+                      Questions about your order?<br>
+                      Contact us at <a href="mailto:${adminEmail}" style="color: #00ff94; text-decoration: none;">${adminEmail}</a>
+                    </p>
+                  </td>
+                </tr>
+                
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
     `;
 
     try {

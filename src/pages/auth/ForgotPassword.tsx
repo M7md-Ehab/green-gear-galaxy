@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,7 @@ const ForgotPassword = () => {
   const [error, setError] = useState('');
   const [showOtpModal, setShowOtpModal] = useState(false);
   const { resetPassword } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,6 +94,7 @@ const ForgotPassword = () => {
         onOpenChange={setShowOtpModal}
         email={email}
         type="recovery"
+        onVerificationSuccess={() => navigate('/reset-password')}
       />
     </div>
   );

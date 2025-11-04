@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +28,7 @@ const SignUp = () => {
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
   const { signUp } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,6 +61,8 @@ const SignUp = () => {
         open={showOtpModal} 
         onOpenChange={setShowOtpModal}
         email={verificationEmail}
+        type="signup"
+        onVerificationSuccess={() => navigate('/')}
       />
       
       <div className="min-h-screen flex flex-col bg-black text-white">

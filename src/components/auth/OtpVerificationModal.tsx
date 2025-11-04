@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
 import {
   Dialog,
@@ -17,15 +16,15 @@ interface OtpVerificationModalProps {
   onOpenChange: (open: boolean) => void;
   email: string;
   type?: 'signup' | 'signin' | 'recovery';
+  onVerificationSuccess?: () => void;
 }
 
-export function OtpVerificationModal({ open, onOpenChange, email, type = 'signup' }: OtpVerificationModalProps) {
+export function OtpVerificationModal({ open, onOpenChange, email, type = 'signup', onVerificationSuccess }: OtpVerificationModalProps) {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const { verifyOtp, resendOtp } = useAuth();
-  const navigate = useNavigate();
 
   // Cooldown timer for resend button (3 minutes = 180 seconds)
   useEffect(() => {
@@ -50,15 +49,14 @@ export function OtpVerificationModal({ open, onOpenChange, email, type = 'signup
     const { error } = await verifyOtp(email, otp, type);
     
     if (!error) {
-      onOpenChange(false);
+      // Close modal and reset state
       setOtp('');
       setCooldown(0);
+      onOpenChange(false);
       
-      // Navigate based on type
-      if (type === 'recovery') {
-        navigate('/reset-password');
-      } else {
-        navigate('/');
+      // Call success callback if provided
+      if (onVerificationSuccess) {
+        onVerificationSuccess();
       }
     }
     setLoading(false);

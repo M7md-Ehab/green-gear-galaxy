@@ -131,6 +131,7 @@ const Login = () => {
         onOpenChange={setShowOtpModal}
         email={email}
         type="signin"
+        onVerificationSuccess={() => navigate('/')}
       />
     </div>
   );

@@ -9,3 +9,10 @@ verify_jwt = false
 
 [functions.update-order-status]
 verify_jwt = true
+
+# OTP functions are public for authentication flows
+[functions.generate-otp]
+verify_jwt = false
+
+[functions.verify-otp]
+verify_jwt = false

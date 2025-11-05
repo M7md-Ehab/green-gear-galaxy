@@ -194,6 +194,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw otpError;
       }
 
+      toast.success('Check your email for the 6-digit verification code!');
       return { error: null };
     } catch (error: any) {
       console.error('Sign in error:', error);

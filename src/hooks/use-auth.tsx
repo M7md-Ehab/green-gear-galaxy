@@ -23,6 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [pendingAuth, setPendingAuth] = useState<{ email: string; password: string } | null>(null);
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -71,6 +72,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error };
     }
 
+    // Store password temporarily for post-OTP authentication
+    setPendingAuth({ email, password });
+
     // Generate and send OTP
     try {
       const { error: otpError } = await supabase.functions.invoke('generate-otp', {
@@ -100,27 +104,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: error || new Error(data?.error) };
       }
 
-      // Now sign in the user with Supabase auth
+      // After OTP verification, establish proper Supabase session
       if (type === 'signup' || type === 'signin') {
-        // For signup/signin, we need to get the user's password from session or sign them in
-        // Since we already verified OTP, we'll use signInWithOtp for final authentication
-        const { error: signInError } = await supabase.auth.signInWithOtp({
-          email,
-          options: {
-            shouldCreateUser: false,
-          }
+        if (!pendingAuth || pendingAuth.email !== email) {
+          toast.error('Session expired. Please try signing in again.');
+          return { error: new Error('No pending authentication found') };
+        }
+
+        // Sign in with the stored password to create a valid session
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: pendingAuth.email,
+          password: pendingAuth.password,
         });
 
-        // Note: This will send another email, but we'll immediately verify it
-        if (!signInError) {
-          // Set session manually after OTP verification
-          toast.success('Email verified successfully!');
+        // Clear pending auth data
+        setPendingAuth(null);
+
+        if (signInError) {
+          toast.error('Failed to establish session. Please try again.');
+          return { error: signInError };
         }
+
+        toast.success('Verification successful! Welcome back.');
       }
 
       return { error: null };
     } catch (error: any) {
       toast.error('Verification failed. Please try again.');
+      setPendingAuth(null);
       return { error };
     }
   };
@@ -164,6 +175,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Password is correct, sign out and send OTP
     await supabase.auth.signOut();
+    
+    // Store password temporarily for post-OTP authentication
+    setPendingAuth({ email, password });
     
     // Generate and send OTP
     try {

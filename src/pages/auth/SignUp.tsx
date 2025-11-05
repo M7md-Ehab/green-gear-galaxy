@@ -24,6 +24,7 @@ const SignUp = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
@@ -46,11 +47,15 @@ const SignUp = () => {
     }
 
     setLoading(true);
+    setSendingOtp(true);
     const { error } = await signUp(email, password);
+    setSendingOtp(false);
     
     if (!error) {
       setVerificationEmail(email);
       setShowOtpModal(true);
+    } else {
+      setErrors({ email: error.message || 'Failed to create account' });
     }
     setLoading(false);
   };
@@ -124,7 +129,16 @@ const SignUp = () => {
                 className="w-full bg-brand-green hover:bg-brand-green/90 text-black"
                 disabled={loading}
               >
-                {loading ? 'Creating account...' : 'Sign Up'}
+                {sendingOtp ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div>
+                    Sending verification code...
+                  </span>
+                ) : loading ? (
+                  'Creating account...'
+                ) : (
+                  'Sign Up'
+                )}
               </Button>
 
               <p className="text-center text-sm text-gray-400">

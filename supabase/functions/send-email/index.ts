@@ -29,8 +29,14 @@ const handler = async (req: Request): Promise<Response> => {
     const rawData = await req.json();
     const emailRequest = EmailRequestSchema.parse(rawData);
 
+    // Get admin email for "from" address
+    const adminEmail = Deno.env.get("ADMIN_EMAIL");
+    if (!adminEmail) {
+      throw new Error("Admin email not configured");
+    }
+
     const emailResponse = await resend.emails.send({
-      from: "Mehab <onboarding@resend.dev>",
+      from: `Mehab <${adminEmail}>`,
       to: [emailRequest.to],
       subject: emailRequest.subject,
       html: emailRequest.html,
@@ -48,10 +54,15 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Error in send-email function:", error);
     
-    const status = error instanceof z.ZodError ? 400 : 500;
-    const message = error instanceof z.ZodError 
-      ? `Validation error: ${error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')}`
-      : error.message;
+    let status = 500;
+    let message = "Failed to send email";
+    
+    if (error instanceof z.ZodError) {
+      status = 400;
+      message = `Validation error: ${error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')}`;
+    } else if (error.message) {
+      message = error.message;
+    }
     
     return new Response(
       JSON.stringify({ error: message }),

@@ -19,6 +19,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showOtpModal, setShowOtpModal] = useState(false);
   const { signIn, user } = useAuth();
@@ -46,13 +47,15 @@ const Login = () => {
     }
 
     setLoading(true);
+    setSendingOtp(true);
     const { error } = await signIn(email, password);
+    setSendingOtp(false);
     
     if (!error) {
       // OTP sent, show modal
       setShowOtpModal(true);
     } else {
-      setErrors({ email: error.message });
+      setErrors({ email: error.message || 'Failed to sign in' });
     }
     setLoading(false);
   };
@@ -112,7 +115,16 @@ const Login = () => {
                 className="w-full bg-brand-green hover:bg-brand-green/90 text-black"
                 disabled={loading}
               >
-                {loading ? 'Logging in...' : 'Log In'}
+                {sendingOtp ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div>
+                    Sending verification code...
+                  </span>
+                ) : loading ? (
+                  'Verifying credentials...'
+                ) : (
+                  'Log In'
+                )}
               </Button>
 
               <p className="text-center text-sm text-gray-400">

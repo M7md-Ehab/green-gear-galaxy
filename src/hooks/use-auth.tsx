@@ -100,7 +100,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (error || data?.error) {
-        toast.error(data?.error || 'Invalid or expired code');
+        const errorMessage = data?.error || error?.message || 'Invalid or expired code';
+        toast.error(errorMessage);
         return { error: error || new Error(data?.error) };
       }
 
@@ -108,11 +109,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (type === 'signup' || type === 'signin') {
         if (!pendingAuth || pendingAuth.email !== email) {
           toast.error('Session expired. Please try signing in again.');
+          setPendingAuth(null);
           return { error: new Error('No pending authentication found') };
         }
 
         // Sign in with the stored password to create a valid session
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+        const { data: sessionData, error: signInError } = await supabase.auth.signInWithPassword({
           email: pendingAuth.email,
           password: pendingAuth.password,
         });
@@ -125,11 +127,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return { error: signInError };
         }
 
+        // Session is now established with all user data including roles
         toast.success('Verification successful! Welcome back.');
       }
 
       return { error: null };
     } catch (error: any) {
+      console.error('OTP verification error:', error);
       toast.error('Verification failed. Please try again.');
       setPendingAuth(null);
       return { error };
@@ -156,43 +160,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
-    // First verify the password
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (signInError) {
-      if (signInError.message.includes('Email not confirmed')) {
-        toast.error('Please verify your email before logging in');
-      } else if (signInError.message.includes('Invalid')) {
-        toast.error('Invalid email or password');
-      } else {
-        toast.error(signInError.message);
-      }
-      return { error: signInError };
-    }
-
-    // Password is correct, sign out and send OTP
-    await supabase.auth.signOut();
-    
-    // Store password temporarily for post-OTP authentication
-    setPendingAuth({ email, password });
-    
-    // Generate and send OTP
     try {
+      // First verify the password by attempting sign in
+      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        if (signInError.message.includes('Email not confirmed')) {
+          toast.error('Please verify your email before logging in');
+        } else if (signInError.message.includes('Invalid')) {
+          toast.error('Invalid email or password');
+        } else {
+          toast.error(signInError.message);
+        }
+        return { error: signInError };
+      }
+
+      // Password is correct, but we need OTP verification
+      // Sign out immediately to prevent auto-login
+      await supabase.auth.signOut();
+      
+      // Store password temporarily for post-OTP authentication
+      setPendingAuth({ email, password });
+      
+      // Generate and send OTP
       const { error: otpError } = await supabase.functions.invoke('generate-otp', {
         body: { email, type: 'signin' }
       });
 
-      if (otpError) throw otpError;
+      if (otpError) {
+        throw otpError;
+      }
 
-      toast.success('Check your email for the 6-digit verification code!');
       return { error: null };
-    } catch (otpError: any) {
-      console.error('OTP generation error:', otpError);
-      toast.error('Failed to send verification code. Please try again.');
-      return { error: otpError };
+    } catch (error: any) {
+      console.error('Sign in error:', error);
+      const errorMessage = error?.message || 'Failed to send verification code. Please try again.';
+      toast.error(errorMessage);
+      return { error };
     }
   };
 

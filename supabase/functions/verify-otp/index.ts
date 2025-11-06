@@ -26,7 +26,10 @@ const handler = async (req: Request): Promise<Response> => {
     const rawData = await req.json();
     const { email, code, type } = RequestSchema.parse(rawData);
 
-    console.log(`Verifying OTP for ${email}, type: ${type}`);
+    // Trim whitespace from code
+    const trimmedCode = code.trim();
+
+    console.log(`Verifying OTP for ${email}, type: ${type}, code: ${trimmedCode}`);
 
     // Find valid OTP
     const { data: otpRecords, error: fetchError } = await supabase
@@ -44,6 +47,11 @@ const handler = async (req: Request): Promise<Response> => {
       throw fetchError;
     }
 
+    console.log(`Found ${otpRecords?.length || 0} valid OTP records`);
+    if (otpRecords && otpRecords.length > 0) {
+      console.log(`OTP record code: "${otpRecords[0].code}", submitted code: "${trimmedCode}"`);
+    }
+
     if (!otpRecords || otpRecords.length === 0) {
       return new Response(
         JSON.stringify({ error: "No valid verification code found. Please request a new code." }),
@@ -56,8 +64,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     const otpRecord = otpRecords[0];
 
-    // Verify code matches
-    if (otpRecord.code !== code) {
+    // Verify code matches (both should be strings, trim both to be safe)
+    if (otpRecord.code.trim() !== trimmedCode) {
+      console.error(`Code mismatch: DB="${otpRecord.code.trim()}" vs submitted="${trimmedCode}"`);
       return new Response(
         JSON.stringify({ error: "Invalid verification code. Please try again." }),
         {

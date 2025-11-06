@@ -94,15 +94,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const verifyOtp = async (email: string, token: string, type: 'signup' | 'signin' | 'recovery' = 'signup') => {
     try {
+      console.log('Verifying OTP:', { email, type, codeLength: token.length });
+      
       // Verify OTP via edge function
       const { data, error } = await supabase.functions.invoke('verify-otp', {
         body: { email, code: token, type }
       });
 
-      if (error || data?.error) {
-        const errorMessage = data?.error || error?.message || 'Invalid or expired code';
+      console.log('OTP verification response:', { data, error });
+
+      if (error) {
+        const errorMessage = error.message || 'Failed to verify code';
+        console.error('OTP verification error:', errorMessage);
         toast.error(errorMessage);
-        return { error: error || new Error(data?.error) };
+        return { error };
+      }
+
+      if (data?.error) {
+        console.error('OTP verification failed:', data.error);
+        toast.error(data.error);
+        return { error: new Error(data.error) };
       }
 
       // After OTP verification, establish proper Supabase session

@@ -68,15 +68,20 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Mark OTP as verified
-    await supabase
+    const { error: updateError } = await supabase
       .from('otp_codes')
       .update({ verified: true })
       .eq('id', otpRecord.id);
 
-    console.log("OTP verified successfully");
+    if (updateError) {
+      console.error("Error updating OTP:", updateError);
+      throw updateError;
+    }
+
+    console.log("OTP verified successfully for:", email);
 
     return new Response(
-      JSON.stringify({ success: true, message: "Email verified successfully" }),
+      JSON.stringify({ status: 200, message: "OTP verified successfully" }),
       {
         status: 200,
         headers: {

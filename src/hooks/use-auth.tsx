@@ -57,13 +57,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: new Error('Account already exists') };
     }
 
-    // Create user account with email confirmation disabled
+    // Create user account - we'll send our own OTP email
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/`,
-        data: { email_confirmed: false }
+        data: { email_confirmed: false },
       }
     });
 

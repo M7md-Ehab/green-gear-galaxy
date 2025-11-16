@@ -12,17 +12,10 @@ import { z } from 'zod';
 
 const signUpSchema = z.object({
   email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  confirmPassword: z.string()
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
 });
 
 const SignUp = () => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [sendingOtp, setSendingOtp] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -35,7 +28,7 @@ const SignUp = () => {
     e.preventDefault();
     setErrors({});
 
-    const result = signUpSchema.safeParse({ email, password, confirmPassword });
+    const result = signUpSchema.safeParse({ email });
     
     if (!result.success) {
       const formattedErrors: { [key: string]: string } = {};
@@ -48,14 +41,14 @@ const SignUp = () => {
 
     setLoading(true);
     setSendingOtp(true);
-    const { error } = await signUp(email, password);
+    const { error } = await signUp(email);
     setSendingOtp(false);
     
     if (!error) {
       setVerificationEmail(email);
       setShowOtpModal(true);
     } else {
-      setErrors({ email: error.message || 'Failed to create account' });
+      setErrors({ email: error.message || 'Failed to send code' });
     }
     setLoading(false);
   };
@@ -66,7 +59,6 @@ const SignUp = () => {
         open={showOtpModal} 
         onOpenChange={setShowOtpModal}
         email={verificationEmail}
-        type="signup"
         onVerificationSuccess={() => navigate('/')}
       />
       
@@ -77,7 +69,7 @@ const SignUp = () => {
           <CardHeader>
             <CardTitle className="text-2xl text-white">Create an account</CardTitle>
             <CardDescription className="text-gray-400">
-              Enter your details to sign up
+              Enter your email to get started
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -94,34 +86,6 @@ const SignUp = () => {
                   className="bg-gray-800 border-gray-700 text-white"
                 />
                 {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="At least 6 characters"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="bg-gray-800 border-gray-700 text-white"
-                />
-                {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  placeholder="Confirm your password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  className="bg-gray-800 border-gray-700 text-white"
-                />
-                {errors.confirmPassword && <p className="text-red-500 text-sm">{errors.confirmPassword}</p>}
               </div>
 
               <Button

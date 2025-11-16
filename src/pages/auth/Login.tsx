@@ -12,12 +12,10 @@ import { z } from 'zod';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
 });
 
 const Login = () => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [sendingOtp, setSendingOtp] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -35,7 +33,7 @@ const Login = () => {
     e.preventDefault();
     setErrors({});
 
-    const result = loginSchema.safeParse({ email, password });
+    const result = loginSchema.safeParse({ email });
     
     if (!result.success) {
       const formattedErrors: { [key: string]: string } = {};
@@ -48,14 +46,14 @@ const Login = () => {
 
     setLoading(true);
     setSendingOtp(true);
-    const { error } = await signIn(email, password);
+    const { error } = await signIn(email);
     setSendingOtp(false);
     
     if (!error) {
       // OTP sent, show modal
       setShowOtpModal(true);
     } else {
-      setErrors({ email: error.message || 'Failed to sign in' });
+      setErrors({ email: error.message || 'Failed to send code' });
     }
     setLoading(false);
   };
@@ -68,7 +66,7 @@ const Login = () => {
           <CardHeader>
             <CardTitle className="text-2xl text-white">Welcome back</CardTitle>
             <CardDescription className="text-gray-400">
-              Enter your credentials to log in
+              Enter your email to receive a login code
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -85,29 +83,6 @@ const Login = () => {
                   className="bg-gray-800 border-gray-700 text-white"
                 />
                 {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="bg-gray-800 border-gray-700 text-white"
-                />
-                {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
-              </div>
-
-              <div className="flex justify-end">
-                <Link 
-                  to="/forgot-password" 
-                  className="text-sm text-brand-green hover:underline"
-                >
-                  Forgot password?
-                </Link>
               </div>
 
               <Button
@@ -142,7 +117,6 @@ const Login = () => {
         open={showOtpModal}
         onOpenChange={setShowOtpModal}
         email={email}
-        type="signin"
         onVerificationSuccess={() => navigate('/')}
       />
     </div>

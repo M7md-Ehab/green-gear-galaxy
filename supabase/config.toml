@@ -1,13 +1,1 @@
-project_id = "jmtsbdrmeohfoeibkglj"
-
-# send-email requires authentication (JWT verification enabled)
-# Only authenticated edge functions with service role can call it
-[functions.send-email]
-verify_jwt = true
-
-# create-order remains public for guest checkout but has proper validation
-[functions.create-order]
-verify_jwt = false
-
-[functions.update-order-status]
-verify_jwt = true
+project_id = "esiwubtfcwgarczsvepq"

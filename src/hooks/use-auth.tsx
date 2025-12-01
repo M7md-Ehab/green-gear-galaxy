@@ -8,11 +8,11 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string) => Promise<{ error: any }>;
-  signIn: (email: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName?: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
-  verifyOtp: (email: string, token: string) => Promise<{ error: any }>;
-  resendOtp: (email: string) => Promise<{ error: any }>;
+  resetPassword: (email: string) => Promise<{ error: any }>;
+  updatePassword: (password: string) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,12 +42,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string) => {
-    const { data, error } = await supabase.auth.signInWithOtp({
+  const signUp = async (email: string, password: string, fullName?: string) => {
+    // Check if user is banned before allowing signup
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_banned')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (profile?.is_banned) {
+      toast.error('This account has been banned. Please contact support.');
+      return { error: { message: 'Account banned' } };
+    }
+
+    const { data, error } = await supabase.auth.signUp({
       email,
+      password,
       options: {
-        shouldCreateUser: true,
-      }
+        data: {
+          full_name: fullName,
+        },
+      },
     });
 
     if (error) {
@@ -55,49 +70,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error };
     }
 
-    toast.success('Check your email for the 6-digit verification code!');
+    toast.success('Account created! Please sign in.');
     return { error: null };
   };
 
-  const verifyOtp = async (email: string, token: string) => {
-    const { data, error } = await supabase.auth.verifyOtp({
-      email,
-      token,
-      type: 'email'
-    });
+  const signIn = async (email: string, password: string) => {
+    // Check if user is banned before allowing login
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_banned')
+      .eq('email', email)
+      .maybeSingle();
 
-    if (error) {
-      toast.error(error.message || 'Invalid verification code');
-      return { error };
+    if (profile?.is_banned) {
+      toast.error('This account has been banned. Please contact support.');
+      return { error: { message: 'Account banned' } };
     }
 
-    toast.success('Verification successful! Welcome.');
-    return { error: null };
-  };
-
-  const resendOtp = async (email: string) => {
-    const { error } = await supabase.auth.signInWithOtp({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
-      options: {
-        shouldCreateUser: false,
-      }
-    });
-
-    if (error) {
-      toast.error('Failed to resend code. Please try again.');
-      return { error };
-    }
-
-    toast.success('New verification code sent to your email!');
-    return { error: null };
-  };
-
-  const signIn = async (email: string) => {
-    const { data, error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        shouldCreateUser: false,
-      }
+      password,
     });
 
     if (error) {
@@ -105,7 +97,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error };
     }
 
-    toast.success('Check your email for the 6-digit verification code!');
+    toast.success('Logged in successfully!');
+    return { error: null };
+  };
+
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+
+    if (error) {
+      toast.error(error.message);
+      return { error };
+    }
+
+    toast.success('Password reset link sent to your email!');
+    return { error: null };
+  };
+
+  const updatePassword = async (password: string) => {
+    const { error } = await supabase.auth.updateUser({
+      password,
+    });
+
+    if (error) {
+      toast.error(error.message);
+      return { error };
+    }
+
+    toast.success('Password updated successfully!');
     return { error: null };
   };
 
@@ -119,7 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut, verifyOtp, resendOtp }}>
+    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut, resetPassword, updatePassword }}>
       {children}
     </AuthContext.Provider>
   );

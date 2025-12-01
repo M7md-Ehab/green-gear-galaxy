@@ -7,19 +7,18 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { OtpVerificationModal } from '@/components/auth/OtpVerificationModal';
 import { z } from 'zod';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 const Login = () => {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [sendingOtp, setSendingOtp] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [showOtpModal, setShowOtpModal] = useState(false);
   const { signIn, user } = useAuth();
   const navigate = useNavigate();
 
@@ -33,7 +32,7 @@ const Login = () => {
     e.preventDefault();
     setErrors({});
 
-    const result = loginSchema.safeParse({ email });
+    const result = loginSchema.safeParse({ email, password });
     
     if (!result.success) {
       const formattedErrors: { [key: string]: string } = {};
@@ -45,15 +44,10 @@ const Login = () => {
     }
 
     setLoading(true);
-    setSendingOtp(true);
-    const { error } = await signIn(email);
-    setSendingOtp(false);
+    const { error } = await signIn(email, password);
     
-    if (!error) {
-      // OTP sent, show modal
-      setShowOtpModal(true);
-    } else {
-      setErrors({ email: error.message || 'Failed to send code' });
+    if (error) {
+      setErrors({ email: error.message || 'Failed to sign in' });
     }
     setLoading(false);
   };
@@ -66,7 +60,7 @@ const Login = () => {
           <CardHeader>
             <CardTitle className="text-2xl text-white">Welcome back</CardTitle>
             <CardDescription className="text-gray-400">
-              Enter your email to receive a login code
+              Sign in to your account
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -85,22 +79,33 @@ const Login = () => {
                 {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="bg-gray-800 border-gray-700 text-white"
+                />
+                {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
+              </div>
+
               <Button
                 type="submit"
                 className="w-full bg-brand-green hover:bg-brand-green/90 text-black"
                 disabled={loading}
               >
-                {sendingOtp ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div>
-                    Sending verification code...
-                  </span>
-                ) : loading ? (
-                  'Verifying credentials...'
-                ) : (
-                  'Log In'
-                )}
+                {loading ? 'Signing in...' : 'Sign In'}
               </Button>
+
+              <div className="text-center text-sm">
+                <Link to="/forgot-password" className="text-brand-green hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
 
               <p className="text-center text-sm text-gray-400">
                 Don't have an account?{' '}
@@ -113,12 +118,6 @@ const Login = () => {
         </Card>
       </main>
       <Footer />
-      <OtpVerificationModal 
-        open={showOtpModal}
-        onOpenChange={setShowOtpModal}
-        email={email}
-        onVerificationSuccess={() => navigate('/')}
-      />
     </div>
   );
 };

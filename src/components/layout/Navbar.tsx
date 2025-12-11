@@ -1,20 +1,17 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Menu, X, User, LogOut, Shield } from 'lucide-react';
+import { ShoppingCart, Menu, X, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
 import { useAuth } from '@/hooks/use-auth';
-import { useAdmin } from '@/hooks/use-admin';
 import CurrencySelector from '@/components/CurrencySelector';
 import LanguageSelector from '@/components/LanguageSelector';
 import { useLanguage } from '@/contexts/LanguageContext';
-
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { user, signOut } = useAuth();
-  const { isAdmin } = useAdmin();
   const {
     items,
     itemsCount
@@ -49,13 +46,6 @@ const Navbar = () => {
           
           {user ? (
             <>
-              {isAdmin && (
-                <Link to="/admin">
-                  <Button variant="ghost" size="icon" title="Admin Panel">
-                    <Shield className="h-5 w-5 text-brand-green" />
-                  </Button>
-                </Link>
-              )}
               <Link to="/dashboard">
                 <Button variant="ghost" size="icon">
                   <User className="h-5 w-5" />
@@ -105,12 +95,6 @@ const Navbar = () => {
             
             {user ? (
               <>
-                {isAdmin && (
-                  <Link to="/admin" className="font-medium text-brand-green hover:text-brand-green/80 transition-colors flex items-center gap-2" onClick={() => setIsOpen(false)}>
-                    <Shield className="h-4 w-4" />
-                    Admin Panel
-                  </Link>
-                )}
                 <Link to="/dashboard" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>
                   Dashboard
                 </Link>

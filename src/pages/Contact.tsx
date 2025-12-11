@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,43 +9,104 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { toast } from 'sonner';
-import { Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/use-auth';
 
-// Contact form validation schema
-const contactSchema = z.object({
-  name: z.string().trim().min(2, 'Name must be at least 2 characters').max(100, 'Name must be less than 100 characters'),
-  email: z.string().email('Invalid email address').max(255, 'Email must be less than 255 characters'),
-  subject: z.string().trim().min(5, 'Subject must be at least 5 characters').max(200, 'Subject must be less than 200 characters'),
-  message: z.string().trim().min(10, 'Message must be at least 10 characters').max(2000, 'Message must be less than 2000 characters')
+const feedbackSchema = z.object({
+  name: z.string().trim().min(2, 'Name must be at least 2 characters').max(100),
+  email: z.string().email('Invalid email address').max(255),
+  message: z.string().trim().min(10, 'Message must be at least 10 characters').max(2000)
 });
 
-type ContactFormData = z.infer<typeof contactSchema>;
+type FeedbackFormData = z.infer<typeof feedbackSchema>;
 
 const Contact = () => {
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<ContactFormData>({
-    resolver: zodResolver(contactSchema),
+  const form = useForm<FeedbackFormData>({
+    resolver: zodResolver(feedbackSchema),
     defaultValues: {
       name: '',
-      email: '',
-      subject: '',
+      email: user?.email || '',
       message: ''
     }
   });
 
-  const handleSubmit = async (data: ContactFormData) => {
+  const handleSubmit = async (data: FeedbackFormData) => {
     setIsSubmitting(true);
     
     try {
-      // Simulate form submission - will be connected to database once contacts table is ready
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Save feedback to database
+      const { error: dbError } = await supabase
+        .from('feedback')
+        .insert({
+          name: data.name,
+          email: data.email,
+          message: data.message,
+          user_id: user?.id || null,
+          status: 'pending'
+        });
+
+      if (dbError) throw dbError;
+
+      // Send email notification to admin
+      const { error: emailError } = await supabase.functions.invoke('send-email', {
+        body: {
+          to: 'mehab882011@gmail.com',
+          subject: `New Feedback from ${data.name}`,
+          html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="utf-8">
+            </head>
+            <body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td align="center" style="padding: 40px 0;">
+                    <table style="width: 600px; max-width: 100%; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                      <tr>
+                        <td style="background: linear-gradient(135deg, #00ff94 0%, #00cc75 100%); padding: 30px; text-align: center;">
+                          <h1 style="color: #000; margin: 0; font-size: 24px;">New Feedback Received</h1>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 30px;">
+                          <div style="background: #f8f9fa; padding: 20px; border-radius: 6px; margin-bottom: 20px;">
+                            <p style="margin: 0 0 10px 0; color: #666; font-size: 14px;"><strong>From:</strong> ${data.name}</p>
+                            <p style="margin: 0 0 10px 0; color: #666; font-size: 14px;"><strong>Email:</strong> ${data.email}</p>
+                            <p style="margin: 0; color: #666; font-size: 14px;"><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
+                          </div>
+                          <h3 style="color: #333; margin: 0 0 15px 0;">Message:</h3>
+                          <p style="color: #555; line-height: 1.6; margin: 0; white-space: pre-wrap;">${data.message}</p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="background: #1a1a1a; padding: 20px; text-align: center;">
+                          <p style="color: #888; margin: 0; font-size: 12px;">Mehab Admin Panel</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </body>
+            </html>
+          `
+        }
+      });
+
+      if (emailError) {
+        console.error('Failed to send admin notification:', emailError);
+      }
       
-      toast.success('Message sent successfully! We will get back to you soon.');
+      toast.success('Thank you for your feedback! We will get back to you soon.');
       form.reset();
     } catch (error) {
-      console.error('Error sending message:', error);
-      toast.error('Failed to send message. Please try again.');
+      console.error('Error submitting feedback:', error);
+      toast.error('Failed to send feedback. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -105,9 +165,9 @@ const Contact = () => {
               </div>
             </div>
             
-            {/* Contact Form */}
+            {/* Feedback Form */}
             <div className="bg-gray-900/50 rounded-lg p-6 md:col-span-2">
-              <h2 className="text-xl font-bold mb-4">Send Us a Message</h2>
+              <h2 className="text-xl font-bold mb-4">Send Us Your Feedback</h2>
               
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
@@ -143,26 +203,17 @@ const Contact = () => {
                   
                   <FormField
                     control={form.control}
-                    name="subject"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Subject</FormLabel>
-                        <FormControl>
-                          <Input {...field} className="bg-gray-800 border-gray-700" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
                     name="message"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Message</FormLabel>
+                        <FormLabel>Your Feedback</FormLabel>
                         <FormControl>
-                          <Textarea {...field} rows={6} className="bg-gray-800 border-gray-700 resize-none" />
+                          <Textarea 
+                            {...field} 
+                            rows={6} 
+                            className="bg-gray-800 border-gray-700 resize-none"
+                            placeholder="Share your thoughts, suggestions, or concerns..."
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -174,21 +225,20 @@ const Contact = () => {
                     className="w-full bg-brand-green hover:bg-brand-green/90 text-black"
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? 'Sending...' : 'Send Message'}
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="mr-2 h-4 w-4" />
+                        Send Feedback
+                      </>
+                    )}
                   </Button>
                 </form>
               </Form>
-            </div>
-          </div>
-          
-          {/* Map */}
-          <div className="mt-8 bg-gray-900/50 rounded-lg p-6">
-            <h2 className="text-xl font-bold mb-4">Our Location</h2>
-            <div className="aspect-[16/9] bg-gray-800 rounded-lg w-full flex items-center justify-center">
-              <div className="text-center text-gray-400">
-                <p>Map View</p>
-                <p className="text-sm">Interactive map would be displayed here</p>
-              </div>
             </div>
           </div>
         </div>

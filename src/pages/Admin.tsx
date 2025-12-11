@@ -4,7 +4,6 @@ import OrderSearch from '@/components/admin/OrderSearch';
 import InventoryManagement from '@/components/admin/InventoryManagement';
 import SpendingAnalytics from '@/components/admin/SpendingAnalytics';
 import EmailActivity from '@/components/admin/EmailActivity';
-import FeedbackManagement from '@/components/admin/FeedbackManagement';
 import { Shield } from 'lucide-react';
 
 const Admin = () => {
@@ -27,7 +26,6 @@ const Admin = () => {
             <div className="lg:col-span-2 space-y-8">
               <SpendingAnalytics />
               <InventoryManagement />
-              <FeedbackManagement />
               <EmailActivity />
             </div>
             <div className="space-y-8">

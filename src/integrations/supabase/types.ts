@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "12.2.3 (519615d)"
   }
   public: {
     Tables: {
@@ -18,65 +18,46 @@ export type Database = {
         Row: {
           email_type: string
           id: string
-          order_code: number
+          order_code: number | null
+          order_id: string | null
           recipient_email: string
-          sent_at: string | null
-          status: string | null
+          sent_at: string
+          status: string
           subject: string
         }
         Insert: {
           email_type: string
           id?: string
-          order_code: number
+          order_code?: number | null
+          order_id?: string | null
           recipient_email: string
-          sent_at?: string | null
-          status?: string | null
+          sent_at?: string
+          status?: string
           subject: string
         }
         Update: {
           email_type?: string
           id?: string
-          order_code?: number
+          order_code?: number | null
+          order_id?: string | null
           recipient_email?: string
-          sent_at?: string | null
-          status?: string | null
+          sent_at?: string
+          status?: string
           subject?: string
         }
-        Relationships: []
-      }
-      feedback: {
-        Row: {
-          created_at: string | null
-          email: string
-          id: string
-          message: string
-          name: string
-          status: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          email: string
-          id?: string
-          message: string
-          name: string
-          status?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          email?: string
-          id?: string
-          message?: string
-          name?: string
-          status?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "email_activity_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       order_items: {
         Row: {
-          created_at: string | null
+          created_at: string
           id: string
           order_id: string
           price: number
@@ -84,15 +65,15 @@ export type Database = {
           quantity: number
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
           id?: string
           order_id: string
           price: number
           product_id?: string | null
-          quantity: number
+          quantity?: number
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
           id?: string
           order_id?: string
           price?: number
@@ -100,6 +81,20 @@ export type Database = {
           quantity?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_order_items_order_id"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_order_items_product_id"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "order_items_order_id_fkey"
             columns: ["order_id"]
@@ -118,132 +113,162 @@ export type Database = {
       }
       orders: {
         Row: {
-          created_at: string | null
+          created_at: string
+          customer_name: string | null
           id: string
-          order_code: number
-          status: string | null
+          order_code: number | null
+          status: string
+          stripe_session_id: string | null
           total: number
-          user_email: string
+          updated_at: string
+          user_email: string | null
           user_id: string | null
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
+          customer_name?: string | null
           id?: string
-          order_code: number
-          status?: string | null
+          order_code?: number | null
+          status?: string
+          stripe_session_id?: string | null
           total: number
-          user_email: string
+          updated_at?: string
+          user_email?: string | null
           user_id?: string | null
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
+          customer_name?: string | null
           id?: string
-          order_code?: number
-          status?: string | null
+          order_code?: number | null
+          status?: string
+          stripe_session_id?: string | null
           total?: number
-          user_email?: string
+          updated_at?: string
+          user_email?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      otp_codes: {
+        Row: {
+          code: string
+          created_at: string | null
+          email: string
+          expires_at: string
+          id: string
+          type: string
+          verified: boolean | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          email: string
+          expires_at: string
+          id?: string
+          type: string
+          verified?: boolean | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          type?: string
+          verified?: boolean | null
         }
         Relationships: []
       }
       products: {
         Row: {
-          category: string
-          created_at: string | null
+          category: string | null
+          created_at: string
           description: string | null
           id: string
           image_url: string | null
-          images: string[] | null
           in_stock: boolean | null
           inventory_count: number | null
           name: string
           price: number
-          series: string | null
-          specs: Json | null
-          type: string | null
-          updated_at: string | null
+          updated_at: string
         }
         Insert: {
-          category: string
-          created_at?: string | null
+          category?: string | null
+          created_at?: string
           description?: string | null
           id?: string
           image_url?: string | null
-          images?: string[] | null
           in_stock?: boolean | null
           inventory_count?: number | null
           name: string
           price: number
-          series?: string | null
-          specs?: Json | null
-          type?: string | null
-          updated_at?: string | null
+          updated_at?: string
         }
         Update: {
-          category?: string
-          created_at?: string | null
+          category?: string | null
+          created_at?: string
           description?: string | null
           id?: string
           image_url?: string | null
-          images?: string[] | null
           in_stock?: boolean | null
           inventory_count?: number | null
           name?: string
           price?: number
-          series?: string | null
-          specs?: Json | null
-          type?: string | null
-          updated_at?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
       profiles: {
         Row: {
           avatar_url: string | null
-          created_at: string | null
-          email: string | null
+          created_at: string
+          display_name: string | null
           full_name: string | null
           id: string
-          is_banned: boolean | null
-          updated_at: string | null
+          updated_at: string
+          user_id: string
         }
         Insert: {
           avatar_url?: string | null
-          created_at?: string | null
-          email?: string | null
+          created_at?: string
+          display_name?: string | null
           full_name?: string | null
-          id: string
-          is_banned?: boolean | null
-          updated_at?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
         }
         Update: {
           avatar_url?: string | null
-          created_at?: string | null
-          email?: string | null
+          created_at?: string
+          display_name?: string | null
           full_name?: string | null
           id?: string
-          is_banned?: boolean | null
-          updated_at?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
       user_roles: {
         Row: {
-          created_at: string | null
+          created_at: string
           id: string
           role: Database["public"]["Enums"]["app_role"]
+          updated_at: string
           user_id: string
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
           id?: string
           role: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
           user_id: string
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -253,6 +278,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_expired_otps: { Args: never; Returns: undefined }
+      generate_order_code: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -262,7 +289,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "user"
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -390,7 +417,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user"],
+      app_role: ["admin", "moderator", "user"],
     },
   },
 } as const

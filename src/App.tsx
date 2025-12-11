@@ -27,7 +27,6 @@ import TermsAndConditions from '@/pages/TermsAndConditions';
 import About from '@/pages/About';
 import Contact from '@/pages/Contact';
 import Accessories from '@/pages/Accessories';
-import Feedback from '@/pages/Feedback';
 
 // Auth pages
 import SignUp from '@/pages/auth/SignUp';
@@ -79,7 +78,6 @@ function App() {
           <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/feedback" element={<Feedback />} />
           <Route path="/how-to-order" element={<HowToOrder />} />
           
           <Route path="*" element={<NotFound />} />

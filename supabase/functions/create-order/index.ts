@@ -87,13 +87,18 @@ const handler = async (req: Request): Promise<Response> => {
       console.warn(`Price mismatch: calculated $${calculatedTotal.toFixed(2)} but received $${orderData.total.toFixed(2)}`);
     }
 
-    // Create order in database
+    // Create order in database with all fields
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
         user_id: orderData.user_id || null,
         user_email: orderData.user_email,
         customer_name: orderData.customer_name,
+        customer_phone: orderData.customer_phone,
+        customer_address: orderData.customer_address,
+        customer_city: orderData.customer_city,
+        payment_method: orderData.payment_method,
+        notes: orderData.notes || null,
         total: calculatedTotal, // Use server-calculated total
         status: "pending",
       })

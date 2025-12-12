@@ -27,16 +27,18 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const rawData = await req.json();
+    console.log("Email request received:", { to: rawData.to, subject: rawData.subject });
+    
     const emailRequest = EmailRequestSchema.parse(rawData);
 
-    // Get admin email for "from" address
-    const adminEmail = Deno.env.get("ADMIN_EMAIL");
-    if (!adminEmail) {
-      throw new Error("Admin email not configured");
-    }
+    // Use Resend's default sender for unverified domains
+    // Once domain is verified, change to your custom domain
+    const fromEmail = "Mehab <onboarding@resend.dev>";
+
+    console.log("Sending email from:", fromEmail, "to:", emailRequest.to);
 
     const emailResponse = await resend.emails.send({
-      from: `Mehab <${adminEmail}>`,
+      from: fromEmail,
       to: [emailRequest.to],
       subject: emailRequest.subject,
       html: emailRequest.html,

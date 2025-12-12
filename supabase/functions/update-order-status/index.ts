@@ -1,6 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Resend } from "npm:resend@2.0.0";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,6 +29,8 @@ const handler = async (req: Request): Promise<Response> => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const rawData = await req.json();
+    console.log("Received request data:", rawData);
+    
     const { order_id, status } = UpdateOrderRequestSchema.parse(rawData);
 
     console.log("Updating order:", order_id, "to status:", status);
@@ -42,6 +47,7 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Order not found");
     }
 
+    console.log("Found order:", order);
     const oldStatus = order.status;
 
     // Update order status
@@ -55,13 +61,10 @@ const handler = async (req: Request): Promise<Response> => {
       throw updateError;
     }
 
-    console.log("Order updated successfully");
+    console.log("Order updated successfully from", oldStatus, "to", status);
 
     // Send email notification for all status changes
     if (oldStatus !== status) {
-      let emailSubject = "";
-      let emailBody = "";
-      let emailType = status;
       const customerName = order.customer_name || "Valued Customer";
 
       const statusMessages: Record<string, { emoji: string; title: string; message: string }> = {
@@ -108,9 +111,9 @@ const handler = async (req: Request): Promise<Response> => {
       };
 
       const statusInfo = statusMessages[status] || statusMessages.pending;
-      emailSubject = `${statusInfo.title} ${statusInfo.emoji} - Order #${order.order_code}`;
+      const emailSubject = `${statusInfo.title} ${statusInfo.emoji} - Order #${order.order_code}`;
       
-      emailBody = `
+      const emailBody = `
         <!DOCTYPE html>
         <html>
         <head>
@@ -158,31 +161,34 @@ const handler = async (req: Request): Promise<Response> => {
       `;
 
       try {
-        await supabase.functions.invoke("send-email", {
-          body: {
-            to: order.user_email,
-            subject: emailSubject,
-            html: emailBody,
-          },
+        console.log("Sending status update email to:", order.user_email);
+        
+        const emailResult = await resend.emails.send({
+          from: "Mehab Store <onboarding@resend.dev>",
+          to: [order.user_email],
+          subject: emailSubject,
+          html: emailBody,
         });
+
+        console.log("Email sent successfully:", emailResult);
 
         // Log email activity
         await supabase.from("email_activity").insert({
           order_code: order.order_code,
-          email_type: `status_${emailType}`,
+          email_type: `status_${status}`,
           recipient_email: order.user_email,
           subject: emailSubject,
           status: "sent"
         });
 
-        console.log(`${emailType} email sent to:`, order.user_email);
-      } catch (error) {
-        console.error("Failed to send status update email:", error);
+        console.log("Email activity logged successfully");
+      } catch (emailError: any) {
+        console.error("Failed to send status update email:", emailError);
         
         // Log failed email attempt
         await supabase.from("email_activity").insert({
           order_code: order.order_code,
-          email_type: `status_${emailType}`,
+          email_type: `status_${status}`,
           recipient_email: order.user_email,
           subject: emailSubject,
           status: "failed"

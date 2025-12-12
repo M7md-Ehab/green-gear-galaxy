@@ -23,13 +23,15 @@ interface Order {
   order_items: OrderItem[];
 }
 
-const statusConfig: Record<string, { icon: React.ElementType; color: string; bg: string }> = {
-  pending: { icon: Clock, color: 'text-amber-400', bg: 'bg-amber-400/10' },
-  processing: { icon: Package, color: 'text-blue-400', bg: 'bg-blue-400/10' },
-  shipped: { icon: Truck, color: 'text-purple-400', bg: 'bg-purple-400/10' },
-  delivered: { icon: CheckCircle, color: 'text-brand-green', bg: 'bg-brand-green/10' },
-  finished: { icon: CheckCircle, color: 'text-brand-green', bg: 'bg-brand-green/10' },
-  cancelled: { icon: XCircle, color: 'text-red-400', bg: 'bg-red-400/10' },
+const statusConfig: Record<string, { icon: React.ElementType; color: string; bg: string; label: string }> = {
+  pending: { icon: Clock, color: 'text-amber-400', bg: 'bg-amber-400/10', label: 'Pending' },
+  processing: { icon: Package, color: 'text-blue-400', bg: 'bg-blue-400/10', label: 'Processing' },
+  shipped: { icon: Truck, color: 'text-purple-400', bg: 'bg-purple-400/10', label: 'On the Way' },
+  delivered: { icon: CheckCircle, color: 'text-green-400', bg: 'bg-green-400/10', label: 'Delivered' },
+  postponed: { icon: Clock, color: 'text-orange-400', bg: 'bg-orange-400/10', label: 'Postponed' },
+  declined: { icon: XCircle, color: 'text-red-400', bg: 'bg-red-400/10', label: 'Declined' },
+  cancelled: { icon: XCircle, color: 'text-red-400', bg: 'bg-red-400/10', label: 'Cancelled' },
+  finished: { icon: CheckCircle, color: 'text-brand-green', bg: 'bg-brand-green/10', label: 'Finished' },
 };
 
 const RecentOrders = () => {
@@ -126,7 +128,8 @@ const RecentOrders = () => {
         ) : (
           <div className="space-y-4">
             {orders.map((order) => {
-              const { icon: StatusIcon, color, bg } = getStatusConfig(order.status || 'pending');
+              const statusInfo = getStatusConfig(order.status || 'pending');
+              const StatusIcon = statusInfo.icon;
               const itemCount = order.order_items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
               
               return (
@@ -140,9 +143,9 @@ const RecentOrders = () => {
                         <span className="text-white font-semibold">
                           Order #{order.order_code}
                         </span>
-                        <Badge className={`${bg} ${color} border-0 capitalize`}>
+                        <Badge className={`${statusInfo.bg} ${statusInfo.color} border-0`}>
                           <StatusIcon className="h-3 w-3 mr-1" />
-                          {order.status || 'pending'}
+                          {statusInfo.label}
                         </Badge>
                       </div>
                       <div className="flex items-center gap-4 text-sm text-gray-400">

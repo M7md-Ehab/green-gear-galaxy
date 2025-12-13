@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,9 +9,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Warehouse, Search, AlertTriangle, Edit, Save, X, Plus, Trash, Image, Upload } from 'lucide-react';
 import { useCurrency } from '@/hooks/use-currency';
 import { useProducts, Product } from '@/hooks/use-products';
-import { useCategories } from '@/hooks/use-categories';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+
+interface Category {
+  id: string;
+  name: string;
+}
 
 const InventoryManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -25,16 +29,16 @@ const InventoryManagement = () => {
   const [editImages, setEditImages] = useState<string[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
+  const [categories, setCategories] = useState<Category[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { formatPrice, currentCurrency } = useCurrency();
   const { products, loading, addProduct, updateProduct, deleteProduct, fetchProducts } = useProducts();
-  const { categories, addCategory } = useCategories();
   
   // Fetch ALL products including out of stock
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   
-  useState(() => {
+  useEffect(() => {
     const fetchAll = async () => {
       const { data } = await supabase
         .from('products')
@@ -43,7 +47,21 @@ const InventoryManagement = () => {
       if (data) setAllProducts(data as Product[]);
     };
     fetchAll();
-  });
+  }, []);
+
+  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name');
+      if (!error && data) {
+        setCategories(data);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const displayProducts = allProducts.length > 0 ? allProducts : products;
   
@@ -154,10 +172,18 @@ const InventoryManagement = () => {
 
   const handleCreateCategory = async () => {
     if (!newCategory.trim()) return;
-    const result = await addCategory(newCategory.trim());
-    if (result) {
+    const { data, error } = await supabase
+      .from('categories')
+      .insert({ name: newCategory.trim() })
+      .select()
+      .single();
+    if (!error && data) {
+      setCategories([...categories, data]);
       setEditCategory(newCategory.trim());
       setNewCategory('');
+      toast.success('Category created');
+    } else {
+      toast.error('Failed to create category');
     }
   };
 

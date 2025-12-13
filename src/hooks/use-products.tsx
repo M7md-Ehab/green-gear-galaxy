@@ -21,14 +21,19 @@ export const useProducts = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (onlyInStock = false) => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from('products')
         .select('*')
-        .eq('in_stock', true)
         .order('created_at', { ascending: false });
+
+      if (onlyInStock) {
+        query = query.eq('in_stock', true);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         throw error;
@@ -48,7 +53,7 @@ export const useProducts = () => {
     fetchProducts();
   }, []);
 
-  const addProduct = async (product: Omit<Product, 'id' | 'created_at' | 'updated_at'>) => {
+  const addProduct = async (product: { name: string; price: number; category: string; description?: string; inventory_count?: number; image_url?: string; images?: string[]; in_stock?: boolean }) => {
     try {
       const { data, error } = await supabase
         .from('products')
@@ -61,7 +66,7 @@ export const useProducts = () => {
       }
       
       toast.success('Product added successfully');
-      await fetchProducts(); // Refresh the products list
+      await fetchProducts();
       return data.id;
     } catch (error: any) {
       toast.error('Failed to add product');

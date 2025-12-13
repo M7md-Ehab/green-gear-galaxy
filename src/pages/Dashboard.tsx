@@ -5,11 +5,10 @@ import { Button } from '@/components/ui/button';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { useCurrency } from '@/hooks/use-currency';
 import { useAuth } from '@/hooks/use-auth';
-import { Product } from '@/data/products';
-import ProductCard from '@/components/products/ProductCard';
 import RecentOrders from '@/components/dashboard/RecentOrders';
-import { User, Heart, Settings, LogOut, ShoppingBag, Loader2 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import WishlistSection from '@/components/dashboard/WishlistSection';
+import { User, Settings, LogOut, ShoppingBag, Loader2, Mail, DollarSign, MessageSquare } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
@@ -38,7 +37,7 @@ const Dashboard = () => {
     <div className="min-h-screen flex flex-col bg-black text-white">
       <Navbar />
       <main className="flex-grow py-8 md:py-12">
-        <div className="container-custom">
+        <div className="container-custom max-w-6xl">
           {/* Header Section */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div className="flex items-center gap-4">
@@ -62,7 +61,7 @@ const Dashboard = () => {
             </Button>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column - Profile & Quick Actions */}
             <div className="space-y-6">
               {/* Account Card */}
@@ -74,13 +73,19 @@ const Dashboard = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider">Email</p>
-                    <p className="text-white font-medium truncate">{user?.email}</p>
+                  <div className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg">
+                    <Mail className="h-4 w-4 text-gray-400" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs text-gray-500 uppercase tracking-wider">Email</p>
+                      <p className="text-white font-medium truncate">{user?.email}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider">Preferred Currency</p>
-                    <p className="text-white font-medium">{currentCurrency.name} ({currentCurrency.symbol})</p>
+                  <div className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg">
+                    <DollarSign className="h-4 w-4 text-gray-400" />
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase tracking-wider">Currency</p>
+                      <p className="text-white font-medium">{currentCurrency.name} ({currentCurrency.symbol})</p>
+                    </div>
                   </div>
                   <Separator className="bg-gray-800" />
                   <Button 
@@ -113,112 +118,35 @@ const Dashboard = () => {
                     className="w-full justify-start border-gray-700 text-white bg-gray-800/50 hover:bg-gray-700"
                     onClick={() => navigate('/contact')}
                   >
-                    <User className="mr-3 h-4 w-4 text-brand-green" />
-                    Contact Support
+                    <MessageSquare className="mr-3 h-4 w-4 text-brand-green" />
+                    Send Feedback
                   </Button>
                   <Button 
                     variant="outline" 
                     className="w-full justify-start border-gray-700 text-white bg-gray-800/50 hover:bg-gray-700"
                     onClick={() => navigate('/currency-settings')}
                   >
-                    <Settings className="mr-3 h-4 w-4 text-brand-green" />
+                    <DollarSign className="mr-3 h-4 w-4 text-brand-green" />
                     Currency Settings
                   </Button>
                 </CardContent>
               </Card>
 
-              {/* Wishlist Preview - Mobile */}
+              {/* Wishlist - Mobile Only */}
               <div className="lg:hidden">
-                <Card className="bg-gray-900/50 border-gray-800">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg flex items-center gap-2 text-white">
-                      <Heart className="h-5 w-5 text-brand-green" />
-                      Wishlist ({wishlistItems.length})
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {wishlistItems.length > 0 ? (
-                      <div className="space-y-3">
-                        {wishlistItems.slice(0, 2).map((product: Product) => (
-                          <ProductCard key={product.id} product={product} />
-                        ))}
-                        {wishlistItems.length > 2 && (
-                          <Button 
-                            onClick={() => navigate('/products')} 
-                            variant="outline" 
-                            className="w-full border-gray-700 text-white bg-gray-800/50 hover:bg-gray-700"
-                          >
-                            View All ({wishlistItems.length} items)
-                          </Button>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="text-center py-6 text-gray-400">
-                        <Heart className="h-10 w-10 mx-auto mb-3 opacity-50" />
-                        <p className="text-sm">Your wishlist is empty</p>
-                        <Button 
-                          onClick={() => navigate('/products')} 
-                          variant="link" 
-                          className="text-brand-green mt-2"
-                        >
-                          Browse Products
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                <WishlistSection />
               </div>
             </div>
 
             {/* Center Column - Recent Orders */}
             <div className="lg:col-span-2 space-y-6">
               <RecentOrders />
+              
+              {/* Wishlist - Desktop */}
+              <div className="hidden lg:block">
+                <WishlistSection />
+              </div>
             </div>
-          </div>
-
-          {/* Wishlist - Desktop Sidebar */}
-          <div className="hidden lg:block fixed right-4 top-24 w-80 max-h-[calc(100vh-8rem)] overflow-y-auto">
-            <Card className="bg-gray-900/80 border-gray-800 backdrop-blur-sm">
-              <CardHeader className="pb-3 sticky top-0 bg-gray-900/80 backdrop-blur-sm z-10">
-                <CardTitle className="text-lg flex items-center gap-2 text-white">
-                  <Heart className="h-5 w-5 text-brand-green" />
-                  Wishlist ({wishlistItems.length})
-                </CardTitle>
-                <CardDescription className="text-gray-400 text-xs">
-                  Your saved items
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {wishlistItems.length > 0 ? (
-                  <div className="space-y-3">
-                    {wishlistItems.slice(0, 4).map((product: Product) => (
-                      <ProductCard key={product.id} product={product} />
-                    ))}
-                    {wishlistItems.length > 4 && (
-                      <Button 
-                        onClick={() => navigate('/products')} 
-                        variant="outline" 
-                        className="w-full border-gray-700 text-white bg-gray-800/50 hover:bg-gray-700"
-                      >
-                        View All ({wishlistItems.length} items)
-                      </Button>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-400">
-                    <Heart className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p>Your wishlist is empty</p>
-                    <Button 
-                      onClick={() => navigate('/products')} 
-                      variant="link" 
-                      className="text-brand-green mt-2"
-                    >
-                      Browse Products
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
           </div>
         </div>
       </main>

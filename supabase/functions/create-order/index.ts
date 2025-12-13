@@ -1,6 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { Resend } from "npm:resend@2.0.0";
+
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -173,25 +176,23 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     try {
-      await supabase.functions.invoke("send-email", {
-        body: {
-          to: adminEmail,
-          subject: `New Order Received — #${orderCode}`,
-          html: adminEmailHtml,
-        },
+      const adminEmailResult = await resend.emails.send({
+        from: "Mehab <onboarding@resend.dev>",
+        to: [adminEmail],
+        subject: `New Order Received — #${orderCode}`,
+        html: adminEmailHtml,
       });
+
+      console.log("Admin email sent:", adminEmailResult);
 
       // Log admin email
       await supabase.from("email_activity").insert({
-        order_id: order.id,
         order_code: orderCode,
         email_type: "admin_notification",
         recipient_email: adminEmail,
         subject: `New Order Received — #${orderCode}`,
         status: "sent"
       });
-
-      console.log("Admin email sent");
     } catch (error) {
       console.error("Failed to send admin email:", error);
     }
@@ -317,25 +318,23 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     try {
-      await supabase.functions.invoke("send-email", {
-        body: {
-          to: orderData.user_email,
-          subject: `Order Confirmation — #${orderCode}`,
-          html: customerEmailHtml,
-        },
+      const customerEmailResult = await resend.emails.send({
+        from: "Mehab <onboarding@resend.dev>",
+        to: [orderData.user_email],
+        subject: `Order Confirmation — #${orderCode}`,
+        html: customerEmailHtml,
       });
+
+      console.log("Customer email sent:", customerEmailResult);
 
       // Log customer email
       await supabase.from("email_activity").insert({
-        order_id: order.id,
         order_code: orderCode,
         email_type: "order_confirmation",
         recipient_email: orderData.user_email,
         subject: `Order Confirmation — #${orderCode}`,
         status: "sent"
       });
-
-      console.log("Customer email sent");
     } catch (error) {
       console.error("Failed to send customer email:", error);
     }

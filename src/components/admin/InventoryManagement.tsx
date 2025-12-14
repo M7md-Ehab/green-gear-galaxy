@@ -70,12 +70,12 @@ const InventoryManagement = () => {
     product.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const lowStockProducts = displayProducts.filter(product => product.inventory_count < 10);
+  const lowStockProducts = displayProducts.filter(product => (product.inventory_count ?? 0) < 10);
 
   const handleEdit = (product: Product) => {
     setEditingProduct(product.id);
     setEditPrice(product.price.toString());
-    setEditStock(product.inventory_count.toString());
+    setEditStock((product.inventory_count ?? 0).toString());
     setEditName(product.name);
     setEditDescription(product.description || '');
     setEditCategory(product.category);

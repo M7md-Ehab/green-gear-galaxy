@@ -6,14 +6,18 @@ import { toast } from 'sonner';
 export interface Product {
   id: string;
   name: string;
-  description: string;
+  description: string | null;
   price: number;
   category: string;
-  image_url: string;
-  in_stock: boolean;
-  inventory_count: number;
-  created_at: string;
-  updated_at: string;
+  image_url: string | null;
+  images: string[] | null;
+  in_stock: boolean | null;
+  inventory_count: number | null;
+  series: string | null;
+  type: string | null;
+  specs: any;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export const useProducts = () => {

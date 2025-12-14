@@ -1,10 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { products } from '@/data/products';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import ProductCard from '@/components/products/ProductCard';
+import { useProducts } from '@/hooks/use-products';
+import { Loader2 } from 'lucide-react';
 
 const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -12,17 +12,23 @@ const Products = () => {
   const typeParam = searchParams.get('type');
   
   const [selectedSeries, setSelectedSeries] = useState<string | null>(null);
-  const [selectedType, setSelectedType] = useState<'vending' | 'claw' | null>(null);
+  const [selectedType, setSelectedType] = useState<string | null>(null);
   
-  const series = Array.from(new Set(products.map(p => p.series)));
-  const types = Array.from(new Set(products.map(p => p.type))).filter(type => type !== 'accessory');
+  const { products, loading, fetchProducts } = useProducts();
+  
+  useEffect(() => {
+    fetchProducts(false); // Fetch all products including out of stock
+  }, []);
+  
+  const series = Array.from(new Set(products.map(p => p.series).filter(Boolean)));
+  const types = Array.from(new Set(products.map(p => p.type).filter(Boolean))).filter(type => type !== 'accessory');
   
   useEffect(() => {
     if (seriesParam) {
       setSelectedSeries(seriesParam);
     }
     if (typeParam) {
-      setSelectedType(typeParam as 'vending' | 'claw');
+      setSelectedType(typeParam);
     }
   }, [seriesParam, typeParam]);
   
@@ -44,7 +50,7 @@ const Products = () => {
     setSearchParams(searchParams);
   };
 
-  const handleTypeFilter = (type: 'vending' | 'claw' | null) => {
+  const handleTypeFilter = (type: string | null) => {
     setSelectedType(type);
     
     if (type) {
@@ -66,79 +72,92 @@ const Products = () => {
             <p className="text-gray-400 text-xl mb-12">Discover the future of arcade entertainment</p>
           </div>
           
-          {/* Machine Type Filters */}
-          <div className="mb-8 animate-fade-in delay-200">
-            <h3 className="text-lg font-semibold mb-4 text-brand-green">Machine Type</h3>
-            <div className="flex flex-wrap gap-3 mb-6">
-              <button
-                className={`px-6 py-3 rounded-full text-sm font-medium transition-all hover-scale ${
-                  selectedType === null 
-                    ? 'bg-brand-green text-black shadow-lg shadow-brand-green/30' 
-                    : 'bg-gray-800 text-white hover:bg-gray-700 border border-gray-600'
-                }`}
-                onClick={() => handleTypeFilter(null)}
-              >
-                All Machines
-              </button>
-              {types.map(type => (
-                <button
-                  key={type}
-                  className={`px-6 py-3 rounded-full text-sm font-medium transition-all hover-scale capitalize ${
-                    selectedType === type 
-                      ? 'bg-brand-green text-black shadow-lg shadow-brand-green/30' 
-                      : 'bg-gray-800 text-white hover:bg-gray-700 border border-gray-600'
-                  }`}
-                   onClick={() => handleTypeFilter(type as 'vending' | 'claw')}
-                >
-                  {type} Machines
-                </button>
-              ))}
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-brand-green" />
+              <span className="ml-3 text-gray-400">Loading products...</span>
             </div>
-          </div>
-          
-          {/* Series Filters */}
-          <div className="mb-8 animate-fade-in delay-300">
-            <h3 className="text-lg font-semibold mb-4 text-brand-green">Series</h3>
-            <div className="flex flex-wrap gap-3">
-              <button
-                className={`px-4 py-2 rounded-full text-sm transition-all hover-scale ${
-                  selectedSeries === null 
-                    ? 'bg-brand-green text-black' 
-                    : 'bg-gray-800 text-white hover:bg-gray-700'
-                }`}
-                onClick={() => handleSeriesFilter(null)}
-              >
-                All Series
-              </button>
-              {series.map(s => (
-                <button
-                  key={s}
-                  className={`px-4 py-2 rounded-full text-sm transition-all hover-scale ${
-                    selectedSeries === s 
-                      ? 'bg-brand-green text-black' 
-                      : 'bg-gray-800 text-white hover:bg-gray-700'
-                  }`}
-                  onClick={() => handleSeriesFilter(s)}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-          </div>
-          
-          {/* Products Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in delay-400">
-            {filteredProducts.map((product, index) => (
-              <div key={product.id} className={`animate-fade-in delay-${(index % 6 + 1) * 100}`}>
-                <ProductCard product={product} />
+          ) : (
+            <>
+              {/* Machine Type Filters */}
+              {types.length > 0 && (
+                <div className="mb-8 animate-fade-in delay-200">
+                  <h3 className="text-lg font-semibold mb-4 text-brand-green">Machine Type</h3>
+                  <div className="flex flex-wrap gap-3 mb-6">
+                    <button
+                      className={`px-6 py-3 rounded-full text-sm font-medium transition-all hover-scale ${
+                        selectedType === null 
+                          ? 'bg-brand-green text-black shadow-lg shadow-brand-green/30' 
+                          : 'bg-gray-800 text-white hover:bg-gray-700 border border-gray-600'
+                      }`}
+                      onClick={() => handleTypeFilter(null)}
+                    >
+                      All Machines
+                    </button>
+                    {types.map(type => (
+                      <button
+                        key={type}
+                        className={`px-6 py-3 rounded-full text-sm font-medium transition-all hover-scale capitalize ${
+                          selectedType === type 
+                            ? 'bg-brand-green text-black shadow-lg shadow-brand-green/30' 
+                            : 'bg-gray-800 text-white hover:bg-gray-700 border border-gray-600'
+                        }`}
+                        onClick={() => handleTypeFilter(type)}
+                      >
+                        {type} Machines
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Series Filters */}
+              {series.length > 0 && (
+                <div className="mb-8 animate-fade-in delay-300">
+                  <h3 className="text-lg font-semibold mb-4 text-brand-green">Series</h3>
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      className={`px-4 py-2 rounded-full text-sm transition-all hover-scale ${
+                        selectedSeries === null 
+                          ? 'bg-brand-green text-black' 
+                          : 'bg-gray-800 text-white hover:bg-gray-700'
+                      }`}
+                      onClick={() => handleSeriesFilter(null)}
+                    >
+                      All Series
+                    </button>
+                    {series.map(s => (
+                      <button
+                        key={s}
+                        className={`px-4 py-2 rounded-full text-sm transition-all hover-scale ${
+                          selectedSeries === s 
+                            ? 'bg-brand-green text-black' 
+                            : 'bg-gray-800 text-white hover:bg-gray-700'
+                        }`}
+                        onClick={() => handleSeriesFilter(s)}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Products Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in delay-400">
+                {filteredProducts.map((product, index) => (
+                  <div key={product.id} className={`animate-fade-in delay-${(index % 6 + 1) * 100}`}>
+                    <ProductCard product={product as any} />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          
-          {filteredProducts.length === 0 && (
-            <div className="text-center py-16 animate-fade-in">
-              <p className="text-gray-400 text-xl">No products found matching your filters.</p>
-            </div>
+              
+              {filteredProducts.length === 0 && !loading && (
+                <div className="text-center py-16 animate-fade-in">
+                  <p className="text-gray-400 text-xl">No products found. Add products in the Admin panel.</p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </main>

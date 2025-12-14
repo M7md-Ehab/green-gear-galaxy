@@ -56,7 +56,7 @@ const RecentOrders = () => {
             status,
             total,
             created_at,
-            order_items (
+            order_items!order_items_order_id_fkey (
               id,
               product_id,
               quantity,

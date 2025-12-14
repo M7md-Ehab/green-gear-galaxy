@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MessageSquare, User, Mail, Clock, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { MessageSquare, User, Mail, Clock, Loader2, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -23,13 +23,19 @@ const FeedbackManagement = () => {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const fetchFeedbacks = async () => {
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('feedback')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching feedback:', error);
+        toast.error('Failed to load feedback');
+        return;
+      }
+      
       setFeedbacks(data || []);
     } catch (error) {
       console.error('Error fetching feedback:', error);
@@ -68,19 +74,30 @@ const FeedbackManagement = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Pending</Badge>;
+        return <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 border">Pending</Badge>;
       case 'reviewed':
-        return <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30">Reviewed</Badge>;
+        return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 border">Reviewed</Badge>;
       case 'resolved':
-        return <Badge variant="secondary" className="bg-green-500/20 text-green-400 border-green-500/30">Resolved</Badge>;
+        return <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 border">Resolved</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
   };
 
+  const getStatusCounts = () => {
+    return {
+      total: feedbacks.length,
+      pending: feedbacks.filter(f => f.status === 'pending' || !f.status).length,
+      reviewed: feedbacks.filter(f => f.status === 'reviewed').length,
+      resolved: feedbacks.filter(f => f.status === 'resolved').length,
+    };
+  };
+
+  const counts = getStatusCounts();
+
   if (loading) {
     return (
-      <Card className="bg-gray-900 border-gray-700">
+      <Card className="bg-gray-900/50 border-gray-800 backdrop-blur-sm">
         <CardContent className="flex items-center justify-center h-64">
           <Loader2 className="h-8 w-8 animate-spin text-brand-green" />
         </CardContent>
@@ -89,76 +106,147 @@ const FeedbackManagement = () => {
   }
 
   return (
-    <Card className="bg-gray-900 border-gray-700">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-white">
-          <MessageSquare className="h-5 w-5 text-brand-green" />
-          User Feedback
-          <Badge variant="secondary" className="ml-auto bg-brand-green/20 text-brand-green">
-            {feedbacks.length} Total
-          </Badge>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {feedbacks.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">
-            <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No feedback submissions yet</p>
+    <div className="space-y-6">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="bg-gray-900/50 border-gray-800">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-400 text-sm">Total</p>
+                <p className="text-2xl font-bold text-white">{counts.total}</p>
+              </div>
+              <MessageSquare className="h-8 w-8 text-brand-green opacity-50" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-gray-900/50 border-gray-800">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-400 text-sm">Pending</p>
+                <p className="text-2xl font-bold text-amber-400">{counts.pending}</p>
+              </div>
+              <Clock className="h-8 w-8 text-amber-400 opacity-50" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-gray-900/50 border-gray-800">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-400 text-sm">Reviewed</p>
+                <p className="text-2xl font-bold text-blue-400">{counts.reviewed}</p>
+              </div>
+              <User className="h-8 w-8 text-blue-400 opacity-50" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-gray-900/50 border-gray-800">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-400 text-sm">Resolved</p>
+                <p className="text-2xl font-bold text-emerald-400">{counts.resolved}</p>
+              </div>
+              <MessageSquare className="h-8 w-8 text-emerald-400 opacity-50" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Feedback List */}
+      <Card className="bg-gray-900/50 border-gray-800 backdrop-blur-sm">
+        <CardHeader className="border-b border-gray-800">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-white">
+              <MessageSquare className="h-5 w-5 text-brand-green" />
+              User Feedback
+            </CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={fetchFeedbacks}
+              className="text-gray-400 hover:text-white"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
           </div>
-        ) : (
-          <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
-            {feedbacks.map((feedback) => (
-              <div 
-                key={feedback.id} 
-                className="p-4 bg-gray-800 rounded-lg border border-gray-700 space-y-3"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-brand-green/20 flex items-center justify-center">
-                      <User className="h-5 w-5 text-brand-green" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-white">{feedback.name}</p>
-                      <div className="flex items-center gap-1 text-sm text-gray-400">
-                        <Mail className="h-3 w-3" />
-                        {feedback.email}
+        </CardHeader>
+        <CardContent className="p-6">
+          {feedbacks.length === 0 ? (
+            <div className="text-center py-12 text-gray-400">
+              <MessageSquare className="h-16 w-16 mx-auto mb-4 opacity-30" />
+              <p className="text-lg">No feedback submissions yet</p>
+              <p className="text-sm mt-2">Feedback from your customers will appear here</p>
+            </div>
+          ) : (
+            <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+              {feedbacks.map((feedback) => (
+                <div 
+                  key={feedback.id} 
+                  className="p-5 bg-gray-800/50 rounded-xl border border-gray-700/50 hover:border-gray-600 transition-colors space-y-4"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-full bg-gradient-to-br from-brand-green/30 to-emerald-600/30 flex items-center justify-center">
+                        <User className="h-6 w-6 text-brand-green" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-white text-lg">{feedback.name}</p>
+                        <div className="flex items-center gap-2 text-sm text-gray-400">
+                          <Mail className="h-3.5 w-3.5" />
+                          <span>{feedback.email}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  {getStatusBadge(feedback.status || 'pending')}
-                </div>
-                
-                <p className="text-gray-300 text-sm bg-gray-900/50 p-3 rounded-md">
-                  {feedback.message}
-                </p>
-                
-                <div className="flex items-center justify-between pt-2 border-t border-gray-700">
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
-                    <Clock className="h-3 w-3" />
-                    {new Date(feedback.created_at).toLocaleString()}
+                    {getStatusBadge(feedback.status || 'pending')}
                   </div>
                   
-                  <Select 
-                    value={feedback.status || 'pending'} 
-                    onValueChange={(value) => updateStatus(feedback.id, value)}
-                    disabled={updatingId === feedback.id}
-                  >
-                    <SelectTrigger className="w-32 h-8 bg-gray-700 border-gray-600 text-white text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-700">
-                      <SelectItem value="pending" className="text-white">Pending</SelectItem>
-                      <SelectItem value="reviewed" className="text-white">Reviewed</SelectItem>
-                      <SelectItem value="resolved" className="text-white">Resolved</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="bg-gray-900/50 p-4 rounded-lg border border-gray-700/50">
+                    <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">
+                      {feedback.message}
+                    </p>
+                  </div>
+                  
+                  <div className="flex items-center justify-between pt-2">
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <Clock className="h-4 w-4" />
+                      {new Date(feedback.created_at).toLocaleString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-400">Status:</span>
+                      <Select 
+                        value={feedback.status || 'pending'} 
+                        onValueChange={(value) => updateStatus(feedback.id, value)}
+                        disabled={updatingId === feedback.id}
+                      >
+                        <SelectTrigger className="w-32 h-9 bg-gray-700/50 border-gray-600 text-white text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-800 border-gray-700">
+                          <SelectItem value="pending" className="text-white hover:bg-gray-700">Pending</SelectItem>
+                          <SelectItem value="reviewed" className="text-white hover:bg-gray-700">Reviewed</SelectItem>
+                          <SelectItem value="resolved" className="text-white hover:bg-gray-700">Resolved</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

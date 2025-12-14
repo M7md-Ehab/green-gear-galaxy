@@ -49,57 +49,30 @@ const Contact = () => {
           status: 'pending'
         });
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error('Database error:', dbError);
+        throw dbError;
+      }
 
-      // Send email notification to admin
-      const { error: emailError } = await supabase.functions.invoke('send-email', {
-        body: {
-          to: 'mehab882011@gmail.com',
-          subject: `New Feedback from ${data.name}`,
-          html: `
-            <!DOCTYPE html>
-            <html>
-            <head>
-              <meta charset="utf-8">
-            </head>
-            <body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-              <table style="width: 100%; border-collapse: collapse;">
-                <tr>
-                  <td align="center" style="padding: 40px 0;">
-                    <table style="width: 600px; max-width: 100%; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                      <tr>
-                        <td style="background: linear-gradient(135deg, #00ff94 0%, #00cc75 100%); padding: 30px; text-align: center;">
-                          <h1 style="color: #000; margin: 0; font-size: 24px;">New Feedback Received</h1>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding: 30px;">
-                          <div style="background: #f8f9fa; padding: 20px; border-radius: 6px; margin-bottom: 20px;">
-                            <p style="margin: 0 0 10px 0; color: #666; font-size: 14px;"><strong>From:</strong> ${data.name}</p>
-                            <p style="margin: 0 0 10px 0; color: #666; font-size: 14px;"><strong>Email:</strong> ${data.email}</p>
-                            <p style="margin: 0; color: #666; font-size: 14px;"><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
-                          </div>
-                          <h3 style="color: #333; margin: 0 0 15px 0;">Message:</h3>
-                          <p style="color: #555; line-height: 1.6; margin: 0; white-space: pre-wrap;">${data.message}</p>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="background: #1a1a1a; padding: 20px; text-align: center;">
-                          <p style="color: #888; margin: 0; font-size: 12px;">Mehab Admin Panel</p>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-            </body>
-            </html>
-          `
-        }
-      });
-
-      if (emailError) {
-        console.error('Failed to send admin notification:', emailError);
+      // Try to send email notification but don't fail if it doesn't work
+      try {
+        await supabase.functions.invoke('send-email', {
+          body: {
+            to: 'mehab882011@gmail.com',
+            subject: `New Feedback from ${data.name}`,
+            html: `
+              <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #00ff94;">New Feedback Received</h2>
+                <p><strong>From:</strong> ${data.name}</p>
+                <p><strong>Email:</strong> ${data.email}</p>
+                <p><strong>Message:</strong></p>
+                <p style="background: #f5f5f5; padding: 15px; border-radius: 8px;">${data.message}</p>
+              </div>
+            `
+          }
+        });
+      } catch (emailError) {
+        console.log('Email notification failed (non-blocking):', emailError);
       }
       
       toast.success('Thank you for your feedback! We will get back to you soon.');

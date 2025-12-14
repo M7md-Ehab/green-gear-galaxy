@@ -12,7 +12,6 @@ interface Order {
   id: string;
   user_id: string | null;
   user_email: string;
-  customer_name: string | null;
   customer_phone: string | null;
   customer_address: string | null;
   customer_city: string | null;
@@ -70,7 +69,6 @@ const OrderSearch = () => {
           id,
           user_id,
           user_email,
-          customer_name,
           customer_phone,
           customer_address,
           customer_city,
@@ -80,7 +78,7 @@ const OrderSearch = () => {
           total,
           status,
           created_at,
-          order_items (
+          order_items!order_items_order_id_fkey (
             product_id,
             quantity,
             price
@@ -205,14 +203,6 @@ const OrderSearch = () => {
                   {/* Customer Info */}
                   <div className="space-y-4">
                     <h4 className="text-sm font-medium text-brand-green uppercase tracking-wider">Customer Details</h4>
-                    
-                    <div className="flex items-start gap-3">
-                      <User className="h-4 w-4 text-brand-green mt-1" />
-                      <div>
-                        <p className="text-xs text-gray-400">Name</p>
-                        <p className="text-white font-medium">{order.customer_name || 'N/A'}</p>
-                      </div>
-                    </div>
                     
                     <div className="flex items-start gap-3">
                       <User className="h-4 w-4 text-brand-green mt-1" />

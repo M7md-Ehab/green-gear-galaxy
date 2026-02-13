@@ -59,6 +59,7 @@ const SignUp = () => {
         open={showOtpModal} 
         onOpenChange={setShowOtpModal}
         email={verificationEmail}
+        otpType="signup"
         onVerificationSuccess={() => navigate('/')}
       />
       

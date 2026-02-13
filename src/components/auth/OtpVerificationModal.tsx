@@ -15,10 +15,11 @@ interface OtpVerificationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   email: string;
+  otpType?: string;
   onVerificationSuccess?: () => void;
 }
 
-export function OtpVerificationModal({ open, onOpenChange, email, onVerificationSuccess }: OtpVerificationModalProps) {
+export function OtpVerificationModal({ open, onOpenChange, email, otpType = 'login', onVerificationSuccess }: OtpVerificationModalProps) {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
@@ -45,15 +46,13 @@ export function OtpVerificationModal({ open, onOpenChange, email, onVerification
     }
 
     setLoading(true);
-    const { error } = await verifyOtp(email, otp);
+    const { error } = await verifyOtp(email, otp, otpType);
     
     if (!error) {
-      // Close modal and reset state
       setOtp('');
       setCooldown(0);
       onOpenChange(false);
       
-      // Call success callback if provided
       if (onVerificationSuccess) {
         onVerificationSuccess();
       }
@@ -65,10 +64,10 @@ export function OtpVerificationModal({ open, onOpenChange, email, onVerification
     if (cooldown > 0) return;
     
     setResending(true);
-    const { error } = await resendOtp(email);
+    const { error } = await resendOtp(email, otpType);
     
     if (!error) {
-      setCooldown(180); // Reset to 3 minutes
+      setCooldown(180);
       setOtp('');
     }
     setResending(false);

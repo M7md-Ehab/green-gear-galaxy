@@ -42,6 +42,22 @@ interface ProfileFormProps {
 
 type Step = 'verify-identity' | 'edit-profile' | 'verify-email-change';
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+async function callEdgeFunction(functionName: string, body: Record<string, any>) {
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/${functionName}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON_KEY,
+    },
+    body: JSON.stringify(body),
+  });
+  const data = await response.json();
+  return { data, ok: response.ok };
+}
+
 const ProfileForm = ({ onCancel }: ProfileFormProps) => {
   const { user } = useAuth();
   const [step, setStep] = useState<Step>('verify-identity');
@@ -62,7 +78,6 @@ const ProfileForm = ({ onCancel }: ProfileFormProps) => {
     },
   });
 
-  // Fetch current profile data
   useEffect(() => {
     async function fetchProfile() {
       if (!user) return;
@@ -83,7 +98,6 @@ const ProfileForm = ({ onCancel }: ProfileFormProps) => {
     fetchProfile();
   }, [user, form]);
 
-  // Cooldown timer
   useEffect(() => {
     if (cooldown > 0) {
       const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
@@ -91,7 +105,6 @@ const ProfileForm = ({ onCancel }: ProfileFormProps) => {
     }
   }, [cooldown]);
 
-  // Step 1: Send OTP to current email for identity verification
   const handleSendVerificationOtp = async () => {
     if (!user?.email) {
       toast.error('No email associated with your account');
@@ -100,13 +113,13 @@ const ProfileForm = ({ onCancel }: ProfileFormProps) => {
 
     setIsSendingOtp(true);
     try {
-      const { error } = await supabase.auth.signInWithOtp({
+      const { data, ok } = await callEdgeFunction('send-otp', {
         email: user.email,
-        options: { shouldCreateUser: false }
+        type: 'verify_identity',
       });
 
-      if (error) {
-        toast.error(error.message);
+      if (!ok) {
+        toast.error(data.error || 'Failed to send verification code');
         return;
       }
 
@@ -119,7 +132,6 @@ const ProfileForm = ({ onCancel }: ProfileFormProps) => {
     }
   };
 
-  // Step 1: Verify identity OTP
   const handleVerifyIdentity = async () => {
     if (otp.length !== 6) {
       toast.error('Please enter a 6-digit code');
@@ -128,14 +140,14 @@ const ProfileForm = ({ onCancel }: ProfileFormProps) => {
 
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.verifyOtp({
+      const { data, ok } = await callEdgeFunction('verify-custom-otp', {
         email: user?.email || '',
-        token: otp,
-        type: 'email'
+        otp,
+        type: 'verify_identity',
       });
 
-      if (error) {
-        toast.error('Invalid verification code');
+      if (!ok) {
+        toast.error(data.error || 'Invalid verification code');
         return;
       }
 
@@ -149,7 +161,6 @@ const ProfileForm = ({ onCancel }: ProfileFormProps) => {
     }
   };
 
-  // Step 2: Check if email exists and handle profile update
   const onSubmit = async (data: ProfileFormValues) => {
     const emailChanged = data.email !== originalEmail;
     const nameChanged = data.name !== originalName;
@@ -159,7 +170,6 @@ const ProfileForm = ({ onCancel }: ProfileFormProps) => {
       return;
     }
 
-    // If only name changed, update immediately
     if (nameChanged && !emailChanged) {
       setIsLoading(true);
       try {
@@ -180,40 +190,17 @@ const ProfileForm = ({ onCancel }: ProfileFormProps) => {
       return;
     }
 
-    // If email changed, check if it exists first
     if (emailChanged) {
       setIsLoading(true);
       try {
-        // Check if email already exists by trying to sign in with OTP (won't create user)
-        // We use a workaround: try to check profiles table for existing email
-        const { data: existingProfile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('email', data.email)
-          .maybeSingle();
-
-        if (existingProfile) {
-          toast.error('This email is already in use');
-          setIsLoading(false);
-          return;
-        }
-
-        // Email doesn't exist, send OTP to new email
-        const { error: otpError } = await supabase.auth.signInWithOtp({
+        // Send OTP to new email via edge function (checks for duplicates)
+        const { data: otpData, ok } = await callEdgeFunction('send-otp', {
           email: data.email,
-          options: { shouldCreateUser: false }
+          type: 'email_change',
         });
 
-        // Note: If user doesn't exist, this will fail which is expected
-        // We'll use updateUser to change email instead
-        
-        // Send verification to new email using updateUser
-        const { error: updateError } = await supabase.auth.updateUser({
-          email: data.email
-        });
-
-        if (updateError) {
-          toast.error(updateError.message);
+        if (!ok) {
+          toast.error(otpData.error || 'Failed to send verification code');
           setIsLoading(false);
           return;
         }
@@ -238,7 +225,6 @@ const ProfileForm = ({ onCancel }: ProfileFormProps) => {
     }
   };
 
-  // Step 3: Verify new email OTP (Supabase handles this via email link)
   const handleVerifyNewEmail = async () => {
     if (newEmailOtp.length !== 6) {
       toast.error('Please enter a 6-digit code');
@@ -247,22 +233,17 @@ const ProfileForm = ({ onCancel }: ProfileFormProps) => {
 
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.verifyOtp({
+      const { data, ok } = await callEdgeFunction('verify-custom-otp', {
         email: pendingEmail,
-        token: newEmailOtp,
-        type: 'email_change'
+        otp: newEmailOtp,
+        type: 'email_change',
+        user_id: user?.id,
       });
 
-      if (error) {
-        toast.error('Invalid verification code');
+      if (!ok) {
+        toast.error(data.error || 'Invalid verification code');
         return;
       }
-
-      // Update profile email
-      await supabase
-        .from('profiles')
-        .update({ email: pendingEmail })
-        .eq('id', user?.id);
 
       toast.success('Email updated successfully');
       onCancel();
@@ -511,7 +492,8 @@ const ProfileForm = ({ onCancel }: ProfileFormProps) => {
                 type="button"
                 variant="outline"
                 onClick={onCancel}
-                className="flex-1 border-gray-600 text-white bg-gray-800 hover:bg-gray-700 h-12"
+                className="flex-1 border-gray-700 text-gray-300 hover:bg-gray-800 h-12"
+                disabled={isLoading}
               >
                 Cancel
               </Button>

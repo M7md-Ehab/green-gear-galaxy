@@ -92,6 +92,24 @@ export type Database = {
         }
         Relationships: []
       }
+      machine_types: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string | null

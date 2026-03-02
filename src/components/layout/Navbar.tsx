@@ -29,7 +29,7 @@ const Navbar = () => {
         <div className="hidden md:flex items-center space-x-8">
           <Link to="/" className="font-medium hover:text-brand-green transition-colors">{t('home')}</Link>
           <Link to="/products" className="font-medium hover:text-brand-green transition-colors">{t('products')}</Link>
-          <Link to="/accessories" className="font-medium hover:text-brand-green transition-colors">{t('accessories')}</Link>
+          
           <Link to="/about" className="font-medium hover:text-brand-green transition-colors">{t('about')}</Link>
           <Link to="/contact" className="font-medium hover:text-brand-green transition-colors">{t('contact')}</Link>
         </div>
@@ -103,7 +103,7 @@ const Navbar = () => {
           <div className="container-custom py-4 flex flex-col space-y-4">
             <Link to="/" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>{t('home')}</Link>
             <Link to="/products" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>{t('products')}</Link>
-            <Link to="/accessories" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>{t('accessories')}</Link>
+            
             <Link to="/about" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>{t('about')}</Link>
             <Link to="/contact" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>{t('contact')}</Link>
             

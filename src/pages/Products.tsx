@@ -21,7 +21,7 @@ const Products = () => {
   }, []);
   
   const series = Array.from(new Set(products.map(p => p.series).filter(Boolean)));
-  const types = Array.from(new Set(products.map(p => p.type).filter(Boolean))).filter(type => type !== 'accessory');
+  const types = Array.from(new Set(products.map(p => p.type).filter(Boolean)));
   
   useEffect(() => {
     if (seriesParam) {

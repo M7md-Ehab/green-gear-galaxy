@@ -17,46 +17,25 @@ export const useWishlist = create(
   persist<WishlistState>(
     (set, get) => ({
       items: [],
-      
       addToWishlist: (product) => {
         const { items } = get();
-        const existingItem = items.find(item => item.id === product.id);
-        
-        if (!existingItem) {
+        if (!items.find(item => item.id === product.id)) {
           set({ items: [...items, product] });
           toast.success(`${product.name} added to wishlist!`);
         } else {
           toast.info(`${product.name} is already in your wishlist`);
         }
       },
-      
       removeFromWishlist: (productId) => {
         const { items } = get();
         const product = items.find(item => item.id === productId);
         set({ items: items.filter(item => item.id !== productId) });
-        
-        if (product) {
-          toast.success(`${product.name} removed from wishlist`);
-        }
+        if (product) toast.success(`${product.name} removed from wishlist`);
       },
-      
-      isInWishlist: (productId) => {
-        const { items } = get();
-        return items.some(item => item.id === productId);
-      },
-      
-      clearWishlist: () => {
-        set({ items: [] });
-        toast.success('Wishlist cleared');
-      },
-      
-      itemsCount: () => {
-        const { items } = get();
-        return items.length;
-      }
+      isInWishlist: (productId) => get().items.some(item => item.id === productId),
+      clearWishlist: () => { set({ items: [] }); toast.success('Wishlist cleared'); },
+      itemsCount: () => get().items.length,
     }),
-    {
-      name: 'vlitrix-wishlist'
-    }
+    { name: 'vlitrix-wishlist' }
   )
 );

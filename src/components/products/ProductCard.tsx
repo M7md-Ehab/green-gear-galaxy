@@ -22,6 +22,13 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const isWishlisted = isInWishlist(product.id);
   const convertedPrice = convertPrice(product.price, 'EGP');
 
+  // Get images array from DB product
+  const images = product.images && product.images.length > 0 
+    ? product.images 
+    : product.image_url 
+      ? [product.image_url] 
+      : ['/placeholder.svg'];
+
   const handleWishlistToggle = () => {
     if (isWishlisted) {
       removeFromWishlist(product.id);
@@ -35,11 +42,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
   };
 
   const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % product.images.length);
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
   };
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length);
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
   const handleImageClick = () => {
@@ -51,7 +58,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
       <div className="relative overflow-hidden">
         <div className="aspect-square bg-gray-900 relative cursor-pointer" onClick={handleImageClick}>
           <img
-            src={product.images[currentImageIndex]}
+            src={images[currentImageIndex]}
             alt={product.name}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
@@ -59,59 +66,49 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300"></div>
           
           {/* Image Navigation Arrows */}
-          <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                prevImage();
-              }}
-              className="p-2 rounded-full bg-black/70 backdrop-blur-sm text-green-500 hover:text-green-400 hover:bg-black/80 transition-all duration-200"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                nextImage();
-              }}
-              className="p-2 rounded-full bg-black/70 backdrop-blur-sm text-green-500 hover:text-green-400 hover:bg-black/80 transition-all duration-200"
-            >
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </div>
+          {images.length > 1 && (
+            <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                className="p-2 rounded-full bg-black/70 backdrop-blur-sm text-green-500 hover:text-green-400 hover:bg-black/80 transition-all duration-200"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                className="p-2 rounded-full bg-black/70 backdrop-blur-sm text-green-500 hover:text-green-400 hover:bg-black/80 transition-all duration-200"
+              >
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
 
           {/* Image Indicators */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1">
-            {product.images.map((_, index) => (
-              <button
-                key={index}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setCurrentImageIndex(index);
-                }}
-                className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                  index === currentImageIndex ? 'bg-green-500' : 'bg-gray-600'
-                }`}
-              />
-            ))}
-          </div>
+          {images.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1">
+              {images.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(index); }}
+                  className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                    index === currentImageIndex ? 'bg-green-500' : 'bg-gray-600'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
           
           <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
             <Button
               variant="ghost"
               size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleWishlistToggle();
-              }}
+              onClick={(e) => { e.stopPropagation(); handleWishlistToggle(); }}
               className={`p-2 rounded-full bg-black/70 backdrop-blur-sm shadow-lg border ${
-                isWishlisted 
-                  ? 'text-red-500' 
-                  : 'text-gray-400 hover:text-red-500'
+                isWishlisted ? 'text-red-500' : 'text-gray-400 hover:text-red-500'
               } hover:scale-110 transition-all duration-200`}
             >
               <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-current' : ''}`} />
@@ -120,21 +117,20 @@ const ProductCard = ({ product }: ProductCardProps) => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleAddToCart();
-              }}
+              onClick={(e) => { e.stopPropagation(); handleAddToCart(); }}
               className="p-2 rounded-full bg-black/70 backdrop-blur-sm shadow-lg border text-gray-400 hover:text-green-500 hover:scale-110 transition-all duration-200"
             >
               <ShoppingCart className="h-4 w-4" />
             </Button>
           </div>
 
-          <div className="absolute top-4 left-4 z-10">
-            <span className="px-3 py-1 bg-green-500 text-black text-xs font-semibold rounded-full group-hover:bg-green-400 transition-all duration-300">
-              {product.series}
-            </span>
-          </div>
+          {product.series && (
+            <div className="absolute top-4 left-4 z-10">
+              <span className="px-3 py-1 bg-green-500 text-black text-xs font-semibold rounded-full group-hover:bg-green-400 transition-all duration-300">
+                {product.series}
+              </span>
+            </div>
+          )}
         </div>
 
         <CardContent className="p-6 bg-black group-hover:bg-gray-900 transition-colors duration-300">
@@ -161,7 +157,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
               <Link to={`/products/${product.id}`}>
                 <Button 
                   variant="outline" 
-                  className="bg-green-500 text-black border-green-500 hover:bg-green-400 hover:text-black hover:border-green-400 transition-all duration-300 hover:scale-105 group-hover:bg-green-400 group-hover:text-black group-hover:border-green-400"
+                  className="bg-green-500 text-black border-green-500 hover:bg-green-400 hover:text-black hover:border-green-400 transition-all duration-300 hover:scale-105"
                 >
                   View Details
                 </Button>
@@ -170,13 +166,17 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
             <div className="pt-4 border-t border-gray-800 group-hover:border-green-500/30 transition-colors duration-300">
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-500 group-hover:text-gray-400 transition-colors duration-300">Type:</span>
-                  <span className="text-gray-300 group-hover:text-white capitalize transition-colors duration-300">{product.type}</span>
-                </div>
+                {product.type && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500 group-hover:text-gray-400 transition-colors duration-300">Type:</span>
+                    <span className="text-gray-300 group-hover:text-white capitalize transition-colors duration-300">{product.type}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center">
                   <span className="text-gray-500 group-hover:text-gray-400 transition-colors duration-300">Stock:</span>
-                  <span className="text-gray-300 group-hover:text-white transition-colors duration-300">{product.stock}</span>
+                  <span className={`transition-colors duration-300 ${(product.inventory_count ?? 0) > 0 ? 'text-gray-300 group-hover:text-white' : 'text-red-400'}`}>
+                    {(product.inventory_count ?? 0) > 0 ? product.inventory_count : 'Out'}
+                  </span>
                 </div>
               </div>
             </div>

@@ -75,7 +75,7 @@ const Cart = () => {
                             size="icon" 
                             className="h-8 w-8 border-gray-600 text-white bg-gray-800"
                             onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                            disabled={item.quantity >= item.product.stock}
+                            disabled={item.quantity >= (item.product.inventory_count ?? 999)}
                           >
                             <Plus className="h-3 w-3" />
                           </Button>

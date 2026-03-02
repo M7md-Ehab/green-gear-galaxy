@@ -38,55 +38,35 @@ export const useCurrencyStore = create(
       ],
       currentCurrency: { code: 'EGP', name: 'Egyptian Pound', symbol: 'LE' },
       exchangeRates: {
-        EGP: 1,
-        USD: 0.032,
-        EUR: 0.030,
-        GBP: 0.025,
-        SAR: 0.120,
-        AED: 0.118,
-        JPY: 4.85,
-        CNY: 0.234,
+        EGP: 1, USD: 0.032, EUR: 0.030, GBP: 0.025,
+        SAR: 0.120, AED: 0.118, JPY: 4.85, CNY: 0.234,
       },
       isLoading: false,
       error: null,
       apiToken: null,
       
       setCurrency: (currencyCode) => {
-        const { currencies } = get();
-        const currency = currencies.find(c => c.code === currencyCode);
-        
-        if (currency) {
-          set({ currentCurrency: currency });
-        }
+        const currency = get().currencies.find(c => c.code === currencyCode);
+        if (currency) set({ currentCurrency: currency });
       },
       
       convertPrice: (price: number, fromCurrency: string = 'EGP') => {
         const { exchangeRates, currentCurrency } = get();
         const fromRate = exchangeRates[fromCurrency] || 1;
         const toRate = exchangeRates[currentCurrency.code] || 1;
-        
-        // Convert from source currency to EGP first, then to target currency
         const priceInEGP = price / fromRate;
-        const convertedPrice = priceInEGP * toRate;
-        
-        return parseFloat(convertedPrice.toFixed(2));
+        return parseFloat((priceInEGP * toRate).toFixed(2));
       },
 
       formatPrice: (price: number, currencyCode?: string) => {
         const { currentCurrency } = get();
-        const currency = currencyCode ? 
-          get().currencies.find(c => c.code === currencyCode) || currentCurrency : 
-          currentCurrency;
-        
-        return `${currency.symbol}${price.toLocaleString(undefined, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        })}`;
+        const currency = currencyCode 
+          ? get().currencies.find(c => c.code === currencyCode) || currentCurrency 
+          : currentCurrency;
+        return `${currency.symbol}${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       },
 
-      setApiToken: (token: string) => {
-        set({ apiToken: token });
-      },
+      setApiToken: (token: string) => set({ apiToken: token }),
 
       updateExchangeRates: async () => {
         const { apiToken } = get();
@@ -94,96 +74,69 @@ export const useCurrencyStore = create(
         
         try {
           if (apiToken) {
-            // Use CurrencyFreaks API
-            const response = await fetch(`https://api.currencyfreaks.com/v2.0/rates/latest?apikey=${apiToken}&symbols=USD,EUR,GBP,SAR,AED,JPY,CNY&base=EGP`);
+            // Use CurrencyFreaks API with real-time rates
+            const response = await fetch(
+              `https://api.currencyfreaks.com/v2.0/rates/latest?apikey=${apiToken}&symbols=USD,EUR,GBP,SAR,AED,JPY,CNY&base=EGP`
+            );
             
-            if (!response.ok) {
-              throw new Error('Failed to fetch exchange rates');
-            }
-            
+            if (!response.ok) throw new Error('Failed to fetch exchange rates');
             const data = await response.json();
             
             if (data.rates) {
-              const rates = {
-                EGP: 1,
-                ...Object.fromEntries(
-                  Object.entries(data.rates).map(([key, value]) => [key, parseFloat(value as string)])
-                )
-              };
-              
+              const rates: Record<string, number> = { EGP: 1 };
+              Object.entries(data.rates).forEach(([key, value]) => {
+                rates[key] = parseFloat(value as string);
+              });
               set({ exchangeRates: rates, isLoading: false });
               console.log('Exchange rates updated from CurrencyFreaks API:', rates);
-            } else {
-              throw new Error('Invalid API response');
+              return;
             }
-          } else {
-            // Fallback to simulated rates with realistic fluctuations
-            const baseRates = {
-              EGP: 1,
-              USD: 0.032 + (Math.random() - 0.5) * 0.001,
-              EUR: 0.030 + (Math.random() - 0.5) * 0.001,
-              GBP: 0.025 + (Math.random() - 0.5) * 0.0008,
-              SAR: 0.120 + (Math.random() - 0.5) * 0.002,
-              AED: 0.118 + (Math.random() - 0.5) * 0.002,
-              JPY: 4.85 + (Math.random() - 0.5) * 0.05,
-              CNY: 0.234 + (Math.random() - 0.5) * 0.005,
-            };
-            
-            // Ensure rates don't go negative or too extreme
-            Object.keys(baseRates).forEach(key => {
-              if (key !== 'EGP') {
-                baseRates[key] = Math.max(baseRates[key], baseRates[key] * 0.95);
-              }
-            });
-            
-            set({ exchangeRates: baseRates, isLoading: false });
-            console.log('Exchange rates updated (simulated):', baseRates);
           }
+
+          // Fallback: use free exchangerate.host API
+          try {
+            const response = await fetch('https://api.exchangerate.host/latest?base=EGP&symbols=USD,EUR,GBP,SAR,AED,JPY,CNY');
+            if (response.ok) {
+              const data = await response.json();
+              if (data.rates) {
+                const rates: Record<string, number> = { EGP: 1, ...data.rates };
+                set({ exchangeRates: rates, isLoading: false });
+                console.log('Exchange rates updated from exchangerate.host:', rates);
+                return;
+              }
+            }
+          } catch (fallbackErr) {
+            console.warn('exchangerate.host fallback failed:', fallbackErr);
+          }
+
+          // Final fallback: use static realistic rates (no random fluctuation)
+          set({
+            exchangeRates: {
+              EGP: 1, USD: 0.0203, EUR: 0.0187, GBP: 0.0161,
+              SAR: 0.0762, AED: 0.0747, JPY: 3.06, CNY: 0.148,
+            },
+            isLoading: false,
+          });
+          console.log('Using static exchange rates (no API available)');
         } catch (error) {
           set({ error: 'Failed to update exchange rates', isLoading: false });
           console.error('Currency update error:', error);
         }
       }
     }),
-    {
-      name: 'vlitrix-currency'
-    }
+    { name: 'vlitrix-currency' }
   )
 );
 
 export const useCurrency = () => {
-  const { 
-    currencies, 
-    currentCurrency, 
-    exchangeRates,
-    isLoading, 
-    error,
-    apiToken,
-    setCurrency,
-    convertPrice,
-    updateExchangeRates,
-    formatPrice,
-    setApiToken
-  } = useCurrencyStore();
+  const store = useCurrencyStore();
   
-  // Update exchange rates every 30 seconds
+  // Update exchange rates every 5 minutes (not 30 seconds)
   useEffect(() => {
-    updateExchangeRates();
-    const interval = setInterval(updateExchangeRates, 30 * 1000);
+    store.updateExchangeRates();
+    const interval = setInterval(store.updateExchangeRates, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [updateExchangeRates, apiToken]);
+  }, [store.apiToken]);
   
-  return {
-    currencies,
-    currentCurrency,
-    exchangeRates,
-    isLoading,
-    error,
-    apiToken,
-    setCurrency,
-    convertPrice,
-    updateExchangeRates,
-    formatPrice,
-    setApiToken
-  };
+  return store;
 };

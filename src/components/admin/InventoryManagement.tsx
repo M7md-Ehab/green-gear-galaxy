@@ -71,7 +71,7 @@ const InventoryManagement = () => {
     setEditName(product.name);
     setEditDescription(product.description || '');
     setEditCategory(product.category);
-    setEditType(product.type || '');
+    setEditType(product.type || 'none');
     setEditSeries(product.series || '');
     // Load ALL images from the images array
     const imgs = product.images && product.images.length > 0 

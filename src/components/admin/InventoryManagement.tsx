@@ -71,7 +71,7 @@ const InventoryManagement = () => {
     setEditName(product.name);
     setEditDescription(product.description || '');
     setEditCategory(product.category);
-    setEditType(product.type || '');
+    setEditType(product.type || 'none');
     setEditSeries(product.series || '');
     // Load ALL images from the images array
     const imgs = product.images && product.images.length > 0 
@@ -101,7 +101,7 @@ const InventoryManagement = () => {
       name: editName.trim(),
       description: editDescription.trim(),
       category: editCategory.trim(),
-      type: editType || null,
+      type: editType && editType !== 'none' ? editType : null,
       series: editSeries.trim() || null,
       image_url: editImages[0] || '/placeholder.svg',
       images: editImages,
@@ -159,9 +159,10 @@ const InventoryManagement = () => {
 
     // Include type and series via updateProduct after creation
     const productId = await addProduct(newProduct);
-    if (productId && (editType || editSeries)) {
+    const typeValue = editType && editType !== 'none' ? editType : null;
+    if (productId && (typeValue || editSeries)) {
       await supabase.from('products').update({ 
-        type: editType || null, 
+        type: typeValue, 
         series: editSeries.trim() || null 
       }).eq('id', productId);
     }

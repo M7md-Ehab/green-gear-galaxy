@@ -101,7 +101,7 @@ const InventoryManagement = () => {
       name: editName.trim(),
       description: editDescription.trim(),
       category: editCategory.trim(),
-      type: editType || null,
+      type: editType && editType !== 'none' ? editType : null,
       series: editSeries.trim() || null,
       image_url: editImages[0] || '/placeholder.svg',
       images: editImages,

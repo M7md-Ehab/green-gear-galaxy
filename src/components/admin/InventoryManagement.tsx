@@ -159,9 +159,10 @@ const InventoryManagement = () => {
 
     // Include type and series via updateProduct after creation
     const productId = await addProduct(newProduct);
-    if (productId && (editType || editSeries)) {
+    const typeValue = editType && editType !== 'none' ? editType : null;
+    if (productId && (typeValue || editSeries)) {
       await supabase.from('products').update({ 
-        type: editType || null, 
+        type: typeValue, 
         series: editSeries.trim() || null 
       }).eq('id', productId);
     }

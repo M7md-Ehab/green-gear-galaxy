@@ -27,31 +27,23 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // For login/verify_identity, check user exists
-    if (type === 'login' || type === 'verify_identity') {
-      const { data: profile } = await supabase.from('profiles').select('id').eq('email', email).maybeSingle();
-      if (!profile) {
-        return new Response(JSON.stringify({ error: 'No account found with this email' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      }
+    // Reliable existence check against auth.users
+    const { data: existsData } = await supabase.rpc('user_exists_by_email', { _email: email });
+    const userExists = existsData === true;
+
+    if ((type === 'login' || type === 'verify_identity') && !userExists) {
+      return new Response(JSON.stringify({ error: 'No account found with this email' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // For signup, check user doesn't already exist
-    if (type === 'signup') {
-      const { data: profile } = await supabase.from('profiles').select('id').eq('email', email).maybeSingle();
-      if (profile) {
-        return new Response(JSON.stringify({ error: 'An account already exists with this email' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      }
+    if (type === 'signup' && userExists) {
+      return new Response(JSON.stringify({ error: 'An account already exists with this email' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // For email_change, check new email not in use
-    if (type === 'email_change') {
-      const { data: existing } = await supabase.from('profiles').select('id').eq('email', email).maybeSingle();
-      if (existing) {
-        return new Response(JSON.stringify({ error: 'This email is already in use' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      }
+    if (type === 'email_change' && userExists) {
+      return new Response(JSON.stringify({ error: 'This email is already in use' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // Generate 6-digit OTP

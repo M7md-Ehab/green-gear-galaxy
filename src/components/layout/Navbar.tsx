@@ -106,6 +106,13 @@ const Navbar = () => {
             
             <Link to="/about" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>{t('about')}</Link>
             <Link to="/contact" className="font-medium hover:text-brand-green transition-colors" onClick={() => setIsOpen(false)}>{t('contact')}</Link>
+
+            <div className="flex items-center gap-2 pt-2 border-t border-border/40">
+              <CurrencySelector />
+              <LanguageSelector />
+            </div>
+
+
             
             {user ? (
               <>

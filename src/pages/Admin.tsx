@@ -5,6 +5,7 @@ import InventoryManagement from '@/components/admin/InventoryManagement';
 import SpendingAnalytics from '@/components/admin/SpendingAnalytics';
 import EmailActivity from '@/components/admin/EmailActivity';
 import FeedbackManagement from '@/components/admin/FeedbackManagement';
+import CurrencySelector from '@/components/CurrencySelector';
 import { Shield, Package, BarChart3, Mail, MessageSquare, ShoppingCart, LayoutDashboard } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,7 +17,7 @@ const Admin = () => {
       <main className="flex-grow py-8">
         <div className="container-custom">
           {/* Header */}
-          <div className="mb-8">
+          <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-4 mb-2">
               <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-brand-green to-emerald-600 flex items-center justify-center shadow-lg shadow-brand-green/20">
                 <LayoutDashboard className="h-7 w-7 text-black" />
@@ -27,6 +28,10 @@ const Admin = () => {
                 </h1>
                 <p className="text-gray-400">Manage your store, orders, and inventory</p>
               </div>
+            </div>
+            <div className="flex items-center gap-2 bg-gray-900/50 border border-gray-800 rounded-lg px-2 py-1">
+              <span className="text-xs text-gray-400 pl-2">Currency:</span>
+              <CurrencySelector />
             </div>
           </div>
 

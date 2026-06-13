@@ -69,60 +69,30 @@ export const useCurrencyStore = create(
       setApiToken: (token: string) => set({ apiToken: token }),
 
       updateExchangeRates: async () => {
-        const { apiToken } = get();
         set({ isLoading: true, error: null });
-        
         try {
-          if (apiToken) {
-            // Use CurrencyFreaks API with real-time rates
-            const response = await fetch(
-              `https://api.currencyfreaks.com/v2.0/rates/latest?apikey=${apiToken}&symbols=USD,EUR,GBP,SAR,AED,JPY,CNY&base=EGP`
-            );
-            
-            if (!response.ok) throw new Error('Failed to fetch exchange rates');
-            const data = await response.json();
-            
-            if (data.rates) {
-              const rates: Record<string, number> = { EGP: 1 };
-              Object.entries(data.rates).forEach(([key, value]) => {
-                rates[key] = parseFloat(value as string);
-              });
-              set({ exchangeRates: rates, isLoading: false });
-              console.log('Exchange rates updated from CurrencyFreaks API:', rates);
-              return;
-            }
+          const { supabase } = await import('@/integrations/supabase/client');
+          const { data, error } = await supabase.functions.invoke('get-exchange-rates');
+          if (error) throw error;
+          if (data?.rates) {
+            set({ exchangeRates: data.rates, isLoading: false });
+            console.log(`Exchange rates updated (${data.source}):`, data.rates);
+            return;
           }
-
-          // Fallback: use free exchangerate.host API
-          try {
-            const response = await fetch('https://api.exchangerate.host/latest?base=EGP&symbols=USD,EUR,GBP,SAR,AED,JPY,CNY');
-            if (response.ok) {
-              const data = await response.json();
-              if (data.rates) {
-                const rates: Record<string, number> = { EGP: 1, ...data.rates };
-                set({ exchangeRates: rates, isLoading: false });
-                console.log('Exchange rates updated from exchangerate.host:', rates);
-                return;
-              }
-            }
-          } catch (fallbackErr) {
-            console.warn('exchangerate.host fallback failed:', fallbackErr);
-          }
-
-          // Final fallback: use static realistic rates (no random fluctuation)
+          throw new Error('No rates returned');
+        } catch (error) {
+          console.warn('Exchange rate fetch failed, using static fallback:', error);
           set({
             exchangeRates: {
               EGP: 1, USD: 0.0203, EUR: 0.0187, GBP: 0.0161,
               SAR: 0.0762, AED: 0.0747, JPY: 3.06, CNY: 0.148,
             },
             isLoading: false,
+            error: 'Failed to update exchange rates',
           });
-          console.log('Using static exchange rates (no API available)');
-        } catch (error) {
-          set({ error: 'Failed to update exchange rates', isLoading: false });
-          console.error('Currency update error:', error);
         }
       }
+
     }),
     { name: 'vlitrix-currency' }
   )

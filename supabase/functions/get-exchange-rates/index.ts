@@ -1,59 +1,57 @@
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 
-const SYMBOLS = 'USD,EUR,GBP,SAR,AED,JPY,CNY';
+const SYMBOLS = ['USD', 'EUR', 'GBP', 'SAR', 'AED', 'JPY', 'CNY', 'EGP'];
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+
+  let rates: Record<string, number> | null = null;
+  let source = 'static';
 
   try {
     const apiKey = Deno.env.get('CURRENCYFREAKS_API_KEY');
-    let rates: Record<string, number> | null = null;
-    let source = 'static';
-
     if (apiKey) {
-      try {
-        const r = await fetch(
-          `https://api.currencyfreaks.com/v2.0/rates/latest?apikey=${apiKey}&symbols=${SYMBOLS}&base=EGP`
-        );
-        if (r.ok) {
-          const data = await r.json();
-          if (data.rates) {
+      const r = await fetch(
+        `https://api.currencyfreaks.com/v2.0/rates/latest?apikey=${apiKey}&symbols=${SYMBOLS.join(',')}`
+      );
+      if (r.ok) {
+        const data = await r.json();
+        // Free tier returns USD base. Rebase to EGP: rate_EGP(X) = rate_USD(X) / rate_USD(EGP)
+        if (data?.rates?.EGP) {
+          const usdToEgp = parseFloat(data.rates.EGP);
+          if (usdToEgp > 0) {
             rates = { EGP: 1 };
-            for (const [k, v] of Object.entries(data.rates)) {
-              rates[k] = parseFloat(v as string);
+            for (const sym of SYMBOLS) {
+              if (sym === 'EGP') continue;
+              const v = parseFloat(data.rates[sym]);
+              if (!isNaN(v)) rates[sym] = v / usdToEgp;
             }
             source = 'currencyfreaks';
           }
         }
-      } catch (_) { /* fall through */ }
+      } else {
+        console.error('CurrencyFreaks failed:', r.status, await r.text());
+      }
     }
-
-    if (!rates) {
-      try {
-        const r = await fetch(`https://api.exchangerate.host/latest?base=EGP&symbols=${SYMBOLS}`);
-        if (r.ok) {
-          const data = await r.json();
-          if (data.rates) {
-            rates = { EGP: 1, ...data.rates };
-            source = 'exchangerate.host';
-          }
-        }
-      } catch (_) { /* fall through */ }
-    }
-
-    if (!rates) {
-      rates = { EGP: 1, USD: 0.0203, EUR: 0.0187, GBP: 0.0161, SAR: 0.0762, AED: 0.0747, JPY: 3.06, CNY: 0.148 };
-    }
-
-    return new Response(JSON.stringify({ rates, source, updatedAt: new Date().toISOString() }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
   } catch (e) {
-    return new Response(JSON.stringify({ error: (e as Error).message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    console.error('CurrencyFreaks error:', e);
   }
+
+  if (!rates) {
+    try {
+      const r = await fetch(`https://api.exchangerate.host/latest?base=EGP&symbols=${SYMBOLS.filter(s => s !== 'EGP').join(',')}`);
+      if (r.ok) {
+        const data = await r.json();
+        if (data?.rates) { rates = { EGP: 1, ...data.rates }; source = 'exchangerate.host'; }
+      }
+    } catch (_) {}
+  }
+
+  if (!rates) {
+    rates = { EGP: 1, USD: 0.01926, EUR: 0.01665, GBP: 0.01436, SAR: 0.07227, AED: 0.07073, JPY: 3.085, CNY: 0.13022 };
+  }
+
+  return new Response(JSON.stringify({ rates, source, updatedAt: new Date().toISOString() }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
 });

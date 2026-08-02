@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { emailLayout, BRAND } from "../_shared/email-layout.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -69,61 +70,26 @@ serve(async (req) => {
     };
     const label = typeLabels[type] || 'Verification';
 
-    const emailHtml = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <table role="presentation" style="width: 100%; border-collapse: collapse;">
-    <tr>
-      <td align="center" style="padding: 40px 20px;">
-        <table role="presentation" style="width: 460px; max-width: 100%; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
-          
-          <!-- Header -->
+    const otpBoxed = otpCode.split('').join('&nbsp;&nbsp;');
+
+    const emailHtml = emailLayout({
+      eyebrow: label,
+      title: 'Your verification code',
+      subtitle: 'Use the code below to continue. It is valid for 10 minutes and can only be used once.',
+      preheader: `${otpCode} is your Vlitrix verification code`,
+      content: `
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid #E6E6E6;border-left:3px solid ${BRAND.green};background-color:#FAFAFA;">
           <tr>
-            <td style="background: linear-gradient(135deg, #00ff94 0%, #00cc75 100%); padding: 32px 40px; text-align: center;">
-              <h1 style="color: #000000; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">VLITRIX</h1>
-            </td>
-          </tr>
-          
-          <!-- Body -->
-          <tr>
-            <td style="padding: 40px;">
-              <h2 style="color: #1a1a1a; margin: 0 0 8px; font-size: 22px; font-weight: 700; text-align: center;">${label} Code</h2>
-              <p style="color: #666666; font-size: 15px; text-align: center; margin: 0 0 32px; line-height: 22px;">Enter this code to verify your identity</p>
-              
-              <!-- OTP Code -->
-              <div style="text-align: center; margin: 0 0 32px;">
-                <div style="display: inline-block; background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 12px; padding: 20px 40px;">
-                  <span style="font-size: 40px; font-weight: 800; letter-spacing: 12px; color: #000000; font-family: 'SF Mono', 'Fira Code', monospace;">${otpCode}</span>
-                </div>
-              </div>
-              
-              <div style="background: #fff8e1; border-radius: 8px; padding: 12px 16px; margin-bottom: 24px;">
-                <p style="color: #f57c00; font-size: 13px; margin: 0; text-align: center;">⏱ This code expires in <strong>10 minutes</strong></p>
-              </div>
-              
-              <p style="color: #999999; font-size: 13px; text-align: center; margin: 0; line-height: 20px;">
-                If you didn't request this code, you can safely ignore this email.
-              </p>
-            </td>
-          </tr>
-          
-          <!-- Footer -->
-          <tr>
-            <td style="background-color: #1a1a1a; padding: 20px 40px; text-align: center;">
-              <p style="color: #888888; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} Vlitrix. All rights reserved.</p>
+            <td align="center" style="padding:26px 20px;">
+              <p style="margin:0 0 10px;color:#8A8A8A;font-size:11px;letter-spacing:2px;text-transform:uppercase;">Verification code</p>
+              <p style="margin:0;color:#111111;font-size:34px;font-weight:700;letter-spacing:6px;font-family:'SF Mono',Menlo,Consolas,monospace;">${otpBoxed}</p>
             </td>
           </tr>
         </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
+        <div style="height:24px;"></div>
+        <p style="margin:0;color:#4A4A4A;font-size:14px;line-height:22px;">This code expires in <strong style="color:#111111;">10 minutes</strong>. If you did not request it, you can safely ignore this email &mdash; no changes will be made to your account.</p>
+      `,
+    });
 
     // Send email via Resend
     const resendRes = await fetch('https://api.resend.com/emails', {
@@ -132,7 +98,7 @@ serve(async (req) => {
       body: JSON.stringify({
         from: 'Vlitrix <onboarding@resend.dev>',
         to: [email],
-        subject: `${otpCode} is your Vlitrix ${label.toLowerCase()} code`,
+        subject: `${otpCode} is your Vlitrix verification code`,
         html: emailHtml,
       }),
     });

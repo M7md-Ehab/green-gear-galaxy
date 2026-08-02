@@ -50,24 +50,30 @@ const FeedbackManagement = () => {
             body: {
               to: feedback.email,
               subject: `Feedback Update: ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+              title: 'Your feedback status was updated',
+              eyebrow: 'Feedback update',
+              subtitle: `Your feedback is now marked as "${status}".`,
               html: `
-                <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
-                  <div style="background: linear-gradient(135deg, #00ff94, #00cc75); padding: 24px; text-align: center;">
-                    <h1 style="color: #000; margin: 0; font-size: 22px;">Feedback Update</h1>
-                  </div>
-                  <div style="padding: 30px;">
-                    <p style="color: #333; font-size: 15px;">Hi <strong>${feedback.name}</strong>,</p>
-                    <p style="color: #666; font-size: 14px; line-height: 22px;">Your feedback has been updated to: <strong style="color: #00cc75; text-transform: capitalize;">${status}</strong></p>
-                    <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #00ff94;">
-                      <p style="color: #666; font-size: 13px; margin: 0 0 4px;">Your feedback:</p>
-                      <p style="color: #333; font-size: 14px; margin: 0;">${feedback.message}</p>
-                    </div>
-                    <p style="color: #999; font-size: 12px;">Thank you for your feedback!</p>
-                  </div>
-                  <div style="background: #1a1a1a; padding: 16px; text-align: center;">
-                    <p style="color: #888; font-size: 11px; margin: 0;">© ${new Date().getFullYear()} Vlitrix</p>
-                  </div>
-                </div>
+                <p style="margin:0 0 20px;color:#4A4A4A;font-size:15px;line-height:24px;">Hi <strong style="color:#111111;">${feedback.name}</strong>,</p>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid #E6E6E6;border-left:3px solid #00FF84;background-color:#FAFAFA;">
+                  <tr>
+                    <td style="padding:16px 20px;">
+                      <p style="margin:0;color:#8A8A8A;font-size:11px;letter-spacing:2px;text-transform:uppercase;">Status</p>
+                      <p style="margin:6px 0 0;color:#111111;font-size:18px;font-weight:700;text-transform:capitalize;">${status}</p>
+                    </td>
+                  </tr>
+                </table>
+                <div style="height:20px;"></div>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid #E6E6E6;">
+                  <tr>
+                    <td style="padding:18px 20px;">
+                      <p style="margin:0 0 8px;color:#111111;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">Your message</p>
+                      <p style="margin:0;color:#4A4A4A;font-size:14px;line-height:22px;">${feedback.message}</p>
+                    </td>
+                  </tr>
+                </table>
+                <div style="height:20px;"></div>
+                <p style="margin:0;color:#4A4A4A;font-size:14px;line-height:22px;">Thank you for helping us improve Vlitrix.</p>
               `,
             },
           });

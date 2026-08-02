@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { emailLayout } from "../_shared/email-layout.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -14,7 +15,11 @@ const corsHeaders = {
 const EmailRequestSchema = z.object({
   to: z.string().email().max(255),
   subject: z.string().trim().min(1).max(200),
-  html: z.string().min(1).max(100000)
+  html: z.string().min(1).max(100000),
+  // Optional branding overrides for the shared Vlitrix layout
+  title: z.string().trim().max(160).optional(),
+  eyebrow: z.string().trim().max(60).optional(),
+  subtitle: z.string().trim().max(400).optional()
 });
 
 interface EmailRequest extends z.infer<typeof EmailRequestSchema> {}
@@ -31,9 +36,7 @@ const handler = async (req: Request): Promise<Response> => {
     
     const emailRequest = EmailRequestSchema.parse(rawData);
 
-    // Use Resend's default sender for unverified domains
-    // Once domain is verified, change to your custom domain
-    const fromEmail = "Mehab <onboarding@resend.dev>";
+    const fromEmail = "Vlitrix <onboarding@resend.dev>";
 
     console.log("Sending email from:", fromEmail, "to:", emailRequest.to);
 
@@ -41,7 +44,15 @@ const handler = async (req: Request): Promise<Response> => {
       from: fromEmail,
       to: [emailRequest.to],
       subject: emailRequest.subject,
-      html: emailRequest.html,
+      html: emailRequest.html.includes("<!DOCTYPE")
+        ? emailRequest.html
+        : emailLayout({
+            eyebrow: emailRequest.eyebrow,
+            title: emailRequest.title || emailRequest.subject,
+            subtitle: emailRequest.subtitle,
+            preheader: emailRequest.subtitle || emailRequest.subject,
+            content: emailRequest.html,
+          }),
     });
 
     console.log("Email sent successfully:", emailResponse);

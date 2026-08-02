@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "npm:resend@2.0.0";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { emailLayout, statPanel, infoBlock, button, BRAND } from "../_shared/email-layout.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -111,60 +112,28 @@ const handler = async (req: Request): Promise<Response> => {
       };
 
       const statusInfo = statusMessages[status] || statusMessages.pending;
-      const emailSubject = `${statusInfo.title} ${statusInfo.emoji} - Order #${order.order_code}`;
-      
-      const emailBody = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <table role="presentation" style="width: 100%; border-collapse: collapse;">
-            <tr>
-              <td align="center" style="padding: 40px 0;">
-                <table role="presentation" style="width: 600px; max-width: 100%; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                  <tr>
-                    <td style="background: linear-gradient(135deg, #00ff94 0%, #00cc75 100%); padding: 30px; text-align: center;">
-                      <h1 style="color: #000; margin: 0; font-size: 28px;">${statusInfo.title} ${statusInfo.emoji}</h1>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 30px;">
-                      <div style="background: #f8f9fa; border-left: 4px solid #00ff94; padding: 15px 20px; border-radius: 4px; margin-bottom: 20px;">
-                        <p style="margin: 0; color: #666; font-size: 13px; text-transform: uppercase;">Order Number</p>
-                        <p style="margin: 5px 0 0 0; color: #000; font-size: 24px; font-weight: 700;">#${order.order_code}</p>
-                      </div>
-                      
-                      <p style="color: #333; font-size: 16px; margin: 0 0 15px 0;">Hi <strong>${customerName}</strong>,</p>
-                      <p style="color: #666; font-size: 15px; line-height: 24px; margin: 0 0 20px 0;">${statusInfo.message}</p>
-                      
-                      <div style="background: #f0f0f0; padding: 15px; border-radius: 6px; text-align: center;">
-                        <p style="margin: 0; color: #666; font-size: 14px;">Current Status</p>
-                        <p style="margin: 5px 0 0 0; color: #000; font-size: 18px; font-weight: 600; text-transform: capitalize;">${status}</p>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="background-color: #1a1a1a; padding: 20px; text-align: center;">
-                      <p style="color: #ffffff; font-size: 14px; margin: 0 0 5px 0;">Thank you for shopping with Mehab!</p>
-                      <p style="color: #999; font-size: 12px; margin: 0;">Questions? Reply to this email or contact our support.</p>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </body>
-        </html>
-      `;
+      const emailSubject = `${statusInfo.title} — Vlitrix order #${order.order_code}`;
+
+      const emailBody = emailLayout({
+        eyebrow: "Order update",
+        title: statusInfo.title,
+        subtitle: statusInfo.message,
+        preheader: `Order #${order.order_code}: ${status}`,
+        content: `
+          <p style="margin:0 0 24px;color:#4A4A4A;font-size:15px;line-height:24px;">Hi <strong style="color:#111111;">${customerName}</strong>,</p>
+          ${statPanel("Order number", `#${order.order_code}`)}
+          <div style="height:16px;"></div>
+          ${infoBlock("Current status", `<span style="color:#111111;font-weight:600;text-transform:capitalize;">${status}</span>`)}
+          <div style="height:28px;"></div>
+          ${button("View order details", `${BRAND.site}/dashboard`)}
+        `,
+      });
 
       try {
         console.log("Sending status update email to:", order.user_email);
         
         const emailResult = await resend.emails.send({
-          from: "Mehab Store <onboarding@resend.dev>",
+          from: "Vlitrix <onboarding@resend.dev>",
           to: [order.user_email],
           subject: emailSubject,
           html: emailBody,

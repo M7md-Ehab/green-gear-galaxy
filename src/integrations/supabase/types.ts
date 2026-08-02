@@ -176,7 +176,7 @@ export type Database = {
           customer_phone?: string | null
           id?: string
           notes?: string | null
-          order_code: number
+          order_code?: number
           payment_method?: string | null
           status?: string | null
           total: number

@@ -60,14 +60,27 @@ const Contact = () => {
           body: {
             to: 'mehab882011@gmail.com',
             subject: `New Feedback from ${data.name}`,
+            title: `New feedback from ${data.name}`,
+            eyebrow: 'Internal notification',
+            subtitle: 'A new message was submitted through the Vlitrix contact form.',
             html: `
-              <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #00ff94;">New Feedback Received</h2>
-                <p><strong>From:</strong> ${data.name}</p>
-                <p><strong>Email:</strong> ${data.email}</p>
-                <p><strong>Message:</strong></p>
-                <p style="background: #f5f5f5; padding: 15px; border-radius: 8px;">${data.message}</p>
-              </div>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid #E6E6E6;">
+                <tr>
+                  <td style="padding:18px 20px;">
+                    <p style="margin:0 0 8px;color:#111111;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">Sender</p>
+                    <p style="margin:0;color:#4A4A4A;font-size:14px;line-height:22px;">${data.name}<br>${data.email}</p>
+                  </td>
+                </tr>
+              </table>
+              <div style="height:16px;"></div>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid #E6E6E6;border-left:3px solid #00FF84;background-color:#FAFAFA;">
+                <tr>
+                  <td style="padding:18px 20px;">
+                    <p style="margin:0 0 8px;color:#111111;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">Message</p>
+                    <p style="margin:0;color:#4A4A4A;font-size:14px;line-height:22px;">${data.message}</p>
+                  </td>
+                </tr>
+              </table>
             `
           }
         });

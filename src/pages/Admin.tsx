@@ -4,9 +4,10 @@ import OrderSearch from '@/components/admin/OrderSearch';
 import InventoryManagement from '@/components/admin/InventoryManagement';
 import SpendingAnalytics from '@/components/admin/SpendingAnalytics';
 import EmailActivity from '@/components/admin/EmailActivity';
+import EmailTemplates from '@/components/admin/EmailTemplates';
 import FeedbackManagement from '@/components/admin/FeedbackManagement';
 import CurrencySelector from '@/components/CurrencySelector';
-import { Shield, Package, BarChart3, Mail, MessageSquare, ShoppingCart, LayoutDashboard } from 'lucide-react';
+import { Sparkles, Shield, Package, BarChart3, Mail, MessageSquare, ShoppingCart, LayoutDashboard } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -69,6 +70,13 @@ const Admin = () => {
                     <span className="font-medium">Feedback</span>
                   </TabsTrigger>
                   <TabsTrigger 
+                    value="templates" 
+                    className="data-[state=active]:bg-brand-green data-[state=active]:text-black data-[state=inactive]:bg-gray-800/50 data-[state=inactive]:text-gray-300 data-[state=inactive]:hover:bg-gray-800 flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-200"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    <span className="font-medium">Templates</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
                     value="emails" 
                     className="data-[state=active]:bg-brand-green data-[state=active]:text-black data-[state=inactive]:bg-gray-800/50 data-[state=inactive]:text-gray-300 data-[state=inactive]:hover:bg-gray-800 flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-200"
                   >
@@ -93,6 +101,10 @@ const Admin = () => {
 
             <TabsContent value="feedback" className="mt-6 animate-in fade-in-50 duration-300">
               <FeedbackManagement />
+            </TabsContent>
+
+            <TabsContent value="templates" className="mt-6 animate-in fade-in-50 duration-300">
+              <EmailTemplates />
             </TabsContent>
 
             <TabsContent value="emails" className="mt-6 animate-in fade-in-50 duration-300">

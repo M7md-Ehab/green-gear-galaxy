@@ -288,7 +288,9 @@ const EmailTemplates = () => {
             </div>
             <p className="text-xs text-gray-500">
               Leave both fields empty and the default {template.name.toLowerCase()} email is sent as
-              is. Anything you type here replaces the body for this send only.
+              is. Anything you type here replaces the body for this send only. Use placeholders like{' '}
+              <code className="text-brand-green">{'{{customer_name}}'}</code> in the subject or
+              message — they are filled from the selected order automatically.
             </p>
             <Input
               placeholder={template.subject(data)}
@@ -300,13 +302,35 @@ const EmailTemplates = () => {
             />
             <Textarea
               rows={5}
-              placeholder="Write a custom message… (leave empty to send the default template)"
+              placeholder="Hi {{customer_name}}, your order #{{order_number}} is now {{status}}. Amount: {{amount}}."
               value={customMessage[template.id] || ''}
               onChange={(e) =>
                 setCustomMessage((prev) => ({ ...prev, [template.id]: e.target.value }))
               }
               className="bg-gray-900 border-gray-800 text-white"
             />
+            <div className="space-y-2">
+              <p className="text-xs uppercase tracking-wider text-gray-500">
+                Available placeholders — click to insert
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {PLACEHOLDERS.map((p) => (
+                  <button
+                    key={p.token}
+                    type="button"
+                    onClick={() => insertPlaceholder(p.token)}
+                    title={`${p.label} → ${placeholderValues[p.token] ?? ''}`}
+                    className="rounded-md border border-gray-800 bg-gray-900 px-2 py-1 text-xs text-gray-300 hover:border-brand-green hover:text-brand-green transition-colors"
+                  >
+                    {`{{${p.token}}}`}
+                    <span className="ml-2 text-gray-500">
+                      {placeholderValues[p.token] ?? '—'}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
           </div>
 
           <div className="rounded-lg border border-gray-800 bg-gray-950/60 p-4 space-y-3">

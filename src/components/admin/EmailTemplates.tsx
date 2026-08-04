@@ -130,7 +130,7 @@ const EmailTemplates = () => {
       const { data, error } = await supabase
         .from('orders')
         .select(
-          'id, order_code, customer_name, user_email, status, customer_address, customer_city, customer_phone, payment_method',
+          'id, order_code, customer_name, user_email, status, total, customer_address, customer_city, customer_phone, payment_method',
         )
         .order('created_at', { ascending: false })
         .limit(100);

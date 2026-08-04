@@ -24,6 +24,7 @@ interface OrderRow {
   customer_name: string | null;
   user_email: string;
   status: string | null;
+  total: number | null;
   customer_address: string | null;
   customer_city: string | null;
   customer_phone: string | null;
@@ -56,6 +57,63 @@ const valuesFromOrder = (
   });
   return out;
 };
+
+/**
+ * Placeholder tokens usable inside a custom subject / message.
+ * Written as {{customer_name}} etc. Extra aliases keep it forgiving.
+ */
+const PLACEHOLDERS: { token: string; label: string }[] = [
+  { token: 'customer_name', label: 'Customer name' },
+  { token: 'order_number', label: 'Order number' },
+  { token: 'status', label: 'Order status' },
+  { token: 'amount', label: 'Payment amount' },
+  { token: 'payment_method', label: 'Payment method' },
+  { token: 'email', label: 'Customer email' },
+  { token: 'phone', label: 'Phone' },
+  { token: 'address', label: 'Address' },
+  { token: 'city', label: 'City' },
+];
+
+const buildPlaceholderValues = (
+  data: Record<string, string>,
+  order: OrderRow | null,
+): Record<string, string> => {
+  const amount =
+    order?.total != null
+      ? `EGP ${Number(order.total).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+      : '—';
+  const values: Record<string, string> = {
+    customer_name: data.customerName || order?.customer_name || 'Customer',
+    customername: data.customerName || order?.customer_name || 'Customer',
+    name: data.customerName || order?.customer_name || 'Customer',
+    order_number: data.orderCode || String(order?.order_code ?? ''),
+    ordernumber: data.orderCode || String(order?.order_code ?? ''),
+    order_code: data.orderCode || String(order?.order_code ?? ''),
+    ordercode: data.orderCode || String(order?.order_code ?? ''),
+    status: data.status || order?.status || 'pending',
+    amount,
+    total: amount,
+    payment_amount: amount,
+    payment_method: data.payment || order?.payment_method || '—',
+    payment: data.payment || order?.payment_method || '—',
+    email: order?.user_email || '—',
+    phone: data.phone || order?.customer_phone || '—',
+    address: data.address || order?.customer_address || '—',
+    city: data.city || order?.customer_city || '—',
+  };
+  // Any remaining template field keys are also addressable directly.
+  Object.entries(data).forEach(([k, v]) => {
+    if (values[k.toLowerCase()] === undefined) values[k.toLowerCase()] = v;
+  });
+  return values;
+};
+
+const applyPlaceholders = (text: string, values: Record<string, string>) =>
+  text.replace(/\{\{\s*([\w.]+)\s*\}\}/g, (match, key: string) => {
+    const v = values[String(key).toLowerCase()];
+    return v !== undefined ? v : match;
+  });
+
 
 const EmailTemplates = () => {
   const [templateId, setTemplateId] = useState(EMAIL_TEMPLATES[0].id);

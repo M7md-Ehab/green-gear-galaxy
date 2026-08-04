@@ -441,3 +441,21 @@ export const EMAIL_TEMPLATES: EmailTemplateDef[] = [
     },
   },
 ];
+
+/* ------------------ Generated per-event status templates ------------------ */
+// One selectable template per order event (Order Shipped, Order Cancelled, ...).
+// Adding a new status to STATUS_OPTIONS/STATUS_COPY automatically adds a template.
+const statusTemplate = EMAIL_TEMPLATES.find((t) => t.id === "order-status")!;
+
+STATUS_OPTIONS.forEach((status) => {
+  const copy = STATUS_COPY[status] || STATUS_COPY.pending;
+  EMAIL_TEMPLATES.push({
+    id: `order-${status}`,
+    name: copy.title,
+    description: copy.message,
+    fields: statusTemplate.fields.filter((f) => f.key !== "status"),
+    defaults: { ...statusTemplate.defaults, status },
+    subject: (v) => statusTemplate.subject({ ...v, status }),
+    render: (v, mode) => statusTemplate.render({ ...v, status }, mode),
+  });
+});

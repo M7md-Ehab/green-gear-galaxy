@@ -152,9 +152,16 @@ const EmailTemplates = () => {
   );
 
   const data = useMemo(() => valuesFromOrder(template.defaults, order), [template, order]);
+  const placeholderValues = useMemo(() => buildPlaceholderValues(data, order), [data, order]);
 
-  const overrideSubject = (customSubject[template.id] || '').trim();
-  const overrideMessage = (customMessage[template.id] || '').trim();
+  const overrideSubject = applyPlaceholders(
+    (customSubject[template.id] || '').trim(),
+    placeholderValues,
+  );
+  const overrideMessage = applyPlaceholders(
+    (customMessage[template.id] || '').trim(),
+    placeholderValues,
+  );
 
   const finalSubject = overrideSubject || template.subject(data);
   const renderEmail = (m: EmailMode) =>
@@ -175,6 +182,14 @@ const EmailTemplates = () => {
           m,
         )
       : template.render(data, m);
+
+  const insertPlaceholder = (token: string) =>
+    setCustomMessage((prev) => {
+      const current = prev[template.id] || '';
+      const sep = current && !/\s$/.test(current) ? ' ' : '';
+      return { ...prev, [template.id]: `${current}${sep}{{${token}}}` };
+    });
+
 
   const handleOrderChange = (value: string) => {
     setOrderId(value);

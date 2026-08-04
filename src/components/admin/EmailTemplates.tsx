@@ -24,6 +24,7 @@ interface OrderRow {
   customer_name: string | null;
   user_email: string;
   status: string | null;
+  total: number | null;
   customer_address: string | null;
   customer_city: string | null;
   customer_phone: string | null;
@@ -57,6 +58,63 @@ const valuesFromOrder = (
   return out;
 };
 
+/**
+ * Placeholder tokens usable inside a custom subject / message.
+ * Written as {{customer_name}} etc. Extra aliases keep it forgiving.
+ */
+const PLACEHOLDERS: { token: string; label: string }[] = [
+  { token: 'customer_name', label: 'Customer name' },
+  { token: 'order_number', label: 'Order number' },
+  { token: 'status', label: 'Order status' },
+  { token: 'amount', label: 'Payment amount' },
+  { token: 'payment_method', label: 'Payment method' },
+  { token: 'email', label: 'Customer email' },
+  { token: 'phone', label: 'Phone' },
+  { token: 'address', label: 'Address' },
+  { token: 'city', label: 'City' },
+];
+
+const buildPlaceholderValues = (
+  data: Record<string, string>,
+  order: OrderRow | null,
+): Record<string, string> => {
+  const amount =
+    order?.total != null
+      ? `EGP ${Number(order.total).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+      : '—';
+  const values: Record<string, string> = {
+    customer_name: data.customerName || order?.customer_name || 'Customer',
+    customername: data.customerName || order?.customer_name || 'Customer',
+    name: data.customerName || order?.customer_name || 'Customer',
+    order_number: data.orderCode || String(order?.order_code ?? ''),
+    ordernumber: data.orderCode || String(order?.order_code ?? ''),
+    order_code: data.orderCode || String(order?.order_code ?? ''),
+    ordercode: data.orderCode || String(order?.order_code ?? ''),
+    status: data.status || order?.status || 'pending',
+    amount,
+    total: amount,
+    payment_amount: amount,
+    payment_method: data.payment || order?.payment_method || '—',
+    payment: data.payment || order?.payment_method || '—',
+    email: order?.user_email || '—',
+    phone: data.phone || order?.customer_phone || '—',
+    address: data.address || order?.customer_address || '—',
+    city: data.city || order?.customer_city || '—',
+  };
+  // Any remaining template field keys are also addressable directly.
+  Object.entries(data).forEach(([k, v]) => {
+    if (values[k.toLowerCase()] === undefined) values[k.toLowerCase()] = v;
+  });
+  return values;
+};
+
+const applyPlaceholders = (text: string, values: Record<string, string>) =>
+  text.replace(/\{\{\s*([\w.]+)\s*\}\}/g, (match, key: string) => {
+    const v = values[String(key).toLowerCase()];
+    return v !== undefined ? v : match;
+  });
+
+
 const EmailTemplates = () => {
   const [templateId, setTemplateId] = useState(EMAIL_TEMPLATES[0].id);
   const [orderId, setOrderId] = useState<string>(NO_ORDER);
@@ -72,7 +130,7 @@ const EmailTemplates = () => {
       const { data, error } = await supabase
         .from('orders')
         .select(
-          'id, order_code, customer_name, user_email, status, customer_address, customer_city, customer_phone, payment_method',
+          'id, order_code, customer_name, user_email, status, total, customer_address, customer_city, customer_phone, payment_method',
         )
         .order('created_at', { ascending: false })
         .limit(100);
@@ -94,9 +152,16 @@ const EmailTemplates = () => {
   );
 
   const data = useMemo(() => valuesFromOrder(template.defaults, order), [template, order]);
+  const placeholderValues = useMemo(() => buildPlaceholderValues(data, order), [data, order]);
 
-  const overrideSubject = (customSubject[template.id] || '').trim();
-  const overrideMessage = (customMessage[template.id] || '').trim();
+  const overrideSubject = applyPlaceholders(
+    (customSubject[template.id] || '').trim(),
+    placeholderValues,
+  );
+  const overrideMessage = applyPlaceholders(
+    (customMessage[template.id] || '').trim(),
+    placeholderValues,
+  );
 
   const finalSubject = overrideSubject || template.subject(data);
   const renderEmail = (m: EmailMode) =>
@@ -117,6 +182,14 @@ const EmailTemplates = () => {
           m,
         )
       : template.render(data, m);
+
+  const insertPlaceholder = (token: string) =>
+    setCustomMessage((prev) => {
+      const current = prev[template.id] || '';
+      const sep = current && !/\s$/.test(current) ? ' ' : '';
+      return { ...prev, [template.id]: `${current}${sep}{{${token}}}` };
+    });
+
 
   const handleOrderChange = (value: string) => {
     setOrderId(value);
@@ -215,7 +288,9 @@ const EmailTemplates = () => {
             </div>
             <p className="text-xs text-gray-500">
               Leave both fields empty and the default {template.name.toLowerCase()} email is sent as
-              is. Anything you type here replaces the body for this send only.
+              is. Anything you type here replaces the body for this send only. Use placeholders like{' '}
+              <code className="text-brand-green">{'{{customer_name}}'}</code> in the subject or
+              message — they are filled from the selected order automatically.
             </p>
             <Input
               placeholder={template.subject(data)}
@@ -227,13 +302,35 @@ const EmailTemplates = () => {
             />
             <Textarea
               rows={5}
-              placeholder="Write a custom message… (leave empty to send the default template)"
+              placeholder="Hi {{customer_name}}, your order #{{order_number}} is now {{status}}. Amount: {{amount}}."
               value={customMessage[template.id] || ''}
               onChange={(e) =>
                 setCustomMessage((prev) => ({ ...prev, [template.id]: e.target.value }))
               }
               className="bg-gray-900 border-gray-800 text-white"
             />
+            <div className="space-y-2">
+              <p className="text-xs uppercase tracking-wider text-gray-500">
+                Available placeholders — click to insert
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {PLACEHOLDERS.map((p) => (
+                  <button
+                    key={p.token}
+                    type="button"
+                    onClick={() => insertPlaceholder(p.token)}
+                    title={`${p.label} → ${placeholderValues[p.token] ?? ''}`}
+                    className="rounded-md border border-gray-800 bg-gray-900 px-2 py-1 text-xs text-gray-300 hover:border-brand-green hover:text-brand-green transition-colors"
+                  >
+                    {`{{${p.token}}}`}
+                    <span className="ml-2 text-gray-500">
+                      {placeholderValues[p.token] ?? '—'}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
           </div>
 
           <div className="rounded-lg border border-gray-800 bg-gray-950/60 p-4 space-y-3">

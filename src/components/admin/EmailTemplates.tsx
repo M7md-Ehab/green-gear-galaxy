@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { EMAIL_TEMPLATES, type EmailMode } from '@/lib/email-preview';
+import { EMAIL_TEMPLATES, emailLayout, type EmailMode } from '@/lib/email-preview';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Mail, Send, Sun, Moon, Loader2 } from 'lucide-react';
+import { Mail, Send, Sun, Moon, Loader2, Pencil } from 'lucide-react';
+
+const escapeHtml = (v: string) =>
+  v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 const MODES: { mode: EmailMode; label: string; icon: typeof Sun }[] = [
   { mode: 'light', label: 'White mode', icon: Sun },
@@ -59,6 +63,8 @@ const EmailTemplates = () => {
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [recipient, setRecipient] = useState('');
   const [mode, setMode] = useState<EmailMode>('light');
+  const [customSubject, setCustomSubject] = useState<Record<string, string>>({});
+  const [customMessage, setCustomMessage] = useState<Record<string, string>>({});
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
@@ -89,6 +95,29 @@ const EmailTemplates = () => {
 
   const data = useMemo(() => valuesFromOrder(template.defaults, order), [template, order]);
 
+  const overrideSubject = (customSubject[template.id] || '').trim();
+  const overrideMessage = (customMessage[template.id] || '').trim();
+
+  const finalSubject = overrideSubject || template.subject(data);
+  const renderEmail = (m: EmailMode) =>
+    overrideMessage
+      ? emailLayout(
+          {
+            eyebrow: template.name,
+            title: overrideSubject || template.subject(data),
+            preheader: overrideSubject || template.subject(data),
+            content: escapeHtml(overrideMessage)
+              .split(/\n{2,}/)
+              .map(
+                (block) =>
+                  `<p style="margin:0 0 18px;font-size:15px;line-height:24px;">${block.replace(/\n/g, '<br>')}</p>`,
+              )
+              .join(''),
+          },
+          m,
+        )
+      : template.render(data, m);
+
   const handleOrderChange = (value: string) => {
     setOrderId(value);
     const picked = orders.find((o) => o.id === value);
@@ -104,10 +133,12 @@ const EmailTemplates = () => {
     setSending(true);
     try {
       const { error } = await supabase.functions.invoke('send-email', {
-        body: { to, subject: template.subject(data), html: template.render(data, mode) },
+        body: { to, subject: finalSubject, html: renderEmail(mode) },
       });
       if (error) throw error;
-      toast.success(`"${template.name}" sent to ${to}`);
+      toast.success(
+        `${overrideMessage ? 'Custom email' : `"${template.name}"`} sent to ${to}`,
+      );
     } catch (err: any) {
       console.error('Send email failed:', err);
       toast.error(err?.message || 'Failed to send email');
@@ -178,6 +209,34 @@ const EmailTemplates = () => {
           </div>
 
           <div className="rounded-lg border border-gray-800 bg-gray-950/60 p-4 space-y-3">
+            <div className="flex items-center gap-2 text-sm text-gray-300">
+              <Pencil className="h-4 w-4 text-brand-green" />
+              Custom message for "{template.name}" (optional)
+            </div>
+            <p className="text-xs text-gray-500">
+              Leave both fields empty and the default {template.name.toLowerCase()} email is sent as
+              is. Anything you type here replaces the body for this send only.
+            </p>
+            <Input
+              placeholder={template.subject(data)}
+              value={customSubject[template.id] || ''}
+              onChange={(e) =>
+                setCustomSubject((prev) => ({ ...prev, [template.id]: e.target.value }))
+              }
+              className="bg-gray-900 border-gray-800 text-white"
+            />
+            <Textarea
+              rows={5}
+              placeholder="Write a custom message… (leave empty to send the default template)"
+              value={customMessage[template.id] || ''}
+              onChange={(e) =>
+                setCustomMessage((prev) => ({ ...prev, [template.id]: e.target.value }))
+              }
+              className="bg-gray-900 border-gray-800 text-white"
+            />
+          </div>
+
+          <div className="rounded-lg border border-gray-800 bg-gray-950/60 p-4 space-y-3">
             <div className="grid gap-2 sm:grid-cols-2">
               {Object.entries(data).map(([k, v]) => (
                 <p key={k} className="text-xs text-gray-500 truncate">
@@ -186,7 +245,7 @@ const EmailTemplates = () => {
               ))}
             </div>
             <p className="text-xs text-gray-500">
-              Subject: <span className="text-gray-300">{template.subject(data)}</span>
+              Subject: <span className="text-gray-300">{finalSubject}</span>
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <Select value={mode} onValueChange={(v) => setMode(v as EmailMode)}>
@@ -223,7 +282,7 @@ const EmailTemplates = () => {
                 <div className="rounded-lg overflow-hidden border border-gray-800 bg-white">
                   <iframe
                     title={`${template.name} ${label}`}
-                    srcDoc={template.render(data, m)}
+                    srcDoc={renderEmail(m)}
                     className="w-full h-[760px] border-0"
                   />
                 </div>
